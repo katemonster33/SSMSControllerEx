@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"ssms.controller"},{"l":"ssms.controller.ai.battle"},{"l":"ssms.controller.inputScreens"},{"l":"ssms.controller.steering"}];updateSearchResults();

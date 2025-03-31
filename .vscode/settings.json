@@ -1,0 +1,33 @@
+{
+    "java.project.referencedLibraries": [
+        "/home/katie/starsector/mods/LunaLib/jars/LunaLib.jar",
+        "/home/katie/starsector/mods/LunaLib/jars/LunaLib-Kotlin.jar",
+        "/home/katie/starsector/commons-compiler.jar",
+        "/home/katie/starsector/commons-compiler-jdk.jar",
+        "/home/katie/starsector/fs.common_obf.jar",
+        "/home/katie/starsector/fs.sound_obf.jar",
+        "/home/katie/starsector/janino.jar",
+        "/home/katie/starsector/jinput.jar",
+        "/home/katie/starsector/jogg-0.0.7.jar",
+        "/home/katie/starsector/jorbis-0.0.15.jar",
+        "/home/katie/starsector/json.jar",
+        "/home/katie/starsector/log4j-1.2.9.jar",
+        "/home/katie/starsector/lwjgl.jar",
+        "/home/katie/starsector/lwjgl_util.jar",
+        "/home/katie/starsector/txw2-3.0.2.jar",
+        "/home/katie/starsector/xstream-1.4.10.jar",
+        "/home/katie/starsector/starfarer.api.jar",
+        "/home/katie/starsector/starfarer_obf.jar"
+    ],
+    "java.project.sourcePaths": [
+        "src"
+    ],
+    "java.project.outputPath": "jars",
+    "java.configuration.runtimes": [
+    {
+      "name":"JavaSE-17",
+      "path":"/usr/lib/jvm/java-17-openjdk-amd64",
+      "default":true
+    }
+]
+}

@@ -17,21 +17,11 @@
  */
 package ssms.controller;
 
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * Stores information on how to interpret game controller signals.
- * 
+ *
  * @author Malte Schulze
  */
-public class ControllerMapping {
-    public String deviceName;
-    public float axisBtnConversionDeadzone = 0.85f, joystickDeadzone = 0.25f;
-    public Map<String,Object> customProperties = new HashMap<>();
-    public EnumMap<Indicators,String> indicators;
-    
-    public String axisLeftStickX, axisLeftStickY, axisRightStickX, axisRightStickY, axisTrigger;
-    public Integer btnA, btnB, btnX, btnY, btnBumperLeft, btnBumperRight, btnStart, btnSelect, btnLeftStick, btnRightStick;
+public enum Indicators {
+    A,B,X,Y,BumperLeft,BumperRight,Start,Select,LeftStickButton,RightStickButton,RightStickUp,RightStickDown,RightStickLeft,RightStickRight,
+    LeftStickUp,LeftStickDown,LeftStickLeft,LeftStickRight,LeftStick,RightStick, LeftTrigger, RightTrigger
 }

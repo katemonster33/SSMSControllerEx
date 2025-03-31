@@ -1,15 +1,14 @@
 {
-	"id":"SSMSController",
-	"author":"Malte Schulze",
-	"name":"20 SSMS Controller",
-	"version":"1.3",
-	"description":"This mod allows the use of a controller during battles. Requires the mod SSMS QoL and the tool SSMS Unlock.",
-	"gameVersion":"0.97a-RC11",
+	"id":"SSMSControllerEx",
+	"author":"Katie McKean",
+	"name":"SSMS Controller EX",
+	"version":"1.0",
+	"description":"This mod allows the use of a controller during battles. Requires LunaLib.",
+	"gameVersion":"0.98a-RC5",
 	"jars":["jars/SSMSController.jar"],
-	"modPlugin":"ssms.controller.SSMSControllerModPlugin",
-	"loadAfter":["SSMSQoL"],
+	"modPlugin":"ssms.controller.SSMSControllerModPluginEx",
 	"dependencies":[
-		{"id":"SSMSQoL", "name":"SSMS QoL", "version":{"major":1, "minor":5}},
-	],
-	"dependenciesCustom":[{"id":"SSMSQoL","min":"1.5.0"}]
+		{ "id": "lw_lazylib", "name": "LazyLib" },
+		{ "id": "lunalib", "name": "LunaLib" }
+	]
 }
