@@ -1,0 +1,41 @@
+<component name="libraryTable">
+  <library name="starfarer.api">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../starsector/starfarer.api.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/json.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/unlock.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/fs.common_obf.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/jogg-0.0.7.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/commons-compiler.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/jinput.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/log4j-1.2.9.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/jorbis-0.0.15.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/commons-compiler-jdk.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/lwjgl_util.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/jaxb-api-2.4.0-b180830.0359.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/xstream-1.4.10.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/lwjgl.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/janino.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/fs.sound_obf.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/txw2-3.0.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/starfarer_obf.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/webp-imageio-0.1.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/mods/LunaLib/jars/LunaLib-Kotlin.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/mods/LunaLib/jars/LunaLib.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/mods/LazyLib/jars/internal/Kotlin-Runtime.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/mods/LazyLib/jars/LazyLib.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/mods/LazyLib/jars/internal/LazyLib-Console.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/mods/LazyLib/jars/LazyLib-Kotlin.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="https://fractalsoftworks.com/starfarer.api/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../starsector/starfarer.api.zip!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/jaxb-api-2.4.0-b180830.0359-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/mods/LazyLib/jars/LazyLib.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/mods/LazyLib/jars/LazyLib.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/mods/LazyLib/jars/LazyLib-Kotlin.jar!/" />
+    </SOURCES>
+  </library>
+</component>
