@@ -38,18 +38,64 @@ public class HandlerController {
     public float axisBtnConversionDeadzone, joystickDeadzone;
     protected Vector2f leftStick = new Vector2f();
     protected Vector2f rightStick = new Vector2f();
+    protected Vector2f dpad = new Vector2f();
     protected boolean[] btnStates;
     protected int[] btnEvents;
     public enum Buttons {
         A,B,X,Y,BumperLeft,BumperRight,Start,Select,LeftStickButton,RightStickButton,RightStickUp,RightStickDown,RightStickLeft,RightStickRight,
-        LeftStickUp,LeftStickDown,LeftStickLeft,LeftStickRight,LeftTrigger,RightTrigger
+        LeftStickUp,LeftStickDown,LeftStickLeft,LeftStickRight,LeftTrigger,RightTrigger,DpadLeft,DpadRight,DpadUp,DpadDown
     }
     
-    protected int axisLeftStickX, axisLeftStickY, axisRightStickX, axisRightStickY, axisTrigger, 
+    protected int axisLeftStickX, axisLeftStickY, axisRightStickX, axisRightStickY, axisTrigger, axisDpadX, axisDpadY,
             btnA, btnB, btnX, btnY, btnBumperLeft, btnBumperRight, btnStart, btnSelect, btnLeftStick, btnRightStick;
 
     public HandlerController() {
         this(new ControllerAdapter(), null);
+    }
+
+    String getAxisName(AxisId axisId)
+    {
+        switch(axisId) 
+        {
+            case XAxis:
+                return "X Axis";
+            case YAxis:
+                return "Y Axis";
+            case ZAxis:
+                return "Z Axis";
+            case ZRotation:
+                return "Z Rotation";
+            case XRotation:
+                return "X Rotation";
+            case YRotation:
+                return "Y Rotation";
+            default:
+                return null;
+        }
+    }
+
+    int getAxisIndex(AxisId axisId, Map<String,Integer> axisIndices, int axisCount)
+    {
+        if(axisId == null)
+        {
+            return -1;
+        }
+        switch(axisId)
+        {
+            default:
+                String axisName = getAxisName(axisId);
+                if(axisName != null) {
+                    return getIndexCoercingNull(axisIndices.get(axisName), axisCount);
+                }
+                return -1;
+
+            case POVX:
+            case POVY:
+                return 0xFF;
+
+            case None:
+                return -1;
+        }
     }
 
     public HandlerController(Controller controller, ControllerMapping mapping) {
@@ -61,11 +107,13 @@ public class HandlerController {
         }
         
         if ( mapping != null ) {
-            axisLeftStickX = getIndexCoercingNull(axisIndices.get(mapping.axisLeftStickX),controller.getAxisCount());
-            axisLeftStickY = getIndexCoercingNull(axisIndices.get(mapping.axisLeftStickY),controller.getAxisCount());
-            axisRightStickX = getIndexCoercingNull(axisIndices.get(mapping.axisRightStickX),controller.getAxisCount());
-            axisRightStickY = getIndexCoercingNull(axisIndices.get(mapping.axisRightStickY),controller.getAxisCount());
-            axisTrigger = getIndexCoercingNull(axisIndices.get(mapping.axisTrigger),controller.getAxisCount());
+            axisLeftStickX = getAxisIndex(mapping.axisIdLX, axisIndices, controller.getAxisCount());
+            axisLeftStickY = getAxisIndex(mapping.axisIdLY, axisIndices, controller.getAxisCount());
+            axisRightStickX = getAxisIndex(mapping.axisIdRX, axisIndices, controller.getAxisCount());
+            axisRightStickY = getAxisIndex(mapping.axisIdRY, axisIndices, controller.getAxisCount());
+            axisDpadX = getAxisIndex(mapping.axisIdDpadX, axisIndices, controller.getAxisCount());
+            axisDpadY = getAxisIndex(mapping.axisIdDpadY, axisIndices, controller.getAxisCount());
+            axisTrigger = getAxisIndex(mapping.axisIdLT, axisIndices, controller.getAxisCount());
             
             btnA = getIndexCoercingNull(mapping.btnA,controller.getButtonCount());
             btnB = getIndexCoercingNull(mapping.btnB,controller.getButtonCount());
@@ -81,28 +129,28 @@ public class HandlerController {
             this.axisBtnConversionDeadzone = mapping.axisBtnConversionDeadzone;
             this.joystickDeadzone = mapping.joystickDeadzone * mapping.joystickDeadzone;
         } else {
-            axisLeftStickX = axisLeftStickY = axisRightStickX = axisRightStickY = axisTrigger = 
+            axisLeftStickX = axisLeftStickY = axisRightStickX = axisRightStickY = axisTrigger = axisDpadX = axisDpadY =
                 btnA = btnB = btnX = btnY = btnBumperLeft = btnBumperRight = btnStart = btnSelect = btnLeftStick = btnRightStick = -1;
 
             this.axisBtnConversionDeadzone = 0.85f;
             this.joystickDeadzone = 0.0625f;
         }
         
-        if ( axisLeftStickX >= 0 ) {
-            controller.setDeadZone(axisLeftStickX, 0f);
-        }
-        if ( axisLeftStickY >= 0 ) {
-            controller.setDeadZone(axisLeftStickY, 0f);
-        }
-        if ( axisRightStickX >= 0 ) {
-            controller.setDeadZone(axisLeftStickX, 0f);
-        }
-        if ( axisRightStickY >= 0 ) {
-            controller.setDeadZone(axisLeftStickY, 0f);
-        }
-        if ( axisTrigger >= 0 ) {
-            controller.setDeadZone(axisTrigger, 0f);
-        }
+        // if ( axisLeftStickX >= 0 ) {
+        //     controller.setDeadZone(axisLeftStickX, 0f);
+        // }
+        // if ( axisLeftStickY >= 0 ) {
+        //     controller.setDeadZone(axisLeftStickY, 0f);
+        // }
+        // if ( axisRightStickX >= 0 ) {
+        //     controller.setDeadZone(axisLeftStickX, 0f);
+        // }
+        // if ( axisRightStickY >= 0 ) {
+        //     controller.setDeadZone(axisLeftStickY, 0f);
+        // }
+        // if ( axisTrigger >= 0 ) {
+        //     controller.setDeadZone(axisTrigger, 0f);
+        // }
         
         btnStates = new boolean[controller.getButtonCount()+controller.getAxisCount()*2];
         Arrays.fill(btnStates, false);
@@ -155,7 +203,6 @@ public class HandlerController {
                     btnEvents[i] = 0;
                 }
             }
-            
             pressed = this.controller.getAxisValue(j) >= axisBtnConversionDeadzone;
             i++;
             if ( pressed ) {
@@ -198,6 +245,10 @@ public class HandlerController {
             case LeftStickRight: return getBtnEvent(axisLeftStickX,controller.getButtonCount()+1);
             case LeftTrigger: return getBtnEvent(axisTrigger,controller.getButtonCount());
             case RightTrigger: return getBtnEvent(axisTrigger,controller.getButtonCount()+1);
+            case DpadUp: return getBtnEvent(axisDpadY, controller.getButtonCount());
+            case DpadDown: return getBtnEvent(axisDpadY, controller.getButtonCount() + 1);
+            case DpadLeft: return getBtnEvent(axisDpadX, controller.getButtonCount());
+            case DpadRight: return getBtnEvent(axisDpadX, controller.getButtonCount() + 1);
         }
         return 0;
     }
@@ -265,6 +316,46 @@ public class HandlerController {
     
     public boolean isRightStickDown() {
         return axisRightStickY >= 0 ? controller.getAxisValue(axisRightStickY) <= -axisBtnConversionDeadzone : false;
+    }
+
+    
+    public ReadableVector2f getDpad() {
+        //TODO we could clamp the steering to something like 120 distinct values so that the directional input is more stable.
+        //custom deadzone that takes into account the length of the vector to determine if it should be zero. That way we can steer with full precision in 360° 
+        //but ignore a poorly resting joystick.
+        if(axisDpadX >= 0)
+        {
+            if(axisDpadX == 0xFF) dpad.x = controller.getPovX();
+            else dpad.x = controller.getAxisValue(axisDpadX);
+        }
+        if(axisDpadY >= 0)
+        {
+            if(axisDpadY == 0xFF) dpad.y = controller.getPovY();
+            else dpad.y = controller.getAxisValue(axisDpadY);
+        }
+        dpad.x = axisLeftStickX >= 0 ? controller.getAxisValue(axisLeftStickX) : 0f;
+        dpad.y = axisLeftStickY >= 0 ? -controller.getAxisValue(axisLeftStickY) : 0f;
+        return leftStick;
+    }
+    
+    public boolean isDpadLeft() {
+        var dpadVal = getDpad();
+        return dpadVal.getX() < 0;
+    }
+    
+    public boolean isDpadRight() {
+        var dpadVal = getDpad();
+        return dpadVal.getX() > 0;
+    }
+    
+    public boolean isDpadkUp() {
+        var dpadVal = getDpad();
+        return dpadVal.getY() > 0;
+    }
+    
+    public boolean isDpadDown() {
+        var dpadVal = getDpad();
+        return dpadVal.getY() < 0;
     }
     
     public float getTrigger() {

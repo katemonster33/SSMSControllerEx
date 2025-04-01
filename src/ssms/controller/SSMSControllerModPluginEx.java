@@ -22,8 +22,6 @@ import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Level;
@@ -42,7 +40,7 @@ import org.lwjgl.input.Controllers;
 public final class SSMSControllerModPluginEx extends BaseModPlugin {
     public static final String modId = "SSMSControllerEx";
     static public HandlerController controller = new HandlerController();
-    static public List<ControllerMapping> controllerMappings;
+    static public HashMap<String, ControllerMapping> controllerMappings;
     static public EnumMap<Indicators,SpriteAPI> defaultIndicators;
     
     @Override
@@ -73,7 +71,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
             Global.getLogger(this.getClass()).log(Level.DEBUG, "no settings!!!");
             return;
         }
-        var controllerMappings = configureControllerMappings(obj.getJSONObject("controllerMappings"));
+        controllerMappings = configureControllerMappings(obj.getJSONObject("controllerMappings"));
         var indicatorsByController = configureSettingsApplicationController(obj.getJSONObject("graphics"));
         var xbox360Indicators = indicatorsByController.get("xbox360");
         var xbox360 = controllerMappings.get("Controller (XBOX 360 For Windows)(5,10)");
@@ -125,12 +123,15 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                     JSONObject deviceAxes = deviceMappings.getJSONObject("axes");
 
                     if(deviceAxes != null) {
-                        newMapping.axisLeftStickX = deviceAxes.getString("LeftStickX");
-                        newMapping.axisLeftStickY = deviceAxes.getString("LeftStickY");
-                        newMapping.axisRightStickX = deviceAxes.getString("RightStickX");
-                        newMapping.axisRightStickY = deviceAxes.getString("RightStickY");
-                        newMapping.axisTrigger = deviceAxes.getString("LeftTrigger");
+                        if(deviceAxes.has("LeftStickX")) newMapping.axisIdLX = Enum.valueOf(AxisId.class, deviceAxes.getString("LeftStickX"));
+                        if(deviceAxes.has("LeftStickY")) newMapping.axisIdLY = Enum.valueOf(AxisId.class, deviceAxes.getString("LeftStickY"));
+                        if(deviceAxes.has("RightStickX")) newMapping.axisIdRX = Enum.valueOf(AxisId.class, deviceAxes.getString("RightStickX"));
+                        if(deviceAxes.has("RightStickY")) newMapping.axisIdRY = Enum.valueOf(AxisId.class, deviceAxes.getString("RightStickY"));
+                        if(deviceAxes.has("LeftTrigger")) newMapping.axisIdLT = Enum.valueOf(AxisId.class, deviceAxes.getString("LeftTrigger"));
+                        if(deviceAxes.has("RightTrigger")) newMapping.axisIdRT = Enum.valueOf(AxisId.class, deviceAxes.getString("RightTrigger"));
                         //newMapping.axisRightStickY = deviceAxes.getString("RightStickY");
+                        if(deviceAxes.has("DPadX")) newMapping.axisIdDpadX = Enum.valueOf(AxisId.class, deviceAxes.getString("DPadX"));
+                        if(deviceAxes.has("DPadY")) newMapping.axisIdDpadY = Enum.valueOf(AxisId.class, deviceAxes.getString("DPadY"));
                     }
                     output.put(deviceName, newMapping);
                 }
@@ -140,6 +141,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         }
         return output;
     }
+
     protected HashMap<String, EnumMap<Indicators, SpriteAPI>> configureSettingsApplicationController(JSONObject graphicsObject) {
         HashMap<String, EnumMap<Indicators, SpriteAPI>> output = new HashMap<>();
         try {
@@ -217,21 +219,21 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
             }
         }
         if ( controllerMappings != null ) {
-            Map<String,Controller> namedControllers = new HashMap<>();
             for ( int i = 0; i < Controllers.getControllerCount(); i++ ) {
                 Controller con = Controllers.getController(i);
-                namedControllers.put(new StringBuilder(con.getName()).append("(").append(con.getAxisCount()).append(",").append(con.getButtonCount()).append(")").toString(), con);
-            }
-            for ( ControllerMapping mapping : controllerMappings ) {
-                Controller con = namedControllers.get(mapping.deviceName);
-                if ( con != null ) {
+                String conName = new StringBuilder(con.getName()).append("(").append(con.getAxisCount()).append(",").append(con.getButtonCount()).append(")").toString();
+                ControllerMapping conMap = controllerMappings.get(conName);
+                if ( conMap != null ) {
                     con.poll();
-                    controller = new HandlerController(con,mapping);
+                    controller = new HandlerController(con, conMap);
+                    Global.getLogger(SSMSControllerModPluginEx.class).log(Level.INFO, "Identified controller [" + con.getName() + "], mappings associated successfully!");
                     break;
                 }
             }
         }
-        if ( controller == null ) controller = new HandlerController();
-        controller.poll();
+        if ( controller == null ) {
+            controller = new HandlerController();
+            controller.poll();
+        } 
     }
 }

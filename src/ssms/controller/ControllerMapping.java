@@ -34,6 +34,7 @@ public class ControllerMapping {
     public Map<String,Object> customProperties = new HashMap<>();
     public EnumMap<Indicators, SpriteAPI> indicators;
     
-    public String axisLeftStickX, axisLeftStickY, axisRightStickX, axisRightStickY, axisTrigger;
+    public AxisId axisIdLX, axisIdLY, axisIdRX, axisIdRY, axisIdLT, axisIdRT, axisIdDpadX, axisIdDpadY;
+    public Integer axisIndexLX, axisIndexLY, axisIndexRX, axisIndexRY, axisIndexLT, axisIndexRT, axisIndexDpadX, axisIndexDpadY;
     public Integer btnA, btnB, btnX, btnY, btnBumperLeft, btnBumperRight, btnStart, btnSelect, btnLeftStick, btnRightStick, btnLeftTrigger, btnRightTrigger;
 }

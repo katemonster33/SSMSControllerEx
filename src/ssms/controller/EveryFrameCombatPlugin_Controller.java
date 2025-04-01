@@ -17,13 +17,29 @@
  */
 package ssms.controller;
 
+import com.fs.starfarer.api.Global;
 //import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
+import com.fs.starfarer.combat.CombatState;
+import com.fs.state.AppDriver;
+
+import lunalib.backend.ui.components.base.LunaUIButton;
+import lunalib.lunaUI.LunaUIUtils;
+
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.log4j.Level;
+
+import java.awt.*;
 //import org.apache.log4j.Level;
 
 /**
@@ -34,6 +50,7 @@ import java.util.List;
 public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugin {
     protected CombatEngineAPI engine;
     protected float nextLog;
+    public static Robot T1000 = null;
     protected boolean wasShowingWarroom = false, skipFrame = true;
 
     public EveryFrameCombatPlugin_Controller() {
@@ -46,7 +63,11 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
         this.engine = engine;
         nextLog = 0;
         skipFrame = true;
-        
+        try {
+            T1000 = new Robot();
+        } catch(AWTException awte) {
+            Global.getLogger(getClass()).log(Level.ERROR, "Failed to initialize the robot, mod cannot function!");
+        }
         if ( engine != null && engine.getContext() != null && (engine.isSimulation() || engine.getCombatUI() != null)
                 && SSMSControllerModPluginEx.controller != null && SSMSControllerModPluginEx.controller.mapping != null ) {
             
@@ -65,10 +86,52 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
     public void processInputPreCoreControls(float amount, List<InputEventAPI> events) {
         
     }
+    // UIPanelAPI getScreenPanel()
+    // {
+    //     TitleScreenState titlescreen  = (TitleScreenState)AppDriver.getInstance().getCurrentState();
+
+    //     var methodClass = Class.forName("java.lang.reflect.Method", false, ClassLoader.getSystemClassLoader());
+    //     var getNameMethod = MethodHandles.lookup().findVirtual(methodClass, "getName", MethodType.methodType(String.class));
+    //     var invokeMethod = MethodHandles.lookup().findVirtual(methodClass, "invoke", MethodType.methodType(Object.class, Object.class, Object[].class));
+        
+    //     Method foundMethod = null;
+    //     var methods = titlescreen.getClass().getMethods();
+    //     for(int index = 0; index < methods.length; index++)
+    //     {
+    //         if (getNameMethod.invoke(methods[index]) == "getScreenPanel")
+    //         {
+    //             foundMethod = methods[index];
+    //         }
+    //     }
+
+    //     return (UIPanelAPI)invokeMethod.invoke(foundMethod, titlescreen);
+    // }
     
     @Override
     public void advance(float amount, List<InputEventAPI> events) {
-        
+        if(SSMSControllerModPluginEx.controller != null) {
+            SSMSControllerModPluginEx.controller.poll();
+            switch(Global.getCurrentState())
+            {
+                case TITLE:
+                    if(SSMSControllerModPluginEx.controller.isButtonAPressed()) {
+                        T1000.mouseMove(200, 100);
+                    } else if(SSMSControllerModPluginEx.controller.isButtonBPressed()) {
+                        T1000.mouseMove(250, 80);
+                    } else if(SSMSControllerModPluginEx.controller.isButtonYPressed()) {
+                        T1000.mouseMove(300, 80);
+                    } else if(SSMSControllerModPluginEx.controller.isButtonXPressed()) {
+                        T1000.mouseMove(350, 100);
+                    }
+                    break;
+                case CAMPAIGN:
+                    //Global.getSector().
+                    break;
+                case COMBAT:
+                    break;
+
+            }
+        }
     }
 
     @Override

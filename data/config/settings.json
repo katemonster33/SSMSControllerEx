@@ -17,12 +17,14 @@
 				"RightStickButton"
 			],
 			"axes" : {
-				"LeftStickX": "X Axis",
-				"LeftStickY": "Y Axis",
-				"RightStickX": "X Rotation",
-				"RightStickY": "Y Rotation",
-				"LeftTrigger": "Z Axis",
-				"RightTrigger": "Z Rotation"
+				"LeftStickX": "XAxis",
+				"LeftStickY": "YAxis",
+				"RightStickX": "XRotation",
+				"RightStickY": "YRotation",
+				"LeftTrigger": "ZAxis",
+				"RightTrigger": "ZRotation",
+				"DPadX" : "POVX",
+				"DPadY" : "POVY"
 			},
 			"indicatorProfile" : "xbox360"
 		},
@@ -37,17 +39,46 @@
 				"Select",
 				"Start",
 				"LeftStickButton",
-				"RightStickButton"
+				"RightStickButton",
+				"LeftTrigger",
+				"RightTrigger"
 			],
 			"axes" : {
-				"LeftStickX": "X Axis",
-				"LeftStickY": "Y Axis",
-				"RightStickX": "X Rotation",
-				"RightStickY": "Y Rotation",
-				"LeftTrigger": "Z Axis",
-				"RightTrigger": "Z Rotation"
+				"LeftStickX": "XAxis",
+				"LeftStickY": "YAxis",
+				"RightStickX": "XRotation",
+				"RightStickY": "YRotation",
+				"DPadX" : "POVX",
+				"DPadY" : "POVY"
 			},
 			"indicatorProfile" : "xbox360"
+		},
+		"Wireless Controller(6,14)" : {
+			"buttons" : [
+				"X",
+				"A",
+				"B",
+				"Y",
+				"BumperLeft",
+				"BumperRight",
+				"LeftTrigger",
+				"RightTrigger",
+				"Select",
+				"Start",
+				"LeftStickButton",
+				"RightStickButton",
+				"HomeButton",
+				"ExtraButton1"
+			],
+			"axes" : {
+				"LeftStickX": "XAxis",
+				"LeftStickY": "YAxis",
+				"RightStickX": "XRotation",
+				"RightStickY": "YRotation",
+				"DPadX" : "POVX",
+				"DPadY" : "POVY"
+			},
+			"indicatorProfile" : "ps4"
 		}
 	},
 	"graphics":{
