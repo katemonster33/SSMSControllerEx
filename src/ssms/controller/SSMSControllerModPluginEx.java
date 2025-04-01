@@ -20,7 +20,6 @@ package ssms.controller;
 import lunalib.lunaSettings.LunaSettings;
 import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
-import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -49,41 +48,42 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
     @Override
     public void onApplicationLoad() throws Exception {
         LunaSettings.getString(modId, "controllerMapping");
-        ControllerMapping xbox360 = new ControllerMapping();
-        xbox360.btnA = 0;
-        xbox360.btnB = 1;
-        xbox360.btnX = 2;
-        xbox360.btnY = 3;
-        xbox360.btnBumperLeft = 4;
-        xbox360.btnBumperRight = 5;
-        xbox360.btnSelect = 6;
-        xbox360.btnStart = 7;
-        xbox360.btnLeftStick = 8;
-        xbox360.btnRightStick = 9;
-        xbox360.axisLeftStickX = "X Axis";
-        xbox360.axisLeftStickY = "Y Axis";
-        xbox360.axisRightStickX = "X Rotation";
-        xbox360.axisRightStickY = "Y Rotation";
-        xbox360.axisTrigger = "Z Axis";
-        xbox360.axisBtnConversionDeadzone = 0.85f;
-        xbox360.joystickDeadzone = 0.25f;
-        xbox360.deviceName = "Controller (XBOX 360 For Windows)(5,10)";
-        xbox360.indicators = new EnumMap<>(Indicators.class);
+        // ControllerMapping xbox360 = new ControllerMapping();
+        // xbox360.btnA = 0;
+        // xbox360.btnB = 1;
+        // xbox360.btnX = 2;
+        // xbox360.btnY = 3;
+        // xbox360.btnBumperLeft = 4;
+        // xbox360.btnBumperRight = 5;
+        // xbox360.btnSelect = 6;
+        // xbox360.btnStart = 7;
+        // xbox360.btnLeftStick = 8;
+        // xbox360.btnRightStick = 9;
+        // xbox360.axisLeftStickX = "X Axis";
+        // xbox360.axisLeftStickY = "Y Axis";
+        // xbox360.axisRightStickX = "X Rotation";
+        // xbox360.axisRightStickY = "Y Rotation";
+        // xbox360.axisTrigger = "Z Axis";
+        // xbox360.axisBtnConversionDeadzone = 0.85f;
+        // xbox360.joystickDeadzone = 0.25f;
+        // xbox360.deviceName = "Controller (XBOX 360 For Windows)(5,10)";
+        // xbox360.indicators = new EnumMap<>(Indicators.class);
         JSONObject obj = Global.getSettings().loadJSON("data/config/settings.json", "SSMSControllerEx");
         if(obj == null) {
             Global.getLogger(this.getClass()).log(Level.DEBUG, "no settings!!!");
             return;
         }
-
+        var controllerMappings = configureControllerMappings(obj.getJSONObject("controllerMappings"));
         var indicatorsByController = configureSettingsApplicationController(obj.getJSONObject("graphics"));
         var xbox360Indicators = indicatorsByController.get("xbox360");
-        if(xbox360Indicators != null) {
+        var xbox360 = controllerMappings.get("Controller (XBOX 360 For Windows)(5,10)");
+        if(xbox360Indicators != null && xbox360 != null) {
             xbox360.indicators = xbox360Indicators;
         } 
         defaultIndicators = xbox360.indicators;
         
-        if ( controllerMappings == null ) controllerMappings = new ArrayList<>();
-        controllerMappings.add(xbox360);
+        // if ( controllerMappings == null ) controllerMappings = new ArrayList<>();
+        // controllerMappings.add(xbox360);
         reconnectController();
         
     }
@@ -98,6 +98,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                     Global.getLogger(getClass()).log(Level.ERROR, "Failed to parse controller mappings for " + deviceName);
                 } else {
                     ControllerMapping newMapping = new ControllerMapping();
+                    newMapping.deviceName = deviceName;
                     JSONArray deviceButtons = deviceMappings.getJSONArray("buttons");
 
                     if(deviceButtons != null) {
@@ -121,29 +122,17 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                             }
                         }
                     }
-                    JSONArray deviceAxes = deviceMappings.getJSONArray("axes");
+                    JSONObject deviceAxes = deviceMappings.getJSONObject("axes");
 
                     if(deviceAxes != null) {
-                        for(int axisIdx = 0; axisIdx < deviceAxes.length(); axisIdx++) {
-                            String axisName = deviceAxes.getString(btnIdx);
-
-                            switch(axisName)
-                            {
-                                case "A":                   newMapping.btnA = btnIdx; break;
-                                case "B":                   newMapping.btnB = btnIdx; break;
-                                case "X":                   newMapping.btnX = btnIdx; break;
-                                case "Y":                   newMapping.btnY = btnIdx; break;
-                                case "BumperLeft":          newMapping.btnBumperLeft = btnIdx; break;
-                                case "BumperRight":         newMapping.btnBumperRight = btnIdx; break;
-                                case "Select" :             newMapping.btnSelect = btnIdx; break;
-                                case "Start" :              newMapping.btnStart = btnIdx; break;
-                                case "LeftStickButton":     newMapping.btnLeftStick = btnIdx; break;
-                                case "RightStickButton":    newMapping.btnRightStick = btnIdx; break;
-                                case "LeftTrigger":         newMapping.btnLeftTrigger = btnIdx; break;
-                                case "RightTrigger":        newMapping.btnRightTrigger = btnIdx; break;
-                            }
-                        }
+                        newMapping.axisLeftStickX = deviceAxes.getString("LeftStickX");
+                        newMapping.axisLeftStickY = deviceAxes.getString("LeftStickY");
+                        newMapping.axisRightStickX = deviceAxes.getString("RightStickX");
+                        newMapping.axisRightStickY = deviceAxes.getString("RightStickY");
+                        newMapping.axisTrigger = deviceAxes.getString("LeftTrigger");
+                        //newMapping.axisRightStickY = deviceAxes.getString("RightStickY");
                     }
+                    output.put(deviceName, newMapping);
                 }
             }
         } catch(JSONException je) {

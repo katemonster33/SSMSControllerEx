@@ -16,14 +16,14 @@
 				"LeftStickButton",
 				"RightStickButton"
 			],
-			"axes" : [
-				"LeftX",
-				"LeftY",
-				"RightX",
-				"RightY",
-				"LeftTrigger",
-				"RightTrigger"
-			],
+			"axes" : {
+				"LeftStickX": "X Axis",
+				"LeftStickY": "Y Axis",
+				"RightStickX": "X Rotation",
+				"RightStickY": "Y Rotation",
+				"LeftTrigger": "Z Axis",
+				"RightTrigger": "Z Rotation"
+			},
 			"indicatorProfile" : "xbox360"
 		},
 		"Nintendo Co., Ltd. Pro Controller (IMU)" : {
@@ -39,14 +39,14 @@
 				"LeftStickButton",
 				"RightStickButton"
 			],
-			"axes" : [
-				"LeftX",
-				"LeftY",
-				"RightX",
-				"RightY",
-				"LeftTrigger",
-				"RightTrigger"
-			],
+			"axes" : {
+				"LeftStickX": "X Axis",
+				"LeftStickY": "Y Axis",
+				"RightStickX": "X Rotation",
+				"RightStickY": "Y Rotation",
+				"LeftTrigger": "Z Axis",
+				"RightTrigger": "Z Rotation"
+			},
 			"indicatorProfile" : "xbox360"
 		}
 	},

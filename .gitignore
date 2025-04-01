@@ -1,3 +1,5 @@
 /shelf/
 /workspace.xml
 /out
+/.vs
+*.class
