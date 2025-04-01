@@ -48,7 +48,7 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
         skipFrame = true;
         
         if ( engine != null && engine.getContext() != null && (engine.isSimulation() || engine.getCombatUI() != null)
-                && SSMSControllerModPlugin.controller != null && SSMSControllerModPlugin.controller.mapping != null ) {
+                && SSMSControllerModPluginEx.controller != null && SSMSControllerModPluginEx.controller.mapping != null ) {
             
         }
     }

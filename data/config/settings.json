@@ -1,6 +1,54 @@
 {
-	"plugins":{
+	"plugins" : {
 		"SSMSControllerSupport":"ssms.controller.EveryFrameCombatPlugin_Controller"
+	},
+	"controllerMappings" : {
+		"Controller (XBOX 360 For Windows)(5,10)" : {
+			"buttons" : [
+				"A",
+				"B",
+				"X",
+				"Y",
+				"BumperLeft",
+				"BumperRight",
+				"Select",
+				"Start",
+				"LeftStickButton",
+				"RightStickButton"
+			],
+			"axes" : [
+				"LeftX",
+				"LeftY",
+				"RightX",
+				"RightY",
+				"LeftTrigger",
+				"RightTrigger"
+			],
+			"indicatorProfile" : "xbox360"
+		},
+		"Nintendo Co., Ltd. Pro Controller (IMU)" : {
+			"buttons" : [
+				"A",
+				"B",
+				"X",
+				"Y",
+				"BumperLeft",
+				"BumperRight",
+				"Select",
+				"Start",
+				"LeftStickButton",
+				"RightStickButton"
+			],
+			"axes" : [
+				"LeftX",
+				"LeftY",
+				"RightX",
+				"RightY",
+				"LeftTrigger",
+				"RightTrigger"
+			],
+			"indicatorProfile" : "xbox360"
+		}
 	},
 	"graphics":{
 		"xboxone" : {
@@ -25,7 +73,7 @@
 			"LeftStick" : "graphics/indicators/XboxOne_Left_Stick.png",
 			"RightStick" : "graphics/indicators/XboxOne_Right_Stick.png",
 			"LeftTrigger" : "graphics/indicators/XboxOne_LT.png",
-			"RightTrigger" : "graphics/indicators/XboxOne_RT.png",
+			"RightTrigger" : "graphics/indicators/XboxOne_RT.png"
 		},
 		"xbox360" : {
 			"A" : "graphics/indicators/XboxOne_A.png",
@@ -49,7 +97,7 @@
 			"LeftStick" : "graphics/indicators/XboxOne_Left_Stick.png",
 			"RightStick" : "graphics/indicators/XboxOne_Right_Stick.png",
 			"LeftTrigger" : "graphics/indicators/XboxOne_LT.png",
-			"RightTrigger" : "graphics/indicators/XboxOne_RT.png",
+			"RightTrigger" : "graphics/indicators/XboxOne_RT.png"
 		},
 		"ps4" : {
 			"A" : "graphics/indicators/PS4_Cross.png",
@@ -73,7 +121,7 @@
 			"LeftStick" : "graphics/indicators/XboxOne_Left_Stick.png",
 			"RightStick" : "graphics/indicators/XboxOne_Right_Stick.png",
 			"LeftTrigger" : "graphics/indicators/PS4_L2.png",
-			"RightTrigger" : "graphics/indicators/PS4_R2.png",
-		},
+			"RightTrigger" : "graphics/indicators/PS4_R2.png"
+		}
 	}
 }

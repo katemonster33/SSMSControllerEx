@@ -17,6 +17,8 @@
  */
 package ssms.controller;
 
+import com.fs.starfarer.api.graphics.SpriteAPI;
+
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,8 +32,8 @@ public class ControllerMapping {
     public String deviceName;
     public float axisBtnConversionDeadzone = 0.85f, joystickDeadzone = 0.25f;
     public Map<String,Object> customProperties = new HashMap<>();
-    public EnumMap<Indicators,String> indicators;
+    public EnumMap<Indicators, SpriteAPI> indicators;
     
     public String axisLeftStickX, axisLeftStickY, axisRightStickX, axisRightStickY, axisTrigger;
-    public Integer btnA, btnB, btnX, btnY, btnBumperLeft, btnBumperRight, btnStart, btnSelect, btnLeftStick, btnRightStick;
+    public Integer btnA, btnB, btnX, btnY, btnBumperLeft, btnBumperRight, btnStart, btnSelect, btnLeftStick, btnRightStick, btnLeftTrigger, btnRightTrigger;
 }
