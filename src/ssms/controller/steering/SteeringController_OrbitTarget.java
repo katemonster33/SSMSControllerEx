@@ -23,7 +23,6 @@ import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.loading.DamagingExplosionSpec;
 import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.combat.CombatState;
 import com.fs.starfarer.prototype.Utils;
 import com.fs.state.AppDriver;
 import java.util.ArrayList;
@@ -32,9 +31,10 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.HandlerController;
-import ssms.controller.UtilObfuscation.ShipEngineControllerAdapter;
 import ssms.controller.Util_Steering;
 import ssms.controller.inputScreens.Indicators;
+import ssms.controller.reflection.CombatStateReflector;
+import ssms.controller.reflection.ShipEngineControllerReflection;
 
 /**
  *
@@ -125,8 +125,7 @@ public class SteeringController_OrbitTarget extends SteeringController_Base {
         if ( heading.getX() == 0 && heading.getY() == 0 ) {
             heading = Util_Steering.getHeadingFromFacing(ps.getFacing());
         }
-        CombatState cs = (CombatState) AppDriver.getInstance().getState(CombatState.STATE_ID);
-        float zoom = cs.getZoomFactor();
+        float zoom = CombatStateReflector.GetInstance().getZoomFactor();
         
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_BLEND);
@@ -182,7 +181,7 @@ public class SteeringController_OrbitTarget extends SteeringController_Base {
         float maxSpeed = Math.max(1f, stats.getMaxSpeed().getModifiedValue());
         float effectiveAcceleration = Math.max(1f, stats.getAcceleration().getModifiedValue());
         float effectiveDeceleration = Math.max(1f, stats.getDeceleration().getModifiedValue());
-        float effectiveStrafeAcceleration = ShipEngineControllerAdapter.getEffectiveStrafeAcceleration(ps.getEngineController());
+        float effectiveStrafeAcceleration = ShipEngineControllerReflection.getEffectiveStrafeAcceleration(ps.getEngineController());
         
         Vector2f error = getAxisAcceleration(vDesiredHeading, desiredDistance, new Vector2f());
         if ( !allowAcceleration ) error.x = 0;

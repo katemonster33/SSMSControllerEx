@@ -3,16 +3,12 @@ package ssms.controller.reflection;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
 
 import org.apache.log4j.Level;
 
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.combat.ShipSystemSpecAPI;
+import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ShipwideAIFlags;
-import com.fs.starfarer.combat.CombatState;
-import com.fs.starfarer.coreui.refit.returnsuper;
 import com.fs.state.AppDriver;
 
 import ssms.controller.SSMSControllerModPluginEx;
@@ -57,6 +53,15 @@ public class CombatStateReflector {
             FieldReflector.GetInstance().SetVariable(field, cs, true);
         } catch(Throwable ex) {
             Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Couldn't set auto-omni shielding! " + ex.getMessage());
+        }
+    }
+    
+    public void SetVideoFeedToShipTarget(ShipAPI shipTarget) {
+        if ( !InitCombatState() ) return;
+        try {
+            MethodReflector.GetInstance().invoke(mCombatStateSetVideoFeedSource, cs, shipTarget);
+        } catch (Throwable ex) {
+            
         }
     }
 
@@ -149,7 +154,7 @@ public class CombatStateReflector {
     public void HideHud()
     {
         try {
-            Object f = ClassReflector.GetInstance().getDeclaredField(CombatState.class, "hideHud");
+            Object f = ClassReflector.GetInstance().getDeclaredField(cs.getClass(), "hideHud");
             FieldReflector.GetInstance().SetVariable(f, cs, true);
         } catch(Throwable ex) {
             Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Failed to hide HUD! " + ex.getMessage());
@@ -157,19 +162,20 @@ public class CombatStateReflector {
     }
     
     public void SetVideoFeedToPlayerShip() {
-        cs.setVideoFeedSource(null);
-        var methods = ClassReflector.GetInstance().getDeclaredMethods(cs.getViewMouseOffset().getClass());
-        ArrayList<Object> matchingMethods = new ArrayList<>();
-        for(int index = 0; index < methods.length; index++) {
-            var fieldTypes = MethodReflector.GetInstance().getParameterTypes(methods[index]);
-            if(fieldTypes.length == 2 && fieldTypes[0] == float.class && fieldTypes[1] == float.class) {
-                matchingMethods.add(methods[index]);
-            }
-        }
-        if(matchingMethods.size() == 2) {
+        //TODO IMPLEMENT THIS
+        //cs.setVideoFeedSource(null);
+        // var methods = ClassReflector.GetInstance().getDeclaredMethods(cs.getViewMouseOffset().getClass());
+        // ArrayList<Object> matchingMethods = new ArrayList<>();
+        // for(int index = 0; index < methods.length; index++) {
+        //     var fieldTypes = MethodReflector.GetInstance().getParameterTypes(methods[index]);
+        //     if(fieldTypes.length == 2 && fieldTypes[0] == float.class && fieldTypes[1] == float.class) {
+        //         matchingMethods.add(methods[index]);
+        //     }
+        // }
+        // if(matchingMethods.size() == 2) {
             
-            cs.getViewMouseOffset().\u00D300000(0.0F, 0.0F);
-            cs.getViewMouseOffset().o00000(0.0F, 0.0F);
-        }
+        //     cs.getViewMouseOffset().\u00D300000(0.0F, 0.0F);
+        //     cs.getViewMouseOffset().o00000(0.0F, 0.0F);
+        // }
     }
 }

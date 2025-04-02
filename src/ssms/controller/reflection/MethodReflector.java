@@ -10,13 +10,15 @@ public class MethodReflector {
     MethodHandle getParameterTypes;
     MethodHandle getName;
     MethodHandle invoke;
+    MethodHandle getReturnType;
     private MethodReflector() throws Throwable
     {
         var lookup = MethodHandles.lookup();
-        Class<?> fieldClass = Class.forName("java.lang.reflect.Field", false, Class.class.getClassLoader());
         methodClass = Class.forName("java.lang.reflect.Method", false, Class.class.getClassLoader());
 
-        getParameterTypes = lookup.findVirtual(methodClass, "getParameterTypes", MethodType.methodType(fieldClass.arrayType()));
+        getParameterTypes = lookup.findVirtual(methodClass, "getParameterTypes", MethodType.methodType(Class[].class));
+        
+        getReturnType = lookup.findVirtual(methodClass, "getReturnType", MethodType.methodType(Class.class));
         
         getName = lookup.findVirtual(methodClass, "getName", MethodType.methodType(String.class));
 
@@ -30,9 +32,14 @@ public class MethodReflector {
         return instance;
     }
 
-    public Object[] getParameterTypes(Object method) throws Throwable
+    public Class<?>[] getParameterTypes(Object method) throws Throwable
     {
-        return (Object[])getParameterTypes.invoke(method);
+        return (Class<?>[])getParameterTypes.invoke(method);
+    }
+
+    public Class<?> getReturnType(Object method) throws Throwable
+    {
+        return (Class<?>)getReturnType.invoke(method);
     }
 
     public String getName(Object method) throws Throwable

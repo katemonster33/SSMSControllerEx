@@ -22,11 +22,24 @@ public class WeaponReflection {
                 }
             }
             if(getAimTracker != null) {
-                Object obj = MethodReflector.GetInstance().invoke(method)
+                Object setAimTargetMethod = null;
+                Object aimTracker = MethodReflector.GetInstance().invoke(getAimTracker);
+                var methods = ClassReflector.GetInstance().getDeclaredMethods(aimTracker.getClass());
+                for(Object m : methods) {
+                    var paramTypes = MethodReflector.GetInstance().getParameterTypes(m);
+                    var retType = MethodReflector.GetInstance().getReturnType(m);
+                    if(paramTypes.length == 1 && paramTypes[0] == Vector2f.class && retType == void.class)
+                    {
+                        setAimTargetMethod = m;
+                        break;
+                    }
+                }
+                if(setAimTargetMethod != null) {
+                    MethodReflector.GetInstance().invoke(aimTracker, targetLocation);
+                } else {
+                    Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Could not find aim tracker to aim weapon! :(");
+                }
             }
-            //((com.fs.starfarer.combat.systems.R)weapon).getAimTracker().new(targetLocation);
-            ((com.fs.starfarer.combat.systems.OOOo)weapon).getAimTracker().Ó00000(targetLocation);
-            //((com.fs.starfarer.combat.systems.R)weapon).getAimTracker().o00000(targetLocation);
         } catch(Throwable ex) {
             Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Failed to aim weapon! " + ex.getMessage());
         }

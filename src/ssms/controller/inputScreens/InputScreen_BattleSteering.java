@@ -43,7 +43,6 @@ import ssms.controller.EveryFrameCombatPlugin_Controller;
 import ssms.controller.HandlerController;
 import ssms.controller.MineStrikeStatsFixed;
 import ssms.controller.SSMSControllerModPluginEx;
-import ssms.controller.ReflectionHelper;
 import ssms.controller.Util_Steering;
 import ssms.controller.reflection.ClassReflector;
 import ssms.controller.reflection.CombatStateReflector;
@@ -210,12 +209,13 @@ public class InputScreen_BattleSteering implements InputScreen {
                     if ( ps.getShipTarget() != null ) {
                         //due to a bug in vanilla coding the getAI method must return not null in order for the minestrike to use the override
                         //replacing the script with a corrected version that skips the AI check
-                        Object script = UtilObfuscation.TryGetScript(ps.getSystem());
-                        if ( script != null ) {
-                            if ( MineStrikeStats.class == script.getClass() ) {
-                                UtilObfuscation.SetScript(ps., new MineStrikeStatsFixed());
-                            }
-                        }
+                        //TODO make the script replacement work again!
+                        // Object script = UtilObfuscation.TryGetScript(ps.getSystem());
+                        // if ( script != null ) {
+                        //     if ( MineStrikeStats.class == script.getClass() ) {
+                        //         UtilObfuscation.SetScript(ps., new MineStrikeStatsFixed());
+                        //     }
+                        // }
                         ps.getAIFlags().setFlag(ShipwideAIFlags.AIFlags.SYSTEM_TARGET_COORDS, 1, ps.getShipTarget().getLocation());
                         ps.giveCommand(ShipCommand.USE_SYSTEM, null, -1);
                     } else ps.giveCommand(ShipCommand.USE_SYSTEM, null, -1);
@@ -253,7 +253,7 @@ public class InputScreen_BattleSteering implements InputScreen {
         }// else wasShieldOn = false;
         
         //center on player ship
-        UtilObfuscation.SetVideoFeedToPlayerShip(cs);
+        CombatStateReflector.GetInstance().SetVideoFeedToPlayerShip();
     }
     
     @Override

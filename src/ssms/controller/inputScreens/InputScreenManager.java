@@ -20,6 +20,7 @@ package ssms.controller.inputScreens;
 import com.fs.graphics.Sprite;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.util.Pair;
 import java.awt.Color;
@@ -45,7 +46,7 @@ public class InputScreenManager {
     static private volatile InputScreenManager instance;
     private Map<String,InputScreen> screens;//screen can belong to multiple scopes
     private Map<String,InputScope> scopes;
-    private Map<Indicators,Sprite> indicatorSprites;
+    private Map<Indicators,SpriteAPI> indicatorSprites;
     private InputScreen currentScreen;
     private InputScope currentScope;
     private Transition nextScreen;
@@ -66,16 +67,11 @@ public class InputScreenManager {
         indicatorSprites.clear();
         boolean ok = true;
         for ( Indicators ind : Indicators.values() ) {
-            String id = "Indicator "+ind.name();
-            String img = mapping != null ? mapping.indicators.get(ind) : null;
+            SpriteAPI img = mapping != null ? mapping.indicators.get(ind) : null;
             if ( img != null ) {
-                img = "graphics/indicators/" + img;
-                ok = UtilObfuscation.RegisterTextureWithID(id, img);
-                Sprite sprite = new Sprite(id);
-                sprite.setBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-                indicatorSprites.put(ind, sprite);
+                img.setBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                indicatorSprites.put(ind, img);
             } else {
-                UtilObfuscation.TryRemoveTextureWithID(id);
                 indicatorSprites.put(ind, null);
             }
         }
@@ -298,7 +294,7 @@ public class InputScreenManager {
         float x = xMax - textWidth - lineHeight - spacing - spacing, y = yMin + indicators.size() * (lineHeight + spacing) + spacing;
         for ( Pair<Indicators,String> e : indicators ) {
             if ( e.one != null ) {
-                Sprite sprite = indicatorSprites.get(e.one);
+                SpriteAPI sprite = indicatorSprites.get(e.one);
                 if ( sprite != null ) {
                     sprite.setWidth(lineHeight);
                     sprite.setHeight(lineHeight);
