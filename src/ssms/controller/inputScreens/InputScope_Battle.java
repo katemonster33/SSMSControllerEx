@@ -21,14 +21,12 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.MutableStat;
 import com.fs.starfarer.api.combat.ShipAPI;
-import com.fs.starfarer.combat.CombatState;
-import com.fs.state.AppDriver;
-import java.lang.reflect.Field;
+
 import org.apache.log4j.Level;
-import ssms.controller.EveryFrameCombatPlugin_Controller;
 import ssms.controller.HandlerController;
-import ssms.controller.SSMSControllerModPlugin;
-import ssms.controller.UtilObfuscation;
+import ssms.controller.SSMSControllerModPluginEx;
+import ssms.controller.reflection.CombatStateReflector;
+import ssms.controller.reflection.FieldReflector;
 import ssms.controller.steering.SteeringController;
 import ssms.controller.steering.SteeringController_FreeFlight;
 
@@ -40,7 +38,7 @@ import ssms.controller.steering.SteeringController_FreeFlight;
 @InputScopeOption_DefaultScreen("BattleSteering")
 public class InputScope_Battle implements InputScope {
     public CombatEngineAPI engine;
-    public CombatState cs;
+    public CombatStateReflector csr;
     public PlayerShipCache psCache;
     private float desiredZoomFactor = 2f;
     private boolean controllerSteeringEnabled = true;
@@ -61,10 +59,10 @@ public class InputScope_Battle implements InputScope {
             this.ps = ps;
             this.hasFighters = ps.getLaunchBaysCopy().isEmpty();
             try {
-                createSteeringController(SSMSControllerModPlugin.primarySteeringMode, ps, gameController, engine);
-            } catch (InstantiationException | IllegalAccessException ex) {
+                createSteeringController(SteeringController_FreeFlight.class, ps, gameController, engine);
+            } catch (Throwable ex) {
                 if ( !"Activation failed!".equals(ex.getMessage()) )
-                    Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "Primary Steering Mode contains a controller without a puclic no argument constructor! Using fallback controller.", ex);
+                    Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Primary Steering Mode contains a controller without a puclic no argument constructor! Using fallback controller.", ex);
                 if ( this.steeringController != null ) this.steeringController.discard();
                 this.steeringController = new SteeringController_FreeFlight();
                 this.steeringController.activate(ps, gameController, engine);
@@ -82,24 +80,24 @@ public class InputScope_Battle implements InputScope {
             steeringController = null;
         }
 
-        public void setSteeringController(Class steeringMode, HandlerController gameController, CombatEngineAPI engine) {
+        public void setSteeringController(Class<?> steeringMode, HandlerController gameController, CombatEngineAPI engine) {
             try {
                 createSteeringController(steeringMode, ps, gameController, engine);
-            } catch (InstantiationException | IllegalAccessException ex) {
+            } catch (Throwable ex) {
                 if ( !"Activation failed!".equals(ex.getMessage()) )
-                    Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "Steering Mode contains a controller without a puclic no argument constructor! Using fallback controller.", ex);
+                    Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Steering Mode contains a controller without a puclic no argument constructor! Using fallback controller.", ex);
                 if ( this.steeringController != null ) this.steeringController.discard();
                 this.steeringController = new SteeringController_FreeFlight();
                 this.steeringController.activate(ps, gameController, engine);
             }
         }
         
-        private void createSteeringController(Class steeringMode, ShipAPI ship, HandlerController gameController, CombatEngineAPI engine) throws InstantiationException, IllegalAccessException {
+        private void createSteeringController(Class<?> steeringMode, ShipAPI ship, HandlerController gameController, CombatEngineAPI engine) throws Throwable {
             if ( this.steeringController != null ) {
                 this.steeringController.discard();
                 this.steeringController = null;
             }
-            this.steeringController = (SteeringController) steeringMode.newInstance();
+            this.steeringController = (SteeringController) steeringMode.getDeclaredConstructor().newInstance();
             if ( !this.steeringController.activate(ship, gameController, engine) ) throw new InstantiationException("Activation failed!");
         }
     }
@@ -107,14 +105,14 @@ public class InputScope_Battle implements InputScope {
     @Override
     public void activate(Object ...args) {
         engine = (CombatEngineAPI) args[0];
-        cs = (CombatState) AppDriver.getInstance().getState(CombatState.STATE_ID);
+        csr = CombatStateReflector.GetInstance();
         psCache = new PlayerShipCache();
     }
 
     @Override
     public void deactivate() {
         engine = null;
-        cs = null;
+        csr = null;
         if ( psCache != null ) psCache.discard();
         psCache = null;
     }
@@ -155,7 +153,12 @@ public class InputScope_Battle implements InputScope {
     }
     
     public void adjustZoom() {
-        UtilObfuscation.SetZoom(cs, desiredZoomFactor);
+        try {
+        FieldReflector.GetInstance().SetVariable("entityToFollow", csr.cs, null);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).log(Level.WARN, "Couldn't set the video feed to be the player ship!");
+        }
+        csr.setZoomFactor(desiredZoomFactor);
     }
     
     public void setZoom(float zoomFactor) {

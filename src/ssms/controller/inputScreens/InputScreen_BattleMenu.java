@@ -24,7 +24,7 @@ import com.fs.starfarer.api.combat.CombatTaskManagerAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.mission.FleetSide;
 import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.combat.CombatState;
+import com.fs.starfarer.coreui.w;
 import com.fs.state.AppDriver;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -38,6 +38,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.Rectangle;
 import ssms.controller.HandlerController;
 import ssms.controller.SSMSControllerModPluginEx;
+import ssms.controller.reflection.CombatStateReflector;
 import ssms.qol.ui.AlignmentHorizontal;
 import ssms.qol.ui.AlignmentVertical;
 import ssms.qol.ui.UIComponentFactory;
@@ -74,11 +75,8 @@ public class InputScreen_BattleMenu implements InputScreen {
     @Override
     public void deactivate() {
         scope.timeDilation(false,"MENU");
-        CombatState cs = (CombatState) AppDriver.getInstance().getState(CombatState.STATE_ID);
         try {
-            Field f = CombatState.class.getDeclaredField("hideHud");
-            if ( !f.isAccessible() ) f.setAccessible(true);
-            f.set(cs, false);
+            CombatStateReflector.GetInstance().HideHud();
         } catch (Throwable t) {
             engine.getCombatUI().addMessage(0, "error: "+t.getMessage());
             Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to hide HUD, ensure SSMSUnlock is installed!", t);
@@ -92,19 +90,16 @@ public class InputScreen_BattleMenu implements InputScreen {
 
     @Override
     public void activate(Object[] args) {
-        handler = SSMSControllerModPlugin.controller;
+        handler = SSMSControllerModPluginEx.controller;
         scope = (InputScope_Battle)InputScreenManager.getInstance().getCurrentScope();
         engine = scope.engine;
         
         scope.timeDilation(true,"MENU");
-        CombatState cs = (CombatState) AppDriver.getInstance().getState(CombatState.STATE_ID);
         try {
-            Field f = CombatState.class.getDeclaredField("hideHud");
-            if ( !f.isAccessible() ) f.setAccessible(true);
-            f.set(cs, true);
+            CombatStateReflector.GetInstance().HideHud();
         } catch (Throwable t) {
             engine.getCombatUI().addMessage(0, "error: "+t.getMessage());
-            Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "Failed to hide HUD, ensure SSMSUnlock is installed!", t);
+            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to hide HUD, ensure SSMSUnlock is installed!", t);
         }
         root = null;
         selectedBtnIndex = -1;
@@ -290,8 +285,7 @@ public class InputScreen_BattleMenu implements InputScreen {
                         .addChild(UIComponentFactory.getFactory(new UIComponent_Button("Warroom") {
                                 @Override
                                 public void onClick() {
-                                    CombatState cs = (CombatState) AppDriver.getInstance().getState(CombatState.STATE_ID);
-                                    cs.showWarroom();
+                                    CombatStateReflector.GetInstance().ShowWarRoom();
                                     closeMenu();
                                 }
                             })
@@ -301,8 +295,7 @@ public class InputScreen_BattleMenu implements InputScreen {
                         .addChild(UIComponentFactory.getFactory(new UIComponent_Button("Autopilot") {
                                 @Override
                                 public void onClick() {
-                                    CombatState cs = (CombatState) AppDriver.getInstance().getState(CombatState.STATE_ID);
-                                    cs.setAutopilot(!cs.isAutopilotOn());
+                                    CombatStateReflector.GetInstance().ToggleAutoPilot();
                                     closeMenu();
                                 }
                             })

@@ -22,7 +22,6 @@ import com.fs.starfarer.api.combat.FogOfWarAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.combat.CombatState;
 import com.fs.starfarer.combat.entities.Ship;
 import com.fs.state.AppDriver;
 import java.lang.reflect.InvocationTargetException;
@@ -33,8 +32,7 @@ import java.util.Comparator;
 import java.util.List;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.HandlerController;
-import ssms.controller.SSMSControllerModPlugin;
-import ssms.controller.UtilObfuscation;
+import ssms.controller.SSMSControllerModPluginEx;
 
 /**
  *
@@ -52,10 +50,10 @@ public class InputScreen_BattleTargeting implements InputScreen {
 
     public InputScreen_BattleTargeting() {
         indicators = new ArrayList<>();
-        indicators.add(new Pair(Indicators.BumperRight, "Next"));
-        indicators.add(new Pair(Indicators.BumperLeft, "Previous"));
-        indicators.add(new Pair(Indicators.Select, "Select"));
-        indicators.add(new Pair(Indicators.Start, "Clear"));
+        indicators.add(new Pair<>(Indicators.BumperRight, "Next"));
+        indicators.add(new Pair<>(Indicators.BumperLeft, "Previous"));
+        indicators.add(new Pair<>(Indicators.Select, "Select"));
+        indicators.add(new Pair<>(Indicators.Start, "Clear"));
     }
 
     @Override

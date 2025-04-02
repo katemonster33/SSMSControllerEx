@@ -33,9 +33,8 @@ import org.apache.log4j.Level;
 import org.lwjgl.opengl.GL11;
 import ssms.controller.ControllerMapping;
 import ssms.controller.HandlerController;
-import ssms.controller.SSMSControllerModPlugin;
-import static ssms.controller.SSMSControllerModPlugin.defaultIndicators;
-import ssms.controller.UtilObfuscation;
+import ssms.controller.SSMSControllerModPluginEx;
+import static ssms.controller.SSMSControllerModPluginEx.defaultIndicators;
 import ssms.qol.ui.UIUtil;
 
 /**
@@ -62,7 +61,7 @@ public class InputScreenManager {
     }
     
     final public boolean updateIndicators() {
-        HandlerController controller = SSMSControllerModPlugin.controller;
+        HandlerController controller = SSMSControllerModPluginEx.controller;
         ControllerMapping mapping = controller != null ? controller.mapping : null;
         indicatorSprites.clear();
         boolean ok = true;
@@ -112,9 +111,9 @@ public class InputScreenManager {
             try {
                 return screens.put(annoId.value(),screen.newInstance());
             } catch (InstantiationException | IllegalAccessException ex) {
-                Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "Failed to create instance for input screen class: "+screen, ex);
+                Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to create instance for input screen class: "+screen, ex);
             }
-        } else Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "Class for input screen is missing id annoation: "+screen);
+        } else Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Class for input screen is missing id annoation: "+screen);
         
         return null;
     }
@@ -126,10 +125,10 @@ public class InputScreenManager {
                 try {
                     return scopes.put(annoId.value(),scope.newInstance());
                 } catch (InstantiationException | IllegalAccessException ex) {
-                    Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "Failed to create instance for input scope class: "+scope, ex);
+                    Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to create instance for input scope class: "+scope, ex);
                 }
-            } else Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "Class for input scope is missing default screen annoation: "+scope);
-        } else Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "Class for input scope is missing id annoation: "+scope);
+            } else Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Class for input scope is missing default screen annoation: "+scope);
+        } else Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Class for input scope is missing id annoation: "+scope);
         
         return null;
     }
@@ -163,8 +162,8 @@ public class InputScreenManager {
             if ( screenAllowsScope(screens.get(id), currentScope.getClass().getAnnotation(InputScopeOption_ID.class).value()) ) {
                 nextScreen = new Transition(id,args);
                 return true;
-            } else Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "Screen id \""+id+"\" is not allowed in current scope \""+currentScope.getClass().getAnnotation(InputScopeOption_ID.class).value()+"\".");
-        } else Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "Unregistered sceen id \""+id+"\" ignoring transition.");
+            } else Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Screen id \""+id+"\" is not allowed in current scope \""+currentScope.getClass().getAnnotation(InputScopeOption_ID.class).value()+"\".");
+        } else Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Unregistered sceen id \""+id+"\" ignoring transition.");
         return false;
     }
     
@@ -195,7 +194,7 @@ public class InputScreenManager {
             InputScope scope = scopes.get(scopeId);
             return transitionToScope(scopeId, args, scope.getClass().getAnnotation(InputScopeOption_DefaultScreen.class).value(), null);
         } else {
-            Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "Scope \""+scopeId+"\" is not registered!");
+            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Scope \""+scopeId+"\" is not registered!");
         }
         return false;
     }
@@ -212,7 +211,7 @@ public class InputScreenManager {
                             currentScope.deactivate();
                         }
                     } catch ( Throwable t ) {
-                        Global.getLogger(SSMSControllerModPlugin.class).log(Level.WARN, "Failed to deactivate scope, ignoring: "+currentScope, t);
+                        Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Failed to deactivate scope, ignoring: "+currentScope, t);
                     }
                     scope.activate(scopeArgs);
                     currentScope = scope;
@@ -221,22 +220,22 @@ public class InputScreenManager {
                             currentScreen.deactivate();
                         }
                     } catch ( Throwable t ) {
-                        Global.getLogger(SSMSControllerModPlugin.class).log(Level.WARN, "Failed to deactivate screen, ignoring: "+currentScreen, t);
+                        Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Failed to deactivate screen, ignoring: "+currentScreen, t);
                     }
                     screen.activate(screenArgs);
                     currentScreen = screen;
                     refreshIndicatorTimeout();
                 } catch ( Throwable t ) {
-                    Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "Failed to activate scope skipping transition: "+scopeId, t);
+                    Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to activate scope skipping transition: "+scopeId, t);
                     currentScope = oldScope;
                 }
                 return true;
             } else {
-                Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "Screen \""+screenId+"\" is not allowed in scope \""+scopeId+"\"!");
+                Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Screen \""+screenId+"\" is not allowed in scope \""+scopeId+"\"!");
             }
         } else {
-            if ( !screens.containsKey(screenId) ) Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "Screen \""+screenId+"\" is not registered!");
-            if ( !scopes.containsKey(scopeId) ) Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "Scope \""+scopeId+"\" is not registered!");
+            if ( !screens.containsKey(screenId) ) Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Screen \""+screenId+"\" is not registered!");
+            if ( !scopes.containsKey(scopeId) ) Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Scope \""+scopeId+"\" is not registered!");
         }
         return false;
     }
@@ -255,12 +254,12 @@ public class InputScreenManager {
                         currentScreen.deactivate();
                     }
                 } catch ( Throwable t ) {
-                    Global.getLogger(SSMSControllerModPlugin.class).log(Level.WARN, "Failed to deactivate screen, ignoring: "+currentScreen);
+                    Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Failed to deactivate screen, ignoring: "+currentScreen);
                 }
                 currentScreen = screen;
                 refreshIndicatorTimeout();
             } catch ( Throwable t ) {
-                Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "Failed to activate screen, skipping transition: "+nextScreen.id);
+                Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to activate screen, skipping transition: "+nextScreen.id);
             }
             nextScreen = null;
         }

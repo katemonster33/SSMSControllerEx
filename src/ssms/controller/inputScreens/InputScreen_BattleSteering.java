@@ -28,7 +28,6 @@ import com.fs.starfarer.api.combat.WeaponAPI;
 import com.fs.starfarer.api.combat.WeaponGroupAPI;
 import com.fs.starfarer.api.impl.combat.MineStrikeStats;
 import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.combat.CombatState;
 import com.fs.starfarer.combat.entities.Ship;
 import com.fs.starfarer.prototype.Utils;
 import com.fs.state.AppDriver;
@@ -46,7 +45,12 @@ import ssms.controller.MineStrikeStatsFixed;
 import ssms.controller.SSMSControllerModPluginEx;
 import ssms.controller.ReflectionHelper;
 import ssms.controller.Util_Steering;
+import ssms.controller.reflection.ClassReflector;
+import ssms.controller.reflection.CombatStateReflector;
+import ssms.controller.reflection.WeaponReflection;
 import ssms.controller.steering.SteeringController;
+import ssms.controller.steering.SteeringController_FreeFlight;
+import ssms.controller.steering.SteeringController_OrbitTarget;
 
 /**
  *
@@ -58,8 +62,8 @@ public class InputScreen_BattleSteering implements InputScreen {
     protected HandlerController handler;
     protected InputScope_Battle scope;
     protected CombatEngineAPI engine;
+    protected CombatStateReflector csr;
     protected InputScope_Battle.PlayerShipCache psCache;
-    protected CombatState cs;
     protected boolean isAlternateSteering = false;
     private boolean adjustOmniShieldFacing = false;
     private Vector2f v1 = new Vector2f();
@@ -78,7 +82,7 @@ public class InputScreen_BattleSteering implements InputScreen {
         screenIndicators.add(new Pair<>(Indicators.RightStickUp, "Toggle Fighters"));
         screenIndicators.add(new Pair<>(Indicators.RightStickDown, "Toggle Autofire"));
         screenIndicators.add(new Pair<>(Indicators.RightStickLeft, "Prev Wpn Grp"));
-        screenIndicators.add(new Pair(Indicators.RightStickRight, "Next Wpn Grp"));
+        screenIndicators.add(new Pair<>(Indicators.RightStickRight, "Next Wpn Grp"));
     }
 
     @Override
@@ -103,16 +107,16 @@ public class InputScreen_BattleSteering implements InputScreen {
     public void deactivate() {
         handler = null;
         scope = null;
+        csr = null;
         engine = null;
-        cs = null;
         psCache = null;
     }
 
     @Override
     public void activate(Object... args) {
-        handler = SSMSControllerModPlugin.controller;
+        handler = SSMSControllerModPluginEx.controller;
         scope = (InputScope_Battle)InputScreenManager.getInstance().getCurrentScope();
-        cs = scope.cs;
+        csr = CombatStateReflector.GetInstance();
         engine = scope.engine;
         psCache = scope.psCache;
     }
@@ -136,15 +140,15 @@ public class InputScreen_BattleSteering implements InputScreen {
                 if ( handler.getButtonEvent(HandlerController.Buttons.LeftStickButton) == 1 ) {
                     isAlternateSteering = !isAlternateSteering;
                     if ( isAlternateSteering ) {
-                        psCache.setSteeringController(SSMSControllerModPlugin.alternativeSteeringMode, handler, engine);
+                        psCache.setSteeringController(SteeringController_OrbitTarget.class, handler, engine);
                     } else {
-                        psCache.setSteeringController(SSMSControllerModPlugin.primarySteeringMode, handler, engine);
+                        psCache.setSteeringController(SteeringController_FreeFlight.class, handler, engine);
                     }
                 }
 
                 if ( isAlternateSteering && ( !scope.isValidTarget(ps.getShipTarget()) || !psCache.steeringController.isTargetValid() ) ) {
                     isAlternateSteering = false;
-                    psCache.setSteeringController(SSMSControllerModPlugin.primarySteeringMode, handler, engine);
+                    psCache.setSteeringController(SteeringController_FreeFlight.class, handler, engine);
                 }
                 updateIndicators(psCache.steeringController);
                 psCache.steeringController.steer(amount, scope.getOffsetFacingAngle());
@@ -162,7 +166,7 @@ public class InputScreen_BattleSteering implements InputScreen {
 
                         if ( targetLocation == null ) targetLocation = targetFrontal(ps.getLocation(),weapon.getRange(),ps.getFacing(),v1);
 
-                        UtilObfuscation.AimWeapon(weapon, targetLocation);
+                        WeaponReflection.AimWeapon(weapon, targetLocation);
                     }
                     if ( handler.isButtonAPressed() ) ps.giveCommand(ShipCommand.FIRE, v1, -1);
                 }
@@ -177,13 +181,10 @@ public class InputScreen_BattleSteering implements InputScreen {
                 if ( handler.getButtonEvent(HandlerController.Buttons.B) == 1 ) {
                     if ( ps.getShield() != null ) {
                         if ( ((Ship)ps).getShield().isOmni() ) {
-                            CombatState.AUTO_OMNI_SHIELDS = true;
+                            CombatStateReflector.GetInstance().setAutoOmniShield();
                             //we only want auto shields if they are turned on otherwise the AI decides when to turn on the shields as well
-                            CombatState cs = (CombatState) AppDriver.getInstance().getState(CombatState.STATE_ID);
                             try {
-                                Field f = CombatState.class.getDeclaredField("playerShipShieldAIFlags");
-                                f.setAccessible(true);
-                                ShipwideAIFlags flags = (ShipwideAIFlags) f.get(cs);
+                                var flags = CombatStateReflector.GetInstance().playerShipShieldAIFlags();
                                 if ( ps.getShield() != null && ps.getShield().isOff() ) {
                                     flags.unsetFlag(ShipwideAIFlags.AIFlags.DO_NOT_USE_SHIELDS);
                                     flags.setFlag(ShipwideAIFlags.AIFlags.KEEP_SHIELDS_ON, Float.MAX_VALUE);
@@ -193,7 +194,7 @@ public class InputScreen_BattleSteering implements InputScreen {
                                     flags.unsetFlag(ShipwideAIFlags.AIFlags.KEEP_SHIELDS_ON);
                                 }
                             } catch ( Throwable t ) {
-                                Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "Failed to get field playerShipShieldAIFlags on CombatState, ensure SSMSUnlock is installed!", t);
+                                Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to get field playerShipShieldAIFlags on CombatState, ensure SSMSUnlock is installed!", t);
                                 ps.giveCommand(ShipCommand.TOGGLE_SHIELD_OR_PHASE_CLOAK, null, -1);
                             }
                         } else {
@@ -212,7 +213,7 @@ public class InputScreen_BattleSteering implements InputScreen {
                         Object script = UtilObfuscation.TryGetScript(ps.getSystem());
                         if ( script != null ) {
                             if ( MineStrikeStats.class == script.getClass() ) {
-                                UtilObfuscation.SetScript(ps.getSystem(), new MineStrikeStatsFixed());
+                                UtilObfuscation.SetScript(ps., new MineStrikeStatsFixed());
                             }
                         }
                         ps.getAIFlags().setFlag(ShipwideAIFlags.AIFlags.SYSTEM_TARGET_COORDS, 1, ps.getShipTarget().getLocation());
