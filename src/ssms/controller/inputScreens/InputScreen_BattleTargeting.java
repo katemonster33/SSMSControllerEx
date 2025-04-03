@@ -33,6 +33,7 @@ import java.util.List;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.HandlerController;
 import ssms.controller.SSMSControllerModPluginEx;
+import ssms.controller.reflection.CombatStateReflector;
 
 /**
  *
@@ -101,8 +102,7 @@ public class InputScreen_BattleTargeting implements InputScreen {
         if ( targeting != null ) targeting.discard();
         targeting = null;
         scope.timeDilation(false,"TARGETING");
-        CombatState cs = (CombatState) AppDriver.getInstance().getState(CombatState.STATE_ID);
-        cs.setVideoFeedSource(null);
+        CombatStateReflector.GetInstance().SetVideoFeedToPlayerShip();
         
         handler = null;
         scope = null;
@@ -112,7 +112,7 @@ public class InputScreen_BattleTargeting implements InputScreen {
 
     @Override
     public void activate(Object... args) {
-        handler = SSMSControllerModPlugin.controller;
+        handler = SSMSControllerModPluginEx.controller;
         scope = (InputScope_Battle)InputScreenManager.getInstance().getCurrentScope();
         CombatEngineAPI engine = scope.engine;
         psCache = scope.psCache;
@@ -165,8 +165,7 @@ public class InputScreen_BattleTargeting implements InputScreen {
         }
         
         //center on target
-        CombatState cs = (CombatState) AppDriver.getInstance().getState(CombatState.STATE_ID);
-        UtilObfuscation.SetVideoFeedToShipTarget(cs, ps.getShipTarget());
+        CombatStateReflector.GetInstance().SetVideoFeedToShipTarget(ps.getShipTarget());
     }
 
     @Override

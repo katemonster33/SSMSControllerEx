@@ -29,6 +29,8 @@ import com.fs.state.AppDriver;
 
 import lunalib.backend.ui.components.base.LunaUIButton;
 import lunalib.lunaUI.LunaUIUtils;
+import ssms.controller.inputScreens.InputScope_Battle;
+import ssms.controller.inputScreens.InputScreenManager;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -63,14 +65,14 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
         this.engine = engine;
         nextLog = 0;
         skipFrame = true;
-        try {
-            T1000 = new Robot();
-        } catch(AWTException awte) {
-            Global.getLogger(getClass()).log(Level.ERROR, "Failed to initialize the robot, mod cannot function!");
-        }
-        if ( engine != null && engine.getContext() != null && (engine.isSimulation() || engine.getCombatUI() != null)
-                && SSMSControllerModPluginEx.controller != null && SSMSControllerModPluginEx.controller.mapping != null ) {
-            
+        if ( engine != null && engine.getContext() != null && (engine.isSimulation() || (engine.getCombatUI() != null && CombatState.class.isAssignableFrom(engine.getCombatUI().getClass())))
+        && SSMSControllerModPluginEx.controller != null && SSMSControllerModPluginEx.controller.mapping != null ) {
+            if ( !InputScreenManager.getInstance().transitionToScope("Battle", engine) ) {
+                Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to transition into battle scope!");
+                InputScreenManager.getInstance().transitionToScope("NoScope");
+            } else {
+                skipFrame = false;
+            }
         }
     }
     
@@ -84,7 +86,37 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
 
     @Override
     public void processInputPreCoreControls(float amount, List<InputEventAPI> events) {
+        if ( skipFrame ) return;
         
+        InputScreenManager man = InputScreenManager.getInstance();
+        InputScope_Battle battleScope = (InputScope_Battle) man.getCurrentScope();
+        HandlerController handler = SSMSControllerModPluginEx.controller;
+        handler.poll();
+        
+        if ( !battleScope.engine.getCombatUI().isShowingCommandUI() ) {
+            if ( wasShowingWarroom ) {
+                battleScope.adjustZoom();
+            }
+            
+            ShipAPI ps = getControlledShip();
+            if ( ps != null && battleScope.engine.isEntityInPlay(ps) ) {
+                if ( !battleScope.psCache.isForShip(ps) ) {
+                    battleScope.psCache.setShip(ps, handler, battleScope.engine);
+                }
+            }
+        }
+        
+        wasShowingWarroom = battleScope.engine.getCombatUI().isShowingCommandUI();
+        if ( battleScope.engine.isPaused() ) {
+            man.refreshIndicatorTimeout();
+        }
+        
+        //TODO inputs for the warroom
+        //TODO menu entries for switching ships(camera jumps to the targeted eligeble ship like targeting next and previous then selecting to pick a ship)
+        //TODO menu entry for ending combat/simulation
+            
+        man.startFrame();
+        man.preInput(amount);
     }
     // UIPanelAPI getScreenPanel()
     // {
@@ -109,33 +141,24 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
     
     @Override
     public void advance(float amount, List<InputEventAPI> events) {
-        if(SSMSControllerModPluginEx.controller != null) {
-            SSMSControllerModPluginEx.controller.poll();
-            switch(Global.getCurrentState())
-            {
-                case TITLE:
-                    if(SSMSControllerModPluginEx.controller.isButtonAPressed()) {
-                        T1000.mouseMove(200, 100);
-                    } else if(SSMSControllerModPluginEx.controller.isButtonBPressed()) {
-                        T1000.mouseMove(250, 80);
-                    } else if(SSMSControllerModPluginEx.controller.isButtonYPressed()) {
-                        T1000.mouseMove(300, 80);
-                    } else if(SSMSControllerModPluginEx.controller.isButtonXPressed()) {
-                        T1000.mouseMove(350, 100);
-                    }
-                    break;
-                case CAMPAIGN:
-                    //Global.getSector().
-                    break;
-                case COMBAT:
-                    break;
-
-            }
+        if ( skipFrame ) {
+            /*Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, 
+                "advance");*/
+            return;
         }
+        super.advance(amount, events);
+        InputScreenManager.getInstance().postIntput(amount);
     }
 
     @Override
     public void renderInWorldCoords(ViewportAPI viewport) {
+        if ( skipFrame ) {
+            /*Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, 
+                "renderInWorldCoords");*/
+            return;
+        }
+        super.renderInWorldCoords(viewport);
+        InputScreenManager.getInstance().renderInWorld(viewport);
     }
     
     @Override
@@ -146,5 +169,7 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
             return;
         }
         super.renderInUICoords(viewport);
+        InputScreenManager.getInstance().renderUI(viewport);
+        InputScreenManager.getInstance().stopFrame();
     }
 }
