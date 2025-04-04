@@ -67,7 +67,9 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
             UIPanelReflector.initialize(panel.getClass());
             var widgets = UIPanelReflector.getChildItems(panel);
             if(!widgets.isEmpty() && UIPanelAPI.class.isAssignableFrom(widgets.get(0).getClass())) {
-                var btns = UIPanelReflector.getChildButtons((UIPanelAPI)widgets.get(0));
+                var mainMenu = (UIPanelAPI)widgets.get(0);
+                ClassReflector.GetInstance().getDeclaredMethod(mainMenu.getClass(), "getMainMenu", )
+                var btns = UIPanelReflector.getChildButtons();
                 if(!btns.isEmpty()) {
                     btns.get(0).highlight();
                 }
