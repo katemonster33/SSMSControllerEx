@@ -196,6 +196,7 @@ public class InputScreen_BattleSteering implements InputScreen {
                             ps.giveCommand(ShipCommand.TOGGLE_SHIELD_OR_PHASE_CLOAK, null, -1);
                         }
                     } else if ( ps.getPhaseCloak() != null ) {
+                        
                         ps.giveCommand(ShipCommand.TOGGLE_SHIELD_OR_PHASE_CLOAK, null, -1);
                     }
                 }
@@ -220,7 +221,8 @@ public class InputScreen_BattleSteering implements InputScreen {
                 //second joystick cycles fighter modes and weapon groups if not held down. up fighter mode, left right weapon groups, down autofire
                 //toggle fighter mode
                 if ( psCache.hasFighters && handler.getButtonEvent(HandlerController.Buttons.RightStickUp) == 1 ) {
-                    ps.giveCommand(ShipCommand.PULL_BACK_FIGHTERS, null, -1);
+                    ps.setPullBackFighters(true);
+                    //ps.giveCommand(ShipCommand.PULL_BACK_FIGHTERS, null, -1);
                 }
                 //toggle autofire
                 if ( handler.getButtonEvent(HandlerController.Buttons.RightStickDown) == 1 ) {

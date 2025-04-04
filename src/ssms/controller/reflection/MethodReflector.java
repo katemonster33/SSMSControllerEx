@@ -22,7 +22,7 @@ public class MethodReflector {
         
         getName = lookup.findVirtual(methodClass, "getName", MethodType.methodType(String.class));
 
-        invoke = lookup.findVirtual(methodClass, "invoke", MethodType.methodType(Object.class, Object[].class));
+        invoke = lookup.findVirtual(methodClass, "invoke", MethodType.methodType(Object.class, Object.class, Object[].class));
     }
 
     public static MethodReflector GetInstance() throws Throwable
@@ -47,8 +47,8 @@ public class MethodReflector {
         return (String)getName.invoke(method);
     }
 
-    public Object invoke(Object method, Object ... arguments) throws Throwable
+    public Object invoke(Object method, Object obj, Object ... arguments) throws Throwable
     {
-        return invoke.invoke(method, arguments);
+        return invoke.invoke(method, obj, arguments);
     }
 }

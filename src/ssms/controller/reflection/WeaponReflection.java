@@ -23,7 +23,7 @@ public class WeaponReflection {
             }
             if(getAimTracker != null) {
                 Object setAimTargetMethod = null;
-                Object aimTracker = MethodReflector.GetInstance().invoke(getAimTracker);
+                Object aimTracker = MethodReflector.GetInstance().invoke(getAimTracker, weaponClass);
                 var methods = ClassReflector.GetInstance().getDeclaredMethods(aimTracker.getClass());
                 for(Object m : methods) {
                     var paramTypes = MethodReflector.GetInstance().getParameterTypes(m);

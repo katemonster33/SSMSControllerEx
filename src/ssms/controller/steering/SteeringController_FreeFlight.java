@@ -58,12 +58,12 @@ public class SteeringController_FreeFlight extends SteeringController_Base {
         
         if ( indicators == null ) {
             indicators = new ArrayList<>();
-            indicators.add(new Pair(null, "Directional Steering"));
-            indicators.add(new Pair(Indicators.LeftStick, "Direction"));
-            indicators.add(new Pair(Indicators.LeftTrigger, "Backwards"));
-            indicators.add(new Pair(Indicators.RightTrigger, "Forwards"));
-            indicators.add(new Pair(Indicators.BumperLeft, "Strafe Left"));
-            indicators.add(new Pair(Indicators.BumperRight, "Strafe Right"));
+            indicators.add(new Pair<>(null, "Directional Steering"));
+            indicators.add(new Pair<>(Indicators.LeftStick, "Direction"));
+            indicators.add(new Pair<>(Indicators.LeftTrigger, "Backwards"));
+            indicators.add(new Pair<>(Indicators.RightTrigger, "Forwards"));
+            indicators.add(new Pair<>(Indicators.BumperLeft, "Strafe Left"));
+            indicators.add(new Pair<>(Indicators.BumperRight, "Strafe Right"));
         }
         
         return true;

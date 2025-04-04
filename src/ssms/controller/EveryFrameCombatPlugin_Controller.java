@@ -17,6 +17,7 @@
  */
 package ssms.controller;
 
+import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
@@ -24,6 +25,7 @@ import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.ButtonAPI;
+import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.combat.CombatState;
 import com.fs.starfarer.title.TitleScreenState;
 import com.fs.state.AppDriver;
@@ -32,6 +34,7 @@ import lunalib.lunaTitle.TitleSpecLoader.TitleScreenSpec;
 import ssms.controller.inputScreens.InputScope_Battle;
 import ssms.controller.inputScreens.InputScreenManager;
 import ssms.controller.reflection.ClassReflector;
+import ssms.controller.reflection.UIPanelReflector;
 
 import java.util.List;
 
@@ -58,10 +61,22 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
         this.engine = engine;
         nextLog = 0;
         skipFrame = true;
-        ButtonAPI button;
-        if ( engine != null && engine.getContext() != null && (engine.isSimulation() || (engine.getCombatUI() != null && CombatState.class.isAssignableFrom(engine.getCombatUI().getClass())))
+        if(Global.getCurrentState() == GameState.TITLE) {
+            TitleScreenState titlescreen  = (TitleScreenState)AppDriver.getInstance().getCurrentState();
+            UIPanelAPI panel = titlescreen.getScreenPanel();
+            UIPanelReflector.initialize(panel.getClass());
+            var widgets = UIPanelReflector.getChildItems(panel);
+            if(!widgets.isEmpty() && UIPanelAPI.class.isAssignableFrom(widgets.get(0).getClass())) {
+                var btns = UIPanelReflector.getChildButtons((UIPanelAPI)widgets.get(0));
+                if(!btns.isEmpty()) {
+                    btns.get(0).highlight();
+                }
+            }
+        } else if ( engine != null && engine.getContext() != null && (engine.isSimulation() || (engine.getCombatUI() != null && CombatState.class.isAssignableFrom(engine.getCombatUI().getClass())))
         && SSMSControllerModPluginEx.controller != null && SSMSControllerModPluginEx.controller.mapping != null ) {
-            if ( !InputScreenManager.getInstance().transitionToScope("Battle", engine) ) {
+            if(Global.getCurrentState() == GameState.TITLE) {
+                skipFrame = false;
+            } else if ( !InputScreenManager.getInstance().transitionToScope("Battle", engine) ) {
                 Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to transition into battle scope!");
                 InputScreenManager.getInstance().transitionToScope("NoScope");
             } else {
@@ -116,6 +131,7 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
             
         man.startFrame();
         man.preInput(amount);
+
     }
     // UIPanelAPI getScreenPanel()
     // {

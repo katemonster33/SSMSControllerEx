@@ -17,15 +17,12 @@
  */
 package ssms.controller.inputScreens;
 
-import com.fs.graphics.Sprite;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.util.Pair;
 import java.awt.Color;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
@@ -36,7 +33,6 @@ import ssms.controller.ControllerMapping;
 import ssms.controller.HandlerController;
 import ssms.controller.Indicators;
 import ssms.controller.SSMSControllerModPluginEx;
-import static ssms.controller.SSMSControllerModPluginEx.defaultIndicators;
 import ssms.qol.ui.UIUtil;
 
 /**

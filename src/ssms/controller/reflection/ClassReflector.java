@@ -15,16 +15,16 @@ public class ClassReflector {
     private ClassReflector() throws Throwable
     {
         Class<?> fieldClass = Class.forName("java.lang.reflect.Field", false, Class.class.getClassLoader());
-
+        Class<?> methodClass = Class.forName("java.lang.reflect.Method", false, Class.class.getClassLoader());
         Lookup lookup = MethodHandles.lookup();
 
         getDeclaredField = lookup.findVirtual(Class.class, "getDeclaredField", MethodType.methodType(fieldClass, String.class));
         
         getDeclaredFields = lookup.findVirtual(Class.class, "getDeclaredFields", MethodType.methodType(fieldClass.arrayType()));
 
-        getDeclaredMethod = lookup.findVirtual(Class.class, "getDeclaredMethod", MethodType.methodType(fieldClass, String.class, Class[].class));
+        getDeclaredMethod = lookup.findVirtual(Class.class, "getDeclaredMethod", MethodType.methodType(methodClass, String.class, Class[].class));
 
-        getDeclaredMethods = lookup.findVirtual(Class.class, "getDeclaredMethods", MethodType.methodType(fieldClass.arrayType()));
+        getDeclaredMethods = lookup.findVirtual(Class.class, "getDeclaredMethods", MethodType.methodType(methodClass.arrayType()));
     }
 
     public static ClassReflector GetInstance() throws Throwable
