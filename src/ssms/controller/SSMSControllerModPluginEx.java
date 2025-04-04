@@ -87,12 +87,12 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         }
         controllerMappings = configureControllerMappings(obj.getJSONObject("controllerMappings"));
         var indicatorsByController = configureSettingsApplicationController(obj.getJSONObject("graphics"));
-        var xbox360Indicators = indicatorsByController.get("xbox360");
-        var xbox360 = controllerMappings.get("Controller (XBOX 360 For Windows)(5,10)");
-        if(xbox360Indicators != null && xbox360 != null) {
-            xbox360.indicators = xbox360Indicators;
-        } 
-        defaultIndicators = xbox360.indicators;
+        for(var mapping : controllerMappings.values()) {
+            if(!mapping.indicatorProfile.isEmpty()) {
+                mapping.indicators = indicatorsByController.get(mapping.indicatorProfile);
+            }
+        }
+        defaultIndicators = indicatorsByController.get("xbox360");;
         
         // if ( controllerMappings == null ) controllerMappings = new ArrayList<>();
         // controllerMappings.add(xbox360);
@@ -126,6 +126,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                 } else {
                     ControllerMapping newMapping = new ControllerMapping();
                     newMapping.deviceName = deviceName;
+                    if(deviceMappings.has("indicatorProfile")) newMapping.indicatorProfile = deviceMappings.getString("indicatorProfile");
                     JSONArray deviceButtons = deviceMappings.getJSONArray("buttons");
 
                     if(deviceButtons != null) {

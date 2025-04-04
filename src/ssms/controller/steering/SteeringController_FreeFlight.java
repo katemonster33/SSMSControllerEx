@@ -32,7 +32,7 @@ import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.HandlerController;
 import ssms.controller.Util_Steering;
-import ssms.controller.inputScreens.Indicators;
+import ssms.controller.Indicators;
 
 /**
  *
@@ -44,6 +44,7 @@ public class SteeringController_FreeFlight extends SteeringController_Base {
     protected ShipAPI ps;
     protected HandlerController handler;
     protected List<Pair<Indicators, String>> indicators;
+
 
     @Override
     public List<Pair<Indicators, String>> getIndicators() {

@@ -37,6 +37,7 @@ import org.apache.log4j.Level;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.Rectangle;
 import ssms.controller.HandlerController;
+import ssms.controller.Indicators;
 import ssms.controller.SSMSControllerModPluginEx;
 import ssms.controller.reflection.CombatStateReflector;
 import ssms.qol.ui.AlignmentHorizontal;

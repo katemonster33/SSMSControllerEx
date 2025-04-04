@@ -53,22 +53,22 @@ public class HandlerController {
         this(new ControllerAdapter(), null);
     }
 
-    String getAxisName(AxisId axisId)
+    String[] getAxisNames(AxisId axisId)
     {
         switch(axisId) 
         {
             case XAxis:
-                return "X Axis";
+                return new String[]{"X Axis", "x"};
             case YAxis:
-                return "Y Axis";
+                return new String[]{"Y Axis", "y"};
             case ZAxis:
-                return "Z Axis";
+                return new String[]{"Z Axis", "z"};
             case ZRotation:
-                return "Z Rotation";
+                return new String[]{"Z Rotation", "rz"};
             case XRotation:
-                return "X Rotation";
+                return new String[]{ "X Rotation", "rx"};
             case YRotation:
-                return "Y Rotation";
+                return new String[]{"Y Rotation", "ry"};
             default:
                 return null;
         }
@@ -83,9 +83,14 @@ public class HandlerController {
         switch(axisId)
         {
             default:
-                String axisName = getAxisName(axisId);
-                if(axisName != null) {
-                    return getIndexCoercingNull(axisIndices.get(axisName), axisCount);
+                String[] axisNames = getAxisNames(axisId);
+                if(axisNames != null) {
+                    for(String axisName : axisNames) {
+                        Integer index = axisIndices.get(axisName);
+                        if(index != null) {
+                            return getIndexCoercingNull(index, axisCount);
+                        }
+                    }
                 }
                 return -1;
 

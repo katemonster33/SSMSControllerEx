@@ -26,6 +26,7 @@
       <root url="jar://$PROJECT_DIR$/../starsector/mods/LazyLib/jars/LazyLib.jar!/" />
       <root url="jar://$PROJECT_DIR$/../starsector/mods/LazyLib/jars/internal/LazyLib-Console.jar!/" />
       <root url="jar://$PROJECT_DIR$/../starsector/mods/LazyLib/jars/LazyLib-Kotlin.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/mods/SSMSQoL-1.6/jars/SSMSQoL.jar!/" />
     </CLASSES>
     <JAVADOC>
       <root url="https://fractalsoftworks.com/starfarer.api/" />

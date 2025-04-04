@@ -47,7 +47,7 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
     protected CombatEngineAPI engine;
     protected float nextLog;
     protected boolean wasShowingWarroom = false, skipFrame = true;
-
+    boolean initDone = false;
     public EveryFrameCombatPlugin_Controller() {
         //Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "created every frame");
     }
@@ -65,6 +65,7 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
                 Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to transition into battle scope!");
                 InputScreenManager.getInstance().transitionToScope("NoScope");
             } else {
+                initDone = true;
                 skipFrame = false;
             }
         }
@@ -81,7 +82,11 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
     @Override
     public void processInputPreCoreControls(float amount, List<InputEventAPI> events) {
         if ( skipFrame ) return;
-        
+        if(!initDone) {
+            init(Global.getCombatEngine());
+            skipFrame = false;
+            return;
+        }
         InputScreenManager man = InputScreenManager.getInstance();
         InputScope_Battle battleScope = (InputScope_Battle) man.getCurrentScope();
         HandlerController handler = SSMSControllerModPluginEx.controller;

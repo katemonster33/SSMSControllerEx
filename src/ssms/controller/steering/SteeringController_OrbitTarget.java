@@ -30,7 +30,7 @@ import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.HandlerController;
 import ssms.controller.Util_Steering;
-import ssms.controller.inputScreens.Indicators;
+import ssms.controller.Indicators;
 import ssms.controller.reflection.CombatStateReflector;
 import ssms.controller.reflection.ShipEngineControllerReflection;
 

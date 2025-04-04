@@ -19,6 +19,8 @@ package ssms.controller.inputScreens;
 
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.util.Pair;
+import ssms.controller.Indicators;
+
 import java.util.List;
 import java.util.Map;
 

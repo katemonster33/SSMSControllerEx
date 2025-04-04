@@ -32,6 +32,7 @@ import java.util.Comparator;
 import java.util.List;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.HandlerController;
+import ssms.controller.Indicators;
 import ssms.controller.SSMSControllerModPluginEx;
 import ssms.controller.reflection.CombatStateReflector;
 

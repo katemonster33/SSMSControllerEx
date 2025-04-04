@@ -34,6 +34,7 @@ import org.apache.log4j.Level;
 import org.lwjgl.opengl.GL11;
 import ssms.controller.ControllerMapping;
 import ssms.controller.HandlerController;
+import ssms.controller.Indicators;
 import ssms.controller.SSMSControllerModPluginEx;
 import static ssms.controller.SSMSControllerModPluginEx.defaultIndicators;
 import ssms.qol.ui.UIUtil;
@@ -67,7 +68,7 @@ public class InputScreenManager {
         indicatorSprites.clear();
         boolean ok = true;
         for ( Indicators ind : Indicators.values() ) {
-            SpriteAPI img = mapping != null ? mapping.indicators.get(ind) : null;
+            SpriteAPI img = mapping != null ? mapping.indicators.get(ind): null;
             if ( img != null ) {
                 img.setBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
                 indicatorSprites.put(ind, img);

@@ -4,6 +4,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
+import com.fs.starfarer.combat.CombatState;
 import org.apache.log4j.Level;
 
 import com.fs.starfarer.api.Global;
@@ -25,7 +26,7 @@ public class CombatStateReflector {
     static CombatStateReflector instance;
     private CombatStateReflector()
     {
-        cs = AppDriver.getInstance().getState("CombatState");
+        cs = AppDriver.getInstance().getState(CombatState.STATE_ID);
 
         try {
             showWarRoom = MethodHandles.lookup().findVirtual(cs.getClass(), "showWarroom", MethodType.methodType(void.class));

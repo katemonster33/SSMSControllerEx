@@ -79,6 +79,33 @@
 				"DPadY" : "POVY"
 			},
 			"indicatorProfile" : "ps4"
+		},
+		"Sony Computer Entertainment Wireless Controller(7,12)" : {
+			"buttons" : [
+				"X",
+				"A",
+				"B",
+				"Y",
+				"BumperLeft",
+				"BumperRight",
+				"Select",
+				"Start",
+				"LeftStickButton",
+				"RightStickButton",
+				"HomeButton",
+				"ExtraButton1"
+			],
+			"axes" : {
+				"LeftStickX": "XAxis",
+				"LeftStickY": "YAxis",
+				"RightStickX": "XRotation",
+				"RightStickY": "YRotation",
+				"LeftTrigger":  "ZAxis",
+				"RightTrigger":  "ZRotation",
+				"DPadX" : "POVX",
+				"DPadY" : "POVY"
+			},
+			"indicatorProfile" : "ps4"
 		}
 	},
 	"graphics":{

@@ -33,6 +33,8 @@ public class ControllerMapping {
     public float axisBtnConversionDeadzone = 0.85f, joystickDeadzone = 0.25f;
     public Map<String,Object> customProperties = new HashMap<>();
     public EnumMap<Indicators, SpriteAPI> indicators;
+
+    public String indicatorProfile;
     
     public AxisId axisIdLX, axisIdLY, axisIdRX, axisIdRY, axisIdLT, axisIdRT, axisIdDpadX, axisIdDpadY;
     public Integer axisIndexLX, axisIndexLY, axisIndexRX, axisIndexRY, axisIndexLT, axisIndexRT, axisIndexDpadX, axisIndexDpadY;

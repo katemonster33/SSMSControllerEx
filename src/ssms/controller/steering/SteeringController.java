@@ -23,7 +23,7 @@ import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.util.Pair;
 import java.util.List;
 import ssms.controller.HandlerController;
-import ssms.controller.inputScreens.Indicators;
+import ssms.controller.Indicators;
 
 /**
  * This interface defines the contract for custom steering behaviour. The user can select which behaviours he wants to use in either first or second mode.
@@ -31,7 +31,7 @@ import ssms.controller.inputScreens.Indicators;
  * the second mode cannot handle the current ship target. An implementation is expected to use the annotations {@link ssms.controller.steering.SteeringControllerOption_Label SteeringControllerOption_Label} 
  * and {@link ssms.controller.steering.SteeringControllerOption_AllowsEveryTarget SteeringControllerOption_AllowsEveryTarget}.<br>
  * <br>
- * The implementation class must be added to the static list {@link ssms.controller.SSMSControllerModPlugin#registeredSteeringController SSMSControllerModPlugin.registeredSteeringController} 
+ * The implementation class must be added to the static list {@link ssms.controller.SSMSControllerModPluginEx#registeredSteeringController SSMSControllerModPlugin.registeredSteeringController}
  * during the {@link com.fs.starfarer.api.ModPlugin#onApplicationLoad() ModPlugin.onApplicationLoad()} call.<br>
  * <br>
  * If the steering controller has custom options they can be configured on the already existing controller mapping. During the {@link com.fs.starfarer.api.ModPlugin#onApplicationLoad() ModPlugin.onApplicationLoad()}
