@@ -18,30 +18,24 @@
 package ssms.controller;
 
 import com.fs.starfarer.api.Global;
-//import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
+import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.combat.CombatState;
+import com.fs.starfarer.title.TitleScreenState;
 import com.fs.state.AppDriver;
 
-import lunalib.backend.ui.components.base.LunaUIButton;
-import lunalib.lunaUI.LunaUIUtils;
+import lunalib.lunaTitle.TitleSpecLoader.TitleScreenSpec;
 import ssms.controller.inputScreens.InputScope_Battle;
 import ssms.controller.inputScreens.InputScreenManager;
+import ssms.controller.reflection.ClassReflector;
 
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.lang.reflect.Array;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Level;
-
-import java.awt.*;
 //import org.apache.log4j.Level;
 
 /**
@@ -52,7 +46,6 @@ import java.awt.*;
 public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugin {
     protected CombatEngineAPI engine;
     protected float nextLog;
-    public static Robot T1000 = null;
     protected boolean wasShowingWarroom = false, skipFrame = true;
 
     public EveryFrameCombatPlugin_Controller() {
@@ -65,6 +58,7 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
         this.engine = engine;
         nextLog = 0;
         skipFrame = true;
+        ButtonAPI button;
         if ( engine != null && engine.getContext() != null && (engine.isSimulation() || (engine.getCombatUI() != null && CombatState.class.isAssignableFrom(engine.getCombatUI().getClass())))
         && SSMSControllerModPluginEx.controller != null && SSMSControllerModPluginEx.controller.mapping != null ) {
             if ( !InputScreenManager.getInstance().transitionToScope("Battle", engine) ) {
@@ -145,6 +139,17 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
             /*Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, 
                 "advance");*/
             return;
+        }
+        switch(Global.getCurrentState())
+        {
+            case COMBAT:
+                break;
+            case TITLE:
+                // TitleScreenState titleScreen = (TitleScreenState) AppDriver.getInstance().getCurrentState();
+                // Object panel = titleScreen.getScreenPanel();
+                // ClassReflector.GetInstance().getDeclaredMethod(panel.getClass(), "" null, null)
+            case CAMPAIGN:
+                break;
         }
         super.advance(amount, events);
         InputScreenManager.getInstance().postIntput(amount);

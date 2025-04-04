@@ -23,8 +23,6 @@ import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.loading.DamagingExplosionSpec;
 import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.prototype.Utils;
-import com.fs.state.AppDriver;
 import java.util.ArrayList;
 import java.util.List;
 import org.lwjgl.opengl.GL11;
@@ -64,12 +62,11 @@ public class SteeringController_OrbitTarget extends SteeringController_Base {
         
         if ( indicators == null ) {
             indicators = new ArrayList<>();
-            indicators.add(new Pair(null, "Orbital Steering"));
-            indicators.add(new Pair(Indicators.LeftStick, "Relative Pos"));
-            indicators.add(new Pair(Indicators.LeftTrigger, "Further"));
-            indicators.add(new Pair(Indicators.RightTrigger, "Closer"));
+            indicators.add(new Pair<>(null, "Orbital Steering"));
+            indicators.add(new Pair<>(Indicators.LeftStick, "Relative Pos"));
+            indicators.add(new Pair<>(Indicators.LeftTrigger, "Further"));
+            indicators.add(new Pair<>(Indicators.RightTrigger, "Closer"));
         }
-        
         return true;
     }
 

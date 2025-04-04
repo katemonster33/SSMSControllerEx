@@ -99,7 +99,6 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         reconnectController();
         
         
-        configureSettingsApplicationController();
         registeredSteeringController.add(SteeringController_FreeFlight.class);
         registeredSteeringController.add(SteeringController_OrbitTarget.class);
         
