@@ -59,27 +59,6 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
     
     @Override
     public void onApplicationLoad() throws Exception {
-        LunaSettings.getString(modId, "controllerMapping");
-        // ControllerMapping xbox360 = new ControllerMapping();
-        // xbox360.btnA = 0;
-        // xbox360.btnB = 1;
-        // xbox360.btnX = 2;
-        // xbox360.btnY = 3;
-        // xbox360.btnBumperLeft = 4;
-        // xbox360.btnBumperRight = 5;
-        // xbox360.btnSelect = 6;
-        // xbox360.btnStart = 7;
-        // xbox360.btnLeftStick = 8;
-        // xbox360.btnRightStick = 9;
-        // xbox360.axisLeftStickX = "X Axis";
-        // xbox360.axisLeftStickY = "Y Axis";
-        // xbox360.axisRightStickX = "X Rotation";
-        // xbox360.axisRightStickY = "Y Rotation";
-        // xbox360.axisTrigger = "Z Axis";
-        // xbox360.axisBtnConversionDeadzone = 0.85f;
-        // xbox360.joystickDeadzone = 0.25f;
-        // xbox360.deviceName = "Controller (XBOX 360 For Windows)(5,10)";
-        // xbox360.indicators = new EnumMap<>(Indicators.class);
         JSONObject obj = Global.getSettings().loadJSON("data/config/settings.json", "SSMSControllerEx");
         if(obj == null) {
             Global.getLogger(this.getClass()).log(Level.DEBUG, "no settings!!!");
@@ -92,7 +71,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                 mapping.indicators = indicatorsByController.get(mapping.indicatorProfile);
             }
         }
-        defaultIndicators = indicatorsByController.get("xbox360");;
+        defaultIndicators = indicatorsByController.get("xbox360");
         
         // if ( controllerMappings == null ) controllerMappings = new ArrayList<>();
         // controllerMappings.add(xbox360);

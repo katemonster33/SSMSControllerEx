@@ -9,26 +9,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f93bfbfa-f590-465e-a84d-27f995dd3431" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/starfarer_api.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/starfarer_api.xml" afterDir="false" />
+    <list default="true" id="f93bfbfa-f590-465e-a84d-27f995dd3431" name="Changes" comment="Implemented PS4 controller on Linux (buttons are wrong, need to fix)&#10;Was able to see the SSMSController UI in-game for the first time :)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/config/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/config/settings.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jars/SSMSController.jar" beforeDir="false" afterPath="$PROJECT_DIR$/jars/SSMSController.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/ControllerMapping.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/ControllerMapping.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mod_info.json" beforeDir="false" afterPath="$PROJECT_DIR$/mod_info.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ssms/controller/EveryFrameCombatPlugin_Controller.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/EveryFrameCombatPlugin_Controller.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/HandlerController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/HandlerController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ssms/controller/SSMSControllerModPluginEx.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/SSMSControllerModPluginEx.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/Indicators.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreenManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreenManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_BattleMenu.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_BattleMenu.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_BattleSteering.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_BattleSteering.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_BattleTargeting.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_BattleTargeting.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_Bluescreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_Bluescreen.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/reflection/CombatStateReflector.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/reflection/CombatStateReflector.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/steering/SteeringController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/steering/SteeringController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/steering/SteeringController_FreeFlight.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/steering/SteeringController_FreeFlight.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/steering/SteeringController_OrbitTarget.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/steering/SteeringController_OrbitTarget.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,7 +46,7 @@
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/katie/starsector/mods/SSMSQoL-1.6/jars/SSMSQoL.jar",
+    "last_opened_file_path": "/home/katie/SSMSQoLEx",
     "project.structure.last.edited": "Libraries",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.20665084",
@@ -81,7 +68,7 @@
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../starsector" />
       <method v="2">
         <option name="BuildArtifacts" enabled="true">
-          <artifact name="SSMSController" />
+          <artifact name="SSMSControllerEx" />
         </option>
         <option name="ToolBeforeRunTask" enabled="true" actionId="Tool_External Tools_Copy" />
       </method>
@@ -96,7 +83,20 @@
       <option name="presentableId" value="Default" />
       <updated>1743440173281</updated>
     </task>
+    <task id="LOCAL-00001" summary="Implemented PS4 controller on Linux (buttons are wrong, need to fix)&#10;Was able to see the SSMSController UI in-game for the first time :)">
+      <option name="closed" value="true" />
+      <created>1743736726861</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1743736726861</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Implemented PS4 controller on Linux (buttons are wrong, need to fix)&#10;Was able to see the SSMSController UI in-game for the first time :)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Implemented PS4 controller on Linux (buttons are wrong, need to fix)&#10;Was able to see the SSMSController UI in-game for the first time :)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -107,19 +107,9 @@
           <option name="timeStamp" value="1" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/ssms/controller/EveryFrameCombatPlugin_Controller.java</url>
-          <line>84</line>
-          <option name="timeStamp" value="11" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/ssms/controller/EveryFrameCombatPlugin_Controller.java</url>
-          <line>63</line>
-          <option name="timeStamp" value="12" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreenManager.java</url>
-          <line>199</line>
-          <option name="timeStamp" value="13" />
+          <url>file://$PROJECT_DIR$/src/ssms/controller/reflection/CombatStateReflector.java</url>
+          <line>28</line>
+          <option name="timeStamp" value="14" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

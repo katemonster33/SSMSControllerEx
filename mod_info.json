@@ -3,12 +3,11 @@
 	"author":"Katie McKean",
 	"name":"SSMS Controller EX",
 	"version":"1.0",
-	"description":"This mod allows the use of a controller during battles. Requires LunaLib.",
+	"description":"This mod allows the use of a controller during battles. Requires SSMSQoL.",
 	"gameVersion":"0.98a-RC5",
-	"jars":["jars/SSMSController.jar"],
+	"jars":["jars/SSMSControllerEx.jar"],
 	"modPlugin":"ssms.controller.SSMSControllerModPluginEx",
 	"dependencies":[
-		{ "id": "lw_lazylib", "name": "LazyLib" },
-		{ "id": "lunalib", "name": "LunaLib" }
+		{"id":"SSMSQoLEx", "name":"SSMS QoL-Ex"}
 	]
 }
