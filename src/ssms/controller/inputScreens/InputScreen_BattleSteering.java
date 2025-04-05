@@ -51,9 +51,9 @@ import ssms.controller.steering.SteeringController_OrbitTarget;
  *
  * @author Malte Schulze
  */
-@InputScreenOption_ID("BattleSteering")
-@InputScreenOption_Scopes("Battle")
 public class InputScreen_BattleSteering implements InputScreen {
+    public static final String ID = "BattleSteering";
+    public static final String SCOPES = "Battle";
     protected HandlerController handler;
     protected InputScope_Battle scope;
     protected CombatEngineAPI engine;
@@ -316,4 +316,10 @@ public class InputScreen_BattleSteering implements InputScreen {
         }
         return null;
     }
+
+    @Override
+    public String getId() { return ID; }
+
+    @Override
+    public String[] getScopes() { return new String[]{ SCOPES }; }
 }

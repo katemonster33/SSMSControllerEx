@@ -98,48 +98,24 @@ public class InputScreenManager {
         return localInstance;
     }
     
-    public InputScreen registerScreen(Class<? extends InputScreen> screen) {
-        InputScreenOption_ID annoId = screen.getAnnotation(InputScreenOption_ID.class);
-        if ( annoId != null ) {
-            try {
-                return screens.put(annoId.value(),screen.newInstance());
-            } catch (InstantiationException | IllegalAccessException ex) {
-                Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to create instance for input screen class: "+screen, ex);
-            }
-        } else Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Class for input screen is missing id annoation: "+screen);
-        
+    public InputScreen registerScreen(Class<? extends InputScreen> screen, String ID) {
+        try {
+            return screens.put(ID, screen.getDeclaredConstructor().newInstance());
+        } catch (Throwable ex) {
+            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to create instance for input screen class: "+screen, ex);
+        }
+
         return null;
     }
     
-    public InputScope registerScope(Class<? extends InputScope> scope) {
-        InputScopeOption_ID annoId = scope.getAnnotation(InputScopeOption_ID.class);
-        if ( annoId != null && annoId.value() != null ) {
-            if ( scope.getAnnotation(InputScopeOption_DefaultScreen.class) != null ) {
-                try {
-                    return scopes.put(annoId.value(),scope.newInstance());
-                } catch (InstantiationException | IllegalAccessException ex) {
-                    Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to create instance for input scope class: "+scope, ex);
-                }
-            } else Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Class for input scope is missing default screen annoation: "+scope);
-        } else Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Class for input scope is missing id annoation: "+scope);
+    public InputScope registerScope(Class<? extends InputScope> scope, String scopeStr) {
+        try {
+            return scopes.put(scopeStr,scope.getDeclaredConstructor().newInstance());
+        } catch (Throwable ex) {
+            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to create instance for input scope class: "+scope, ex);
+        }
         
         return null;
-    }
-    
-    public boolean isScreenIdRegistered(Class<? extends InputScreen> screen) {
-        InputScreenOption_ID annoId = screen.getAnnotation(InputScreenOption_ID.class);
-        if ( annoId != null ) {
-            return screens.containsKey(annoId.value());
-        }
-        return false;
-    }
-    
-    public boolean isScopeIdRegistered(Class<? extends InputScope> scope) {
-        InputScopeOption_ID annoId = scope.getAnnotation(InputScopeOption_ID.class);
-        if ( annoId != null ) {
-            return scopes.containsKey(annoId.value());
-        }
-        return false;
     }
     
     public InputScreen getCurrentScreen() {
@@ -152,16 +128,17 @@ public class InputScreenManager {
     
     public boolean transitionDelayed(String id, Object ...args) {
         if ( screens.containsKey(id) ) {
-            if ( screenAllowsScope(screens.get(id), currentScope.getClass().getAnnotation(InputScopeOption_ID.class).value()) ) {
+            var screen = screens.get(id);
+            if ( screenAllowsScope(screen, currentScope.getId()) ) {
                 nextScreen = new Transition(id,args);
                 return true;
-            } else Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Screen id \""+id+"\" is not allowed in current scope \""+currentScope.getClass().getAnnotation(InputScopeOption_ID.class).value()+"\".");
+            } else Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Screen id \""+id+"\" is not allowed in current scope \""+currentScope.getId()+"\".");
         } else Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Unregistered sceen id \""+id+"\" ignoring transition.");
         return false;
     }
     
     private boolean screenAllowsScope(InputScreen screen, String scopeId) {
-        String[] scopeIds = screen.getClass().getAnnotation(InputScreenOption_Scopes.class).value();
+        String[] scopeIds = screen.getScopes();
         if ( scopeIds == null ) return true;
         for ( String scopeIdAllowed : scopeIds ) {
             if (scopeIdAllowed.equals(scopeId)) {
@@ -185,7 +162,7 @@ public class InputScreenManager {
         //transitions into the same scope are legal, they happen if no other scope is active between two seperate scope entries
         if ( scopes.containsKey(scopeId) ) {
             InputScope scope = scopes.get(scopeId);
-            return transitionToScope(scopeId, args, scope.getClass().getAnnotation(InputScopeOption_DefaultScreen.class).value(), null);
+            return transitionToScope(scopeId, args, scope.getDefaultScreen(), null);
         } else {
             Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Scope \""+scopeId+"\" is not registered!");
         }
@@ -234,7 +211,7 @@ public class InputScreenManager {
     }
     
     public boolean isInScope(String scopeId) {
-        return currentScope.getClass().getAnnotation(InputScopeOption_ID.class).value().equals(scopeId);
+        return currentScope.getId().equals(scopeId);
     }
     
     public void startFrame() {

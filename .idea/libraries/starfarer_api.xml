@@ -3,7 +3,6 @@
     <CLASSES>
       <root url="jar://$PROJECT_DIR$/../starsector/starfarer.api.jar!/" />
       <root url="jar://$PROJECT_DIR$/../starsector/json.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../starsector/unlock.jar!/" />
       <root url="jar://$PROJECT_DIR$/../starsector/fs.common_obf.jar!/" />
       <root url="jar://$PROJECT_DIR$/../starsector/jogg-0.0.7.jar!/" />
       <root url="jar://$PROJECT_DIR$/../starsector/commons-compiler.jar!/" />
@@ -26,7 +25,7 @@
       <root url="jar://$PROJECT_DIR$/../starsector/mods/LazyLib/jars/LazyLib.jar!/" />
       <root url="jar://$PROJECT_DIR$/../starsector/mods/LazyLib/jars/internal/LazyLib-Console.jar!/" />
       <root url="jar://$PROJECT_DIR$/../starsector/mods/LazyLib/jars/LazyLib-Kotlin.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../starsector/mods/SSMSQoL-1.6/jars/SSMSQoL.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../starsector/mods/SSMSQoLEx/jars/SSMSQoLEx.jar!/" />
     </CLASSES>
     <JAVADOC>
       <root url="https://fractalsoftworks.com/starfarer.api/" />
@@ -34,9 +33,8 @@
     <SOURCES>
       <root url="jar://$PROJECT_DIR$/../starsector/starfarer.api.zip!/" />
       <root url="jar://$PROJECT_DIR$/../starsector/jaxb-api-2.4.0-b180830.0359-sources.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../starsector/mods/LazyLib/jars/LazyLib.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../starsector/mods/LazyLib/jars/LazyLib.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../starsector/mods/LazyLib/jars/LazyLib-Kotlin.jar!/" />
+      <root url="file://$PROJECT_DIR$/../starsector/mods/LunaLib/src" />
+      <root url="file://$PROJECT_DIR$/../starsector/mods/LunaLib/src/LunaLib-Core" />
     </SOURCES>
   </library>
 </component>

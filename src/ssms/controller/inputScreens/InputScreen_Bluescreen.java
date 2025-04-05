@@ -28,8 +28,9 @@ import java.util.Map;
  *
  * @author Malte Schulze
  */
-@InputScreenOption_ID("NoScreen")
 public class InputScreen_Bluescreen implements InputScreen {
+    public static final String ID = "NoScreen";
+    public static final String SCOPES = "";
 
     @Override
     public List<Pair<Indicators, String>> getIndicators() {
@@ -59,4 +60,10 @@ public class InputScreen_Bluescreen implements InputScreen {
     @Override
     public void postInput(float advance) {
     }
+
+    @Override
+    public String getId() { return ID; }
+
+    @Override
+    public String[] getScopes() { return new String[]{ SCOPES }; }
 }

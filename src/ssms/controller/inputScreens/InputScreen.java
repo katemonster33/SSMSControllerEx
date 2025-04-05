@@ -43,5 +43,8 @@ public interface InputScreen {
     public void preInput(float advance);
 
     public void postInput(float advance);
-    
+
+    public String getId();
+
+    public String[] getScopes();
 }

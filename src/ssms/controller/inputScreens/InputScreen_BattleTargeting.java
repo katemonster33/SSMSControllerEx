@@ -37,9 +37,9 @@ import ssms.controller.reflection.CombatStateReflector;
  *
  * @author Malte Schulze
  */
-@InputScreenOption_ID("BattleTargeting")
-@InputScreenOption_Scopes("Battle")
 public class InputScreen_BattleTargeting implements InputScreen {
+    public static final String ID = "BattleTargeting";
+    public static final String SCOPES = "Battle";
     protected HandlerController handler;
     protected InputScope_Battle scope;
     protected Targeting targeting;
@@ -187,4 +187,10 @@ public class InputScreen_BattleTargeting implements InputScreen {
         for ( Pair<Float,ShipAPI> p : shipsByDistance ) orderedShips.add(p.two);
         return orderedShips;
     }
+
+    @Override
+    public String getId() { return ID; }
+
+    @Override
+    public String[] getScopes() { return new String[]{ SCOPES }; }
 }

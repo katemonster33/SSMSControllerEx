@@ -33,6 +33,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+
+import lunalib.backend.ui.components.base.LunaUIButton;
+import lunalib.lunaUI.LunaUIUtils;
+import lunalib.lunaUI.panel.LunaBaseCustomPanelPlugin;
 import org.apache.log4j.Level;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.Rectangle;
@@ -52,12 +56,12 @@ import ssms.qol.ui.UIContext;
 import ssms.qol.ui.UIUtil;
 
 /**
- *
+ *f5
  * @author Malte Schulze
  */
-@InputScreenOption_ID("BattleMenu")
-@InputScreenOption_Scopes("Battle")
 public class InputScreen_BattleMenu implements InputScreen {
+    public static final String ID = "BattleMenu";
+    public static final String SCOPES = "Battle";
     protected HandlerController handler;
     protected InputScope_Battle scope;
     protected CombatEngineAPI engine;
@@ -80,7 +84,7 @@ public class InputScreen_BattleMenu implements InputScreen {
             CombatStateReflector.GetInstance().HideHud();
         } catch (Throwable t) {
             engine.getCombatUI().addMessage(0, "error: "+t.getMessage());
-            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to hide HUD, ensure SSMSUnlock is installed!", t);
+            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to hide HUD!", t);
         }
         
         handler = null;
@@ -464,4 +468,10 @@ public class InputScreen_BattleMenu implements InputScreen {
                 .setGrowHorizontal(true).setGrowVertical(true))
             .addChild(menu).setContext(new UIContext()).finish();
     }
+
+    @Override
+    public String getId() { return ID; }
+
+    @Override
+    public String[] getScopes() { return new String[]{ SCOPES }; }
 }

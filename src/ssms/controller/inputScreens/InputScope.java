@@ -26,5 +26,8 @@ public interface InputScope {
     public void activate(Object ...args);
 
     public void deactivate();
-    
+
+    public String getId();
+
+    public String getDefaultScreen();
 }

@@ -83,13 +83,13 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         
         InputScreenManager man = InputScreenManager.getInstance();
         
-        man.registerScope(InputScope_360.class);
-        man.registerScope(InputScope_Battle.class);
+        man.registerScope(InputScope_360.class, InputScope_360.ID);
+        man.registerScope(InputScope_Battle.class, InputScope_Battle.ID);
         
-        man.registerScreen(InputScreen_Bluescreen.class);
-        man.registerScreen(InputScreen_BattleSteering.class);
-        man.registerScreen(InputScreen_BattleTargeting.class);
-        man.registerScreen(InputScreen_BattleMenu.class);
+        man.registerScreen(InputScreen_Bluescreen.class, InputScreen_Bluescreen.ID);
+        man.registerScreen(InputScreen_BattleSteering.class, InputScreen_BattleSteering.ID);
+        man.registerScreen(InputScreen_BattleTargeting.class, InputScreen_BattleTargeting.ID);
+        man.registerScreen(InputScreen_BattleMenu.class, InputScreen_BattleMenu.ID);
         
         man.updateIndicators();
     }

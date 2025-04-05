@@ -34,9 +34,9 @@ import ssms.controller.steering.SteeringController_FreeFlight;
  *
  * @author Malte Schulze
  */
-@InputScopeOption_ID("Battle")
-@InputScopeOption_DefaultScreen("BattleSteering")
 public class InputScope_Battle implements InputScope {
+    public static final String ID = "Battle";
+    public static final String DEFAULT_SCREEN = "BattleSteering";
     public CombatEngineAPI engine;
     public CombatStateReflector csr;
     public PlayerShipCache psCache;
@@ -165,4 +165,10 @@ public class InputScope_Battle implements InputScope {
         desiredZoomFactor = zoomFactor;
         adjustZoom();
     }
+
+    @Override
+    public String getId() { return ID; }
+
+    @Override
+    public String getDefaultScreen() { return DEFAULT_SCREEN; }
 }

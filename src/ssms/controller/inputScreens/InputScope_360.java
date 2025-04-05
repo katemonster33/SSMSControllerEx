@@ -22,10 +22,9 @@ package ssms.controller.inputScreens;
  * 
  * @author Malte Schulze
  */
-@InputScopeOption_ID("NoScope")
-@InputScopeOption_DefaultScreen("NoScreen")
 public class InputScope_360 implements InputScope {
-
+    public static final String ID = "NoScope";
+    public static final String DEFAULT_SCREEN = "NoScreen";
     @Override
     public void activate(Object ...args) {
         
@@ -35,5 +34,10 @@ public class InputScope_360 implements InputScope {
     public void deactivate() {
         
     }
-    
+
+    @Override
+    public String getId() { return ID; }
+
+    @Override
+    public String getDefaultScreen() { return DEFAULT_SCREEN; }
 }
