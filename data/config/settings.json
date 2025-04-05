@@ -82,18 +82,19 @@
 		},
 		"Sony Computer Entertainment Wireless Controller(7,12)" : {
 			"buttons" : [
-				"X",
 				"A",
 				"B",
 				"Y",
+				"X",
 				"BumperLeft",
 				"BumperRight",
+				"LeftTrigger",
+				"RightTrigger",
 				"Select",
 				"Start",
-				"LeftStickButton",
-				"RightStickButton",
 				"HomeButton",
-				"ExtraButton1"
+				"LeftStickButton",
+				"RightStickButton"
 			],
 			"axes" : {
 				"LeftStickX": "XAxis",
