@@ -9,10 +9,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f93bfbfa-f590-465e-a84d-27f995dd3431" name="Changes" comment="Implemented PS4 controller on Linux (buttons are wrong, need to fix)&#10;Was able to see the SSMSController UI in-game for the first time :)">
+    <list default="true" id="f93bfbfa-f590-465e-a84d-27f995dd3431" name="Changes" comment="Renaming artifacts to SSMSControllerEx - changed README, added credit to razuhl">
+      <change beforePath="$PROJECT_DIR$/.idea/artifacts/SSMSController.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/artifacts/SSMSControllerEx.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/jars/SSMSController.jar" beforeDir="false" afterPath="$PROJECT_DIR$/jars/SSMSController.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jars/SSMSController.jar" beforeDir="false" afterPath="$PROJECT_DIR$/jars/SSMSControllerEx.jar" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mod_info.json" beforeDir="false" afterPath="$PROJECT_DIR$/mod_info.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ssms/controller/EveryFrameCombatPlugin_Controller.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/EveryFrameCombatPlugin_Controller.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ssms/controller/SSMSControllerModPluginEx.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/SSMSControllerModPluginEx.java" afterDir="false" />
@@ -47,7 +48,7 @@
     "git-widget-placeholder": "master",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "/home/katie/SSMSQoLEx",
-    "project.structure.last.edited": "Libraries",
+    "project.structure.last.edited": "Artifacts",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.20665084",
     "settings.editor.selected.configurable": "project.propCompiler"
@@ -91,12 +92,21 @@
       <option name="project" value="LOCAL" />
       <updated>1743736726861</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Renaming artifacts to SSMSControllerEx - changed README, added credit to razuhl">
+      <option name="closed" value="true" />
+      <created>1743871112299</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1743871112299</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Implemented PS4 controller on Linux (buttons are wrong, need to fix)&#10;Was able to see the SSMSController UI in-game for the first time :)" />
-    <option name="LAST_COMMIT_MESSAGE" value="Implemented PS4 controller on Linux (buttons are wrong, need to fix)&#10;Was able to see the SSMSController UI in-game for the first time :)" />
+    <MESSAGE value="Renaming artifacts to SSMSControllerEx - changed README, added credit to razuhl" />
+    <option name="LAST_COMMIT_MESSAGE" value="Renaming artifacts to SSMSControllerEx - changed README, added credit to razuhl" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
