@@ -34,6 +34,7 @@ import lunalib.lunaTitle.TitleSpecLoader.TitleScreenSpec;
 import ssms.controller.inputScreens.InputScope_Battle;
 import ssms.controller.inputScreens.InputScreenManager;
 import ssms.controller.reflection.ClassReflector;
+import ssms.controller.reflection.MethodReflector;
 import ssms.controller.reflection.UIPanelReflector;
 
 import java.util.List;
@@ -68,10 +69,19 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
             var widgets = UIPanelReflector.getChildItems(panel);
             if(!widgets.isEmpty() && UIPanelAPI.class.isAssignableFrom(widgets.get(0).getClass())) {
                 var mainMenu = (UIPanelAPI)widgets.get(0);
-                ClassReflector.GetInstance().getDeclaredMethod(mainMenu.getClass(), "getMainMenu", )
-                var btns = UIPanelReflector.getChildButtons();
-                if(!btns.isEmpty()) {
-                    btns.get(0).highlight();
+                try {
+                    var getMainMenu = ClassReflector.GetInstance().findDeclaredMethod(mainMenu.getClass(), "getMainMenu");
+                    UIPanelAPI mainMenuPanel = (UIPanelAPI) MethodReflector.GetInstance().invoke(getMainMenu, mainMenu);
+                    var mainMenuWidgets = UIPanelReflector.getChildItems(mainMenuPanel);
+                    if(!mainMenuWidgets.isEmpty())
+                    {
+                        var btns = UIPanelReflector.getChildButtons((UIPanelAPI)mainMenuWidgets.get(0));
+                        if(!btns.isEmpty()) {
+                            btns.get(0).highlight();
+                        }
+                    }
+                } catch(Throwable ex) {
+                    Global.getLogger(getClass()).log(Level.FATAL, "Couldn't get the main menu buttons!");
                 }
             }
         } else if ( engine != null && engine.getContext() != null && (engine.isSimulation() || (engine.getCombatUI() != null && CombatState.class.isAssignableFrom(engine.getCombatUI().getClass())))

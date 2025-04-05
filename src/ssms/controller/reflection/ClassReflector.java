@@ -5,6 +5,10 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.MethodHandles.Lookup;
 
+import org.apache.log4j.Level;
+
+import com.fs.starfarer.api.Global;
+
 public class ClassReflector {
     static ClassReflector instance;
     MethodHandle getDeclaredField;
@@ -44,6 +48,19 @@ public class ClassReflector {
 
     public Object getDeclaredMethod(Class<?> cls, String name, Class<?> ... classes) throws Throwable {
         return getDeclaredMethod.invoke(cls, name, classes);
+    }
+
+    public Object findDeclaredMethod(Class<?> cls, String name) {
+        try {
+            for(var method : getDeclaredMethods(cls)) {
+                if(MethodReflector.GetInstance().getName(method) == name) {
+                    return method;
+                }
+            }
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).log(Level.WARN, "Unable to find method! cls=" + cls + ", name=" + name + ", ex=" + ex);
+        }
+        return null;
     }
 
     public Object[] getDeclaredMethods(Class<?> cls) throws Throwable{
