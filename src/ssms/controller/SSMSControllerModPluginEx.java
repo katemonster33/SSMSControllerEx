@@ -31,12 +31,15 @@ import ssms.controller.steering.SteeringController_OrbitTarget;
 import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 
 import com.fs.starfarer.api.graphics.SpriteAPI;
+import com.fs.starfarer.campaign.ui.b;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -59,18 +62,28 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
     
     @Override
     public void onApplicationLoad() throws Exception {
+
         JSONObject obj = Global.getSettings().loadJSON("data/config/settings.json", "SSMSControllerEx");
         if(obj == null) {
             Global.getLogger(this.getClass()).log(Level.DEBUG, "no settings!!!");
             return;
         }
-        controllerMappings = configureControllerMappings(obj.getJSONObject("controllerMappings"));
+
+        //controllerMappings = configureControllerMappings(obj.getJSONObject("controllerMappings"));
+        controllerMappings = configureControllerMappingEx();
         var indicatorsByController = configureSettingsApplicationController(obj.getJSONObject("graphics"));
         for(var mapping : controllerMappings.values()) {
             if(!mapping.indicatorProfile.isEmpty()) {
                 mapping.indicators = indicatorsByController.get(mapping.indicatorProfile);
             }
         }
+        // var csvObj = Global.getSettings().loadCSV("data/config/gamecontrollerdb.txt");
+        // for(int i =0; i < csvObj.length(); i++) {
+        //     String guid = csvObj.getJSONObject(i).getString("guid");
+        //     if(!guid.startsWith("#")) {
+        //         Global.getLogger(getClass()).log(Level.INFO, "Found controller!");
+        //     }
+        // }
         defaultIndicators = indicatorsByController.get("xbox360");
         
         // if ( controllerMappings == null ) controllerMappings = new ArrayList<>();
@@ -94,62 +107,200 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         man.updateIndicators();
     }
 
-    protected HashMap<String, ControllerMapping> configureControllerMappings(JSONObject controllerMappingsObj) {
+    enum ButtonMapping
+    {
+        A,
+        B,
+        X,
+        Y,
+        Select,
+        Start,
+        L1,
+        R1,
+        L2,
+        R2,
+        L3,
+        R3,
+        Guide,
+        DPadLeft,
+        DPadRight,
+        DPadUp,
+        DPadDown,
+        Invalid
+    };
+    
+    enum AxisMapping
+    {
+        LeftStickX,
+        LeftStickY,
+        RightStickX,
+        RightStickY,
+        LeftTrigger,
+        RightTrigger,
+        DPadX,
+        DPadY,
+        Invalid
+    };
+    enum POVMapping
+    {
+        DPadLeft,
+        DPadRight,
+        DPadUp,
+        DPadDown,
+        Invalid
+    };
+
+    protected HashMap<String, ControllerMapping> configureControllerMappingEx() {
         HashMap<String, ControllerMapping> output = new HashMap<>();
         try {
-            for (int conIdx = 0; conIdx < controllerMappingsObj.length(); conIdx++) {
-                String deviceName = controllerMappingsObj.names().getString(conIdx);
-                JSONObject deviceMappings = controllerMappingsObj.getJSONObject(deviceName);
-                if(deviceMappings == null) {
-                    Global.getLogger(getClass()).log(Level.ERROR, "Failed to parse controller mappings for " + deviceName);
-                } else {
-                    ControllerMapping newMapping = new ControllerMapping();
-                    newMapping.deviceName = deviceName;
-                    if(deviceMappings.has("indicatorProfile")) newMapping.indicatorProfile = deviceMappings.getString("indicatorProfile");
-                    JSONArray deviceButtons = deviceMappings.getJSONArray("buttons");
+            var controllerMapJson = Global.getSettings().loadJSON("data/config/controllerMappings.json");
+            String platform = System.getProperty("os.name");
+            if(platform.contains("Windows")) platform = "Windows";
+            else if(platform.contains("OS X")) platform = "Mac OS X";
+            else if(platform.contains("Linux")) platform = "Linux";
+            var platformMappings = controllerMapJson.getJSONObject(platform);
+            for(int i = 0; i < platformMappings.length(); i++) {
+                var controllerName = platformMappings.names().getString(i);
+                var controller = platformMappings.getJSONObject(controllerName);
+                var buttons = controller.getJSONArray("buttons");
+                ControllerMapping newMapping = new ControllerMapping();
+                for(int btnIdx = 0; btnIdx < buttons.length(); btnIdx++) {
+                    if(!buttons.isNull(btnIdx)) {
+                        ButtonMapping btnId = ButtonMapping.values()[buttons.getInt(btnIdx)];
+                        switch(btnId)
+                        {
+                            case A:                   newMapping.btnA = btnIdx; break;
+                            case B:                   newMapping.btnB = btnIdx; break;
+                            case X:                   newMapping.btnX = btnIdx; break;
+                            case Y:                   newMapping.btnY = btnIdx; break;
+                            case L1:          newMapping.btnBumperLeft = btnIdx; break;
+                            case R1:         newMapping.btnBumperRight = btnIdx; break;
+                            case Select :             newMapping.btnSelect = btnIdx; break;
+                            case Start :              newMapping.btnStart = btnIdx; break;
+                            case L3:     newMapping.btnLeftStick = btnIdx; break;
+                            case R3:    newMapping.btnRightStick = btnIdx; break;
+                            case L2:         newMapping.btnLeftTrigger = btnIdx; break;
+                            case R2:        newMapping.btnRightTrigger = btnIdx; break;
 
-                    if(deviceButtons != null) {
-                        for(int btnIdx = 0; btnIdx < deviceButtons.length(); btnIdx++) {
-                            String btnName = deviceButtons.getString(btnIdx);
+                            //TODO : add support for D-Pads reported as buttons??? maybe??? do I care?? probably not
+                            case DPadDown:
+                            case DPadLeft:
+                            case DPadRight:
+                            case DPadUp:
+                                break;
 
-                            switch(btnName)
-                            {
-                                case "A":                   newMapping.btnA = btnIdx; break;
-                                case "B":                   newMapping.btnB = btnIdx; break;
-                                case "X":                   newMapping.btnX = btnIdx; break;
-                                case "Y":                   newMapping.btnY = btnIdx; break;
-                                case "BumperLeft":          newMapping.btnBumperLeft = btnIdx; break;
-                                case "BumperRight":         newMapping.btnBumperRight = btnIdx; break;
-                                case "Select" :             newMapping.btnSelect = btnIdx; break;
-                                case "Start" :              newMapping.btnStart = btnIdx; break;
-                                case "LeftStickButton":     newMapping.btnLeftStick = btnIdx; break;
-                                case "RightStickButton":    newMapping.btnRightStick = btnIdx; break;
-                                case "LeftTrigger":         newMapping.btnLeftTrigger = btnIdx; break;
-                                case "RightTrigger":        newMapping.btnRightTrigger = btnIdx; break;
-                            }
+                            //TODO: same as above???
+                            case Guide:
+                                break;
+
+                            case Invalid:
+                            default:
+                                break;
                         }
                     }
-                    JSONObject deviceAxes = deviceMappings.getJSONObject("axes");
-
-                    if(deviceAxes != null) {
-                        if(deviceAxes.has("LeftStickX")) newMapping.axisIdLX = Enum.valueOf(AxisId.class, deviceAxes.getString("LeftStickX"));
-                        if(deviceAxes.has("LeftStickY")) newMapping.axisIdLY = Enum.valueOf(AxisId.class, deviceAxes.getString("LeftStickY"));
-                        if(deviceAxes.has("RightStickX")) newMapping.axisIdRX = Enum.valueOf(AxisId.class, deviceAxes.getString("RightStickX"));
-                        if(deviceAxes.has("RightStickY")) newMapping.axisIdRY = Enum.valueOf(AxisId.class, deviceAxes.getString("RightStickY"));
-                        if(deviceAxes.has("LeftTrigger")) newMapping.axisIdLT = Enum.valueOf(AxisId.class, deviceAxes.getString("LeftTrigger"));
-                        if(deviceAxes.has("RightTrigger")) newMapping.axisIdRT = Enum.valueOf(AxisId.class, deviceAxes.getString("RightTrigger"));
-                        //newMapping.axisRightStickY = deviceAxes.getString("RightStickY");
-                        if(deviceAxes.has("DPadX")) newMapping.axisIdDpadX = Enum.valueOf(AxisId.class, deviceAxes.getString("DPadX"));
-                        if(deviceAxes.has("DPadY")) newMapping.axisIdDpadY = Enum.valueOf(AxisId.class, deviceAxes.getString("DPadY"));
-                    }
-                    output.put(deviceName, newMapping);
                 }
+                var axes = controller.getJSONArray("axes");
+                for(int axisIdx = 0; axisIdx < axes.length(); axisIdx++) {
+                    if(!axes.isNull(axisIdx)) {
+                        AxisMapping axisId = AxisMapping.values()[axes.getInt(axisIdx)];
+                        switch(axisId)
+                        {
+                            case LeftStickX: newMapping.axisIdLX = axisIdx; break;
+                            case LeftStickY: newMapping.axisIdLY = axisIdx; break;
+                            case RightStickX: newMapping.axisIdRX = axisIdx; break;
+                            case RightStickY: newMapping.axisIdRY = axisIdx; break;
+                            case LeftTrigger: newMapping.axisIdLT = axisIdx; break;
+                            case RightTrigger: newMapping.axisIdRT = axisIdx; break;
+                            case DPadX: newMapping.axisIdDpadX = axisIdx; break;
+                            case DPadY: newMapping.axisIdDpadY = axisIdx; break;
+
+                            case Invalid:
+                            default:
+                                break;
+                        }
+                    }
+                }
+                var povs = controller.getJSONArray("povs");
+                for(int povIdx = 0; povIdx < povs.length(); povIdx++) {
+                    if(!povs.isNull(povIdx)) {
+                        POVMapping povId = POVMapping.values()[povs.getInt(povIdx)];
+                        switch(povId)
+                        {
+                            case DPadDown: newMapping.axisIdDpadY = 255; break;
+                            case DPadLeft: newMapping.axisIdDpadX = 255; break;
+                            case DPadRight: newMapping.axisIdDpadX = 255; break;
+                            case DPadUp: newMapping.axisIdDpadY = 255; break;
+
+                            default: break;
+                        }
+                    }
+                }
+                // TODO: make indicators based off controller name somehow??
+                newMapping.indicatorProfile = "xbox360";
+                output.put(controllerName, newMapping);
             }
-        } catch(JSONException je) {
-            Global.getLogger(getClass()).log(Level.ERROR, "Failed to load controller mappings - Mod cannot function! " + je.getMessage());
+        } catch(IOException | JSONException ex) {
+            Global.getLogger(getClass()).log(Level.FATAL, "Couldn't read controller button mappings!");
         }
         return output;
     }
+
+    // protected HashMap<String, ControllerMapping> configureControllerMappings(JSONObject controllerMappingsObj) {
+    //     HashMap<String, ControllerMapping> output = new HashMap<>();
+    //     try {
+    //         for (int conIdx = 0; conIdx < controllerMappingsObj.length(); conIdx++) {
+    //             String deviceName = controllerMappingsObj.names().getString(conIdx);
+    //             JSONObject deviceMappings = controllerMappingsObj.getJSONObject(deviceName);
+    //             if(deviceMappings == null) {
+    //                 Global.getLogger(getClass()).log(Level.ERROR, "Failed to parse controller mappings for " + deviceName);
+    //             } else {
+    //                 ControllerMapping newMapping = new ControllerMapping();
+    //                 newMapping.deviceName = deviceName;
+    //                 if(deviceMappings.has("indicatorProfile")) newMapping.indicatorProfile = deviceMappings.getString("indicatorProfile");
+    //                 JSONArray deviceButtons = deviceMappings.getJSONArray("buttons");
+
+    //                 if(deviceButtons != null) {
+    //                     for(int btnIdx = 0; btnIdx < deviceButtons.length(); btnIdx++) {
+    //                         String btnName = deviceButtons.getString(btnIdx);
+
+    //                         switch(btnName)
+    //                         {
+    //                             case "A":                   newMapping.btnA = btnIdx; break;
+    //                             case "B":                   newMapping.btnB = btnIdx; break;
+    //                             case "X":                   newMapping.btnX = btnIdx; break;
+    //                             case "Y":                   newMapping.btnY = btnIdx; break;
+    //                             case "BumperLeft":          newMapping.btnBumperLeft = btnIdx; break;
+    //                             case "BumperRight":         newMapping.btnBumperRight = btnIdx; break;
+    //                             case "Select" :             newMapping.btnSelect = btnIdx; break;
+    //                             case "Start" :              newMapping.btnStart = btnIdx; break;
+    //                             case "LeftStickButton":     newMapping.btnLeftStick = btnIdx; break;
+    //                             case "RightStickButton":    newMapping.btnRightStick = btnIdx; break;
+    //                             case "LeftTrigger":         newMapping.btnLeftTrigger = btnIdx; break;
+    //                             case "RightTrigger":        newMapping.btnRightTrigger = btnIdx; break;
+    //                         }
+    //                     }
+    //                 }
+    //                 JSONObject deviceAxes = deviceMappings.getJSONObject("axes");
+
+    //                 if(deviceAxes != null) {
+    //                     if(deviceAxes.has("LeftStickX")) newMapping.axisIdLX = Enum.valueOf(AxisId.class, deviceAxes.getString("LeftStickX"));
+    //                     if(deviceAxes.has("LeftStickY")) newMapping.axisIdLY = Enum.valueOf(AxisId.class, deviceAxes.getString("LeftStickY"));
+    //                     if(deviceAxes.has("RightStickX")) newMapping.axisIdRX = Enum.valueOf(AxisId.class, deviceAxes.getString("RightStickX"));
+    //                     if(deviceAxes.has("RightStickY")) newMapping.axisIdRY = Enum.valueOf(AxisId.class, deviceAxes.getString("RightStickY"));
+    //                     if(deviceAxes.has("LeftTrigger")) newMapping.axisIdLT = Enum.valueOf(AxisId.class, deviceAxes.getString("LeftTrigger"));
+    //                     if(deviceAxes.has("RightTrigger")) newMapping.axisIdRT = Enum.valueOf(AxisId.class, deviceAxes.getString("RightTrigger"));
+    //                     //newMapping.axisRightStickY = deviceAxes.getString("RightStickY");
+    //                     if(deviceAxes.has("DPadX")) newMapping.axisIdDpadX = Enum.valueOf(AxisId.class, deviceAxes.getString("DPadX"));
+    //                     if(deviceAxes.has("DPadY")) newMapping.axisIdDpadY = Enum.valueOf(AxisId.class, deviceAxes.getString("DPadY"));
+    //                 }
+    //                 output.put(deviceName, newMapping);
+    //             }
+    //         }
+    //     } catch(JSONException je) {
+    //         Global.getLogger(getClass()).log(Level.ERROR, "Failed to load controller mappings - Mod cannot function! " + je.getMessage());
+    //     }
+    //     return output;
+    // }
 
     protected HashMap<String, EnumMap<Indicators, SpriteAPI>> configureSettingsApplicationController(JSONObject graphicsObject) {
         HashMap<String, EnumMap<Indicators, SpriteAPI>> output = new HashMap<>();
@@ -192,6 +343,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         
         if ( Controllers.isCreated() ) Controllers.destroy();
         Controllers.create();
+        Controllers.poll();
         controller = null;
         
         //"Controller (XBOX 360 For Windows)"
@@ -230,7 +382,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         if ( controllerMappings != null ) {
             for ( int i = 0; i < Controllers.getControllerCount(); i++ ) {
                 Controller con = Controllers.getController(i);
-                String conName = new StringBuilder(con.getName()).append("(").append(con.getAxisCount()).append(",").append(con.getButtonCount()).append(")").toString();
+                String conName = con.getName(); //new StringBuilder(con.getName()).append("(").append(con.getAxisCount()).append(",").append(con.getButtonCount()).append(")").toString();
                 ControllerMapping conMap = controllerMappings.get(conName);
                 if ( conMap != null ) {
                     con.poll();

@@ -53,72 +53,77 @@ public class HandlerController {
         this(new ControllerAdapter(), null);
     }
 
-    String[] getAxisNames(AxisId axisId)
-    {
-        switch(axisId) 
-        {
-            case XAxis:
-                return new String[]{"X Axis", "x"};
-            case YAxis:
-                return new String[]{"Y Axis", "y"};
-            case ZAxis:
-                return new String[]{"Z Axis", "z"};
-            case ZRotation:
-                return new String[]{"Z Rotation", "rz"};
-            case XRotation:
-                return new String[]{ "X Rotation", "rx"};
-            case YRotation:
-                return new String[]{"Y Rotation", "ry"};
-            default:
-                return null;
-        }
-    }
+//    String[] getAxisNames(AxisId axisId)
+//    {
+//        switch(axisId)
+//        {
+//            case XAxis:
+//                return new String[]{"X Axis", "x"};
+//            case YAxis:
+//                return new String[]{"Y Axis", "y"};
+//            case ZAxis:
+//                return new String[]{"Z Axis", "z"};
+//            case ZRotation:
+//                return new String[]{"Z Rotation", "rz"};
+//            case XRotation:
+//                return new String[]{ "X Rotation", "rx"};
+//            case YRotation:
+//                return new String[]{"Y Rotation", "ry"};
+//            default:
+//                return null;
+//        }
+//    }
 
-    int getAxisIndex(AxisId axisId, Map<String,Integer> axisIndices, int axisCount)
-    {
-        if(axisId == null)
-        {
-            return -1;
-        }
-        switch(axisId)
-        {
-            default:
-                String[] axisNames = getAxisNames(axisId);
-                if(axisNames != null) {
-                    for(String axisName : axisNames) {
-                        Integer index = axisIndices.get(axisName);
-                        if(index != null) {
-                            return getIndexCoercingNull(index, axisCount);
-                        }
-                    }
-                }
-                return -1;
-
-            case POVX:
-            case POVY:
-                return 0xFF;
-
-            case None:
-                return -1;
-        }
-    }
+//    int getAxisIndex(AxisId axisId, Map<String,Integer> axisIndices, int axisCount)
+//    {
+//        if(axisId == null)
+//        {
+//            return -1;
+//        }
+//        switch(axisId)
+//        {
+//            default:
+//                String[] axisNames = getAxisNames(axisId);
+//                if(axisNames != null) {
+//                    for(String axisName : axisNames) {
+//                        Integer index = axisIndices.get(axisName);
+//                        if(index != null) {
+//                            return getIndexCoercingNull(index, axisCount);
+//                        }
+//                    }
+//                }
+//                return -1;
+//
+//            case POVX:
+//            case POVY:
+//                return 0xFF;
+//
+//            case None:
+//                return -1;
+//        }
+//    }
+int getAxisIndex(int axisId, int axisCount)
+{
+    if(axisId == 255) return axisId;
+    else return getIndexCoercingNull(axisId, axisCount);
+}
 
     public HandlerController(Controller controller, ControllerMapping mapping) {
         this.controller = controller;
         this.mapping = mapping;
-        Map<String,Integer> axisIndices = new HashMap<>();
-        for ( int i = 0; i < controller.getAxisCount(); i++ ) {
-            axisIndices.put(controller.getAxisName(i), i);
-        }
+//        Map<String,Integer> axisIndices = new HashMap<>();
+//        for ( int i = 0; i < controller.getAxisCount(); i++ ) {
+//            axisIndices.put(controller.getAxisName(i), i);
+//        }
         
         if ( mapping != null ) {
-            axisLeftStickX = getAxisIndex(mapping.axisIdLX, axisIndices, controller.getAxisCount());
-            axisLeftStickY = getAxisIndex(mapping.axisIdLY, axisIndices, controller.getAxisCount());
-            axisRightStickX = getAxisIndex(mapping.axisIdRX, axisIndices, controller.getAxisCount());
-            axisRightStickY = getAxisIndex(mapping.axisIdRY, axisIndices, controller.getAxisCount());
-            axisDpadX = getAxisIndex(mapping.axisIdDpadX, axisIndices, controller.getAxisCount());
-            axisDpadY = getAxisIndex(mapping.axisIdDpadY, axisIndices, controller.getAxisCount());
-            axisTrigger = getAxisIndex(mapping.axisIdLT, axisIndices, controller.getAxisCount());
+            axisLeftStickX = getAxisIndex(mapping.axisIdLX, controller.getAxisCount());
+            axisLeftStickY = getAxisIndex(mapping.axisIdLY, controller.getAxisCount());
+            axisRightStickX = getAxisIndex(mapping.axisIdRX, controller.getAxisCount());
+            axisRightStickY = getAxisIndex(mapping.axisIdRY, controller.getAxisCount());
+            axisDpadX = getAxisIndex(mapping.axisIdDpadX, controller.getAxisCount());
+            axisDpadY = getAxisIndex(mapping.axisIdDpadY, controller.getAxisCount());
+            axisTrigger = getAxisIndex(mapping.axisIdLT, controller.getAxisCount());
             
             btnA = getIndexCoercingNull(mapping.btnA,controller.getButtonCount());
             btnB = getIndexCoercingNull(mapping.btnB,controller.getButtonCount());

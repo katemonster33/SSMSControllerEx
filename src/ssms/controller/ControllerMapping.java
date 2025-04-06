@@ -36,7 +36,7 @@ public class ControllerMapping {
 
     public String indicatorProfile;
     
-    public AxisId axisIdLX, axisIdLY, axisIdRX, axisIdRY, axisIdLT, axisIdRT, axisIdDpadX, axisIdDpadY;
+    public Integer axisIdLX, axisIdLY, axisIdRX, axisIdRY, axisIdLT, axisIdRT, axisIdDpadX, axisIdDpadY;
     public Integer axisIndexLX, axisIndexLY, axisIndexRX, axisIndexRY, axisIndexLT, axisIndexRT, axisIndexDpadX, axisIndexDpadY;
     public Integer btnA, btnB, btnX, btnY, btnBumperLeft, btnBumperRight, btnStart, btnSelect, btnLeftStick, btnRightStick, btnLeftTrigger, btnRightTrigger;
 }
