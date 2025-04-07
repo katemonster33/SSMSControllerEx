@@ -94,7 +94,7 @@ public class InputScreen_BattleMenu implements InputScreen {
     }
 
     @Override
-    public void activate(Object[] args) {
+    public void activate(Object ... args) {
         handler = SSMSControllerModPluginEx.controller;
         scope = (InputScope_Battle)InputScreenManager.getInstance().getCurrentScope();
         engine = scope.engine;

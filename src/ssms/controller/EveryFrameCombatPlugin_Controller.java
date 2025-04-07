@@ -85,7 +85,11 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
 //                }
 //            }
 //        } else
-        if ( engine != null && engine.getContext() != null && (engine.isSimulation() || (engine.getCombatUI() != null && CombatState.class.isAssignableFrom(engine.getCombatUI().getClass())))
+        if(Global.getCurrentState() == GameState.TITLE) {
+            if ( !InputScreenManager.getInstance().transitionToScope("TitleScreen", engine) ) {
+                Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to transition into title screen scope!");
+            } else skipFrame = false;
+        } else if ( engine != null && engine.getContext() != null && (engine.isSimulation() || (engine.getCombatUI() != null && CombatState.class.isAssignableFrom(engine.getCombatUI().getClass())))
         && SSMSControllerModPluginEx.controller != null && SSMSControllerModPluginEx.controller.mapping != null ) {
             if(Global.getCurrentState() == GameState.TITLE) {
                 skipFrame = false;
@@ -179,6 +183,7 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
             case COMBAT:
                 break;
             case TITLE:
+
                 // TitleScreenState titleScreen = (TitleScreenState) AppDriver.getInstance().getCurrentState();
                 // Object panel = titleScreen.getScreenPanel();
                 // ClassReflector.GetInstance().getDeclaredMethod(panel.getClass(), "" null, null)

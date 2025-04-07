@@ -9,6 +9,7 @@ import org.apache.log4j.Level;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipAPI;
+import com.fs.starfarer.api.combat.ShipCommand;
 import com.fs.starfarer.api.combat.ShipwideAIFlags;
 import com.fs.state.AppDriver;
 

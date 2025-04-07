@@ -34,6 +34,7 @@ import ssms.controller.HandlerController;
 import ssms.controller.Indicators;
 import ssms.controller.SSMSControllerModPluginEx;
 import ssms.qol.ui.UIUtil;
+import ssms.qol.ui.AlignmentHorizontal;
 
 /**
  *
@@ -41,6 +42,7 @@ import ssms.qol.ui.UIUtil;
  */
 public class InputScreenManager {
     static private volatile InputScreenManager instance;
+    protected AlignmentHorizontal horizontalAlignment = AlignmentHorizontal.right;
     private Map<String,InputScreen> screens;//screen can belong to multiple scopes
     private Map<String,InputScope> scopes;
     private Map<Indicators,SpriteAPI> indicatorSprites;
@@ -98,24 +100,12 @@ public class InputScreenManager {
         return localInstance;
     }
     
-    public InputScreen registerScreen(Class<? extends InputScreen> screen, String ID) {
-        try {
-            return screens.put(ID, screen.getDeclaredConstructor().newInstance());
-        } catch (Throwable ex) {
-            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to create instance for input screen class: "+screen, ex);
-        }
-
-        return null;
+    public InputScreen registerScreen(InputScreen screen) {
+        return screens.put(screen.getId(), screen);
     }
     
-    public InputScope registerScope(Class<? extends InputScope> scope, String scopeStr) {
-        try {
-            return scopes.put(scopeStr,scope.getDeclaredConstructor().newInstance());
-        } catch (Throwable ex) {
-            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to create instance for input scope class: "+scope, ex);
-        }
-        
-        return null;
+    public InputScope registerScope(InputScope scope) {
+        return scopes.put(scope.getId(), scope);
     }
     
     public InputScreen getCurrentScreen() {
@@ -192,6 +182,7 @@ public class InputScreenManager {
                     } catch ( Throwable t ) {
                         Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Failed to deactivate screen, ignoring: "+currentScreen, t);
                     }
+                    horizontalAlignment = AlignmentHorizontal.right;
                     screen.activate(screenArgs);
                     currentScreen = screen;
                     refreshIndicatorTimeout();
@@ -218,6 +209,7 @@ public class InputScreenManager {
         if ( nextScreen != null ) {
             InputScreen screen = screens.get(nextScreen.id);
             try {
+                horizontalAlignment = AlignmentHorizontal.right;
                 screen.activate(nextScreen.args);
                 try {
                     if ( currentScreen != null ) {
@@ -257,12 +249,20 @@ public class InputScreenManager {
     }
     
     private void renderIndicators(ViewportAPI viewport) {
+        
         InputScreen screen = getCurrentScreen();
         List<Pair<Indicators, String>> indicators = screen.getIndicators();
         if ( indicators == null || indicators.isEmpty() ) return;
         
         float yMin = viewport.convertWorldYtoScreenY(viewport.getLLY()), 
-            xMax = viewport.convertWorldXtoScreenX(viewport.getLLX() + viewport.getVisibleWidth());
+            xMax = 0;
+        if(horizontalAlignment == AlignmentHorizontal.left) {
+            xMax = viewport.getCenter().x;
+        } else if(horizontalAlignment == AlignmentHorizontal.middle) { 
+
+        } else if(horizontalAlignment == AlignmentHorizontal.right) {
+            viewport.convertWorldXtoScreenX(horizontalAlignment == AlignmentHorizontal.left ? 200 :  viewport.getLLX() + viewport.getVisibleWidth());
+        }
         
         final float lineHeight = 25, textLineHeight = UIUtil.getInstance().getTextHeight("A"), spacing = 8f, textWidth = 200f;
         float x = xMax - textWidth - lineHeight - spacing - spacing, y = yMin + indicators.size() * (lineHeight + spacing) + spacing;
