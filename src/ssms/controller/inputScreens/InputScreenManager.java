@@ -20,7 +20,7 @@ package ssms.controller.inputScreens;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
-import com.fs.starfarer.api.ui.Alignment;
+//import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.util.Pair;
 import java.awt.Color;
 import java.util.EnumMap;
@@ -33,8 +33,11 @@ import ssms.controller.ControllerMapping;
 import ssms.controller.HandlerController;
 import ssms.controller.Indicators;
 import ssms.controller.SSMSControllerModPluginEx;
-import ssms.qol.ui.UIUtil;
-import ssms.qol.ui.AlignmentHorizontal;
+//import ssms.qol.ui.UIUtil;
+
+import org.lazywizard.lazylib.ui.*;
+import org.lazywizard.lazylib.ui.LazyFont.TextAlignment;
+import org.lazywizard.lazylib.ui.LazyFont.TextAnchor;
 
 /**
  *
@@ -42,14 +45,17 @@ import ssms.qol.ui.AlignmentHorizontal;
  */
 public class InputScreenManager {
     static private volatile InputScreenManager instance;
-    protected AlignmentHorizontal horizontalAlignment = AlignmentHorizontal.right;
+    LazyFont defaultFont = null;
+    //protected AlignmentHorizontal horizontalAlignment = AlignmentHorizontal.right;
+    protected TextAlignment horizontaAlignment = TextAlignment.RIGHT;
     private Map<String,InputScreen> screens;//screen can belong to multiple scopes
     private Map<String,InputScope> scopes;
-    private Map<Indicators,SpriteAPI> indicatorSprites;
+    protected Map<Indicators,SpriteAPI> indicatorSprites;
     private InputScreen currentScreen;
     private InputScope currentScope;
     private Transition nextScreen;
     private long indicatorTimeout;
+    float textLineHeight;
     private class Transition {
         protected String id;
         protected Object[] args;
@@ -85,6 +91,12 @@ public class InputScreenManager {
         currentScreen = new InputScreen_Bluescreen(); currentScreen.activate();
         indicatorSprites = new EnumMap<>(Indicators.class);
         updateIndicators();
+        try {
+            defaultFont = LazyFont.loadFont("graphics/fonts/insignia21LTaa.fnt");
+            textLineHeight = defaultFont.createText("A").getHeight();
+        } catch(FontException ex) {
+            Global.getLogger(getClass()).log(Level.FATAL, "Failed to load insignia21LTaa.fnt! " + ex);
+        }
     }
     
     static public InputScreenManager getInstance() {
@@ -182,7 +194,7 @@ public class InputScreenManager {
                     } catch ( Throwable t ) {
                         Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Failed to deactivate screen, ignoring: "+currentScreen, t);
                     }
-                    horizontalAlignment = AlignmentHorizontal.right;
+                    //horizontalAlignment = AlignmentHorizontal.right;
                     screen.activate(screenArgs);
                     currentScreen = screen;
                     refreshIndicatorTimeout();
@@ -209,7 +221,7 @@ public class InputScreenManager {
         if ( nextScreen != null ) {
             InputScreen screen = screens.get(nextScreen.id);
             try {
-                horizontalAlignment = AlignmentHorizontal.right;
+                //horizontalAlignment = AlignmentHorizontal.right;
                 screen.activate(nextScreen.args);
                 try {
                     if ( currentScreen != null ) {
@@ -241,7 +253,8 @@ public class InputScreenManager {
     
     public void renderUI(ViewportAPI viewport) {
         currentScreen.renderUI(viewport);
-        if ( indicatorTimeout > System.currentTimeMillis() ) renderIndicators(viewport);
+        //if ( indicatorTimeout > System.currentTimeMillis() ) renderIndicators(viewport);
+        renderIndicators(viewport);
     }
     
     public void refreshIndicatorTimeout() {
@@ -254,18 +267,10 @@ public class InputScreenManager {
         List<Pair<Indicators, String>> indicators = screen.getIndicators();
         if ( indicators == null || indicators.isEmpty() ) return;
         
-        float yMin = viewport.convertWorldYtoScreenY(viewport.getLLY()), 
-            xMax = 0;
-            xMax = viewport.convertWorldXtoScreenX(viewport.getLLX() + viewport.getVisibleWidth());
-        if(horizontalAlignment == AlignmentHorizontal.left) {
-            //xMax = viewport.getCenter().x;
-        } else if(horizontalAlignment == AlignmentHorizontal.middle) { 
-
-        } else if(horizontalAlignment == AlignmentHorizontal.right) {
-            xMax = viewport.convertWorldXtoScreenX(viewport.getLLX() + viewport.getVisibleWidth());
-        }
+        float yMin = viewport.convertWorldYtoScreenY(viewport.getLLY()), xMax = 0;
+        xMax = viewport.convertWorldXtoScreenX(viewport.getLLX() + viewport.getVisibleWidth());
         
-        final float lineHeight = 25, textLineHeight = UIUtil.getInstance().getTextHeight("A"), spacing = 8f, textWidth = 200f;
+        final float lineHeight = 25, spacing = 8f, textWidth = 200f;
         float x = xMax - textWidth - lineHeight - spacing - spacing, y = yMin + indicators.size() * (lineHeight + spacing) + spacing;
         for ( Pair<Indicators,String> e : indicators ) {
             if ( e.one != null ) {
@@ -275,10 +280,20 @@ public class InputScreenManager {
                     sprite.setHeight(lineHeight);
                     sprite.render(x, y);
                 }
-                UIUtil.getInstance().renderText(e.two, Color.white, x + spacing + lineHeight, y, textWidth, lineHeight, Alignment.LMID);
+                //UIUtil.getInstance().renderText(e.two, Color.white, x + spacing + lineHeight, y, textWidth, lineHeight, Alignment.LMID);
+
+                var str = defaultFont.createText(e.two, Color.white, textLineHeight, textWidth, lineHeight);
+                str.setAlignment(TextAlignment.LEFT);
+                str.setAnchor(TextAnchor.TOP_LEFT);
+                str.draw(x + spacing + lineHeight, y + textLineHeight + 2);
                 y -= lineHeight + spacing;
             } else {
-                UIUtil.getInstance().renderText(e.two, Color.white, x, y, textWidth + spacing + lineHeight, textLineHeight, Alignment.LMID);
+                //UIUtil.getInstance().renderText(e.two, Color.white, x, y, textWidth + spacing + lineHeight, textLineHeight, Alignment.LMID);
+                var str = defaultFont.createText(e.two, Color.white, textLineHeight, textWidth + spacing + lineHeight, lineHeight);
+                str.setAlignment(TextAlignment.LEFT);
+                str.setAnchor(TextAnchor.CENTER_LEFT);
+                str.draw(x, y - textLineHeight);
+
                 y -= textLineHeight + spacing;
             }
         }

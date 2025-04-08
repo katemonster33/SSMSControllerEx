@@ -27,10 +27,12 @@ import ssms.controller.Indicators;
 import ssms.controller.SSMSControllerModPluginEx;
 import ssms.qol.ui.AlignmentHorizontal;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.lazywizard.lazylib.ui.LazyFont;
 import org.lwjgl.input.Controller;
 
 /**
@@ -42,6 +44,7 @@ public class InputScreen_TitleScreen implements InputScreen {
     public static final String ID = "TitleScreen";
     public static final String SCOPES = "TitleScreen";
     protected List<Pair<Indicators, String>> indicators;
+    HandlerController.Buttons[] buttons = HandlerController.Buttons.values();
     Controller controller = null;
     enum State
     {
@@ -76,7 +79,7 @@ public class InputScreen_TitleScreen implements InputScreen {
 
     @Override
     public void activate(Object ...args) {
-        InputScreenManager.getInstance().horizontalAlignment = AlignmentHorizontal.left;
+        //InputScreenManager.getInstance().horizontalAlignment = AlignmentHorizontal.left;
         controller = SSMSControllerModPluginEx.controller.controller;
         
         scope = (InputScope_TitleScreen)InputScreenManager.getInstance().getCurrentScope();
@@ -86,8 +89,58 @@ public class InputScreen_TitleScreen implements InputScreen {
     public void renderInWorld(ViewportAPI viewport) {
     }
 
+    Indicators getIndicatorForButton(HandlerController.Buttons btn)
+    {
+        switch(btn)
+        {
+            case A: return Indicators.A;
+            case B: return Indicators.B;
+            case X: return Indicators.X;
+            case Y: return Indicators.Y;
+            case Select: return Indicators.Select;
+            case Start: return Indicators.Start;
+            case LeftStickButton: return Indicators.LeftStickButton;
+            case RightStickButton: return Indicators.RightStickButton;
+            case LeftStickLeft: return Indicators.LeftStickLeft;
+            case LeftStickDown: return Indicators.LeftStickDown;
+            case LeftStickRight: return Indicators.LeftStickRight;
+            case LeftStickUp: return Indicators.LeftStickUp;
+            case LeftTrigger: return Indicators.LeftTrigger;
+            case RightStickDown: return Indicators.RightStickDown;
+            case RightStickLeft: return Indicators.RightStickLeft;
+            case RightStickRight: return Indicators.RightStickRight;
+            case RightStickUp: return Indicators.RightStickUp;
+            case RightTrigger: return Indicators.RightTrigger;
+            case BumperLeft: return Indicators.BumperLeft;
+            case BumperRight: return Indicators.BumperRight;
+            
+            case DpadDown:
+            case DpadLeft:
+            case DpadRight:
+            case DpadUp:
+            default:
+                return null;
+        }
+    }
+
     @Override
     public void renderUI(ViewportAPI viewport) {
+        if(currState == State.CalibratingInputs && calibrationIndex != -1 && calibrationIndex < buttons.length) {
+            var indicatorEnum = getIndicatorForButton(buttons[calibrationIndex]);
+            if(indicatorEnum != null) {
+                var sprite = InputScreenManager.getInstance().indicatorSprites.get(indicatorEnum);
+                if(sprite != null) {
+                    var pos = viewport.getCenter();
+                    pos.x = viewport.convertWorldXtoScreenX(pos.x);
+                    pos.y = viewport.convertWorldYtoScreenY(pos.y);
+                    var text = InputScreenManager.getInstance().defaultFont.createText("Press this button, or hold any button to skip: ", Color.white);
+                    float totalWidth = text.getWidth() + 8 + sprite.getWidth();
+                    pos.x -= (totalWidth / 2);
+                    sprite.render(pos.x, pos.y + (sprite.getHeight() / 2));
+                    text.draw(pos.x + sprite.getWidth() + 8, pos.y + (text.getHeight() / 2));
+                }
+            }
+        }
     }
 
     @Override
@@ -117,7 +170,8 @@ public class InputScreen_TitleScreen implements InputScreen {
             boolean parsedBtn = false;
             for(int i = 0; i < btnCount; i++) {
                 if(SSMSControllerModPluginEx.controller.getBtnEvent(i) == 1 && !parsedIndices[i]) {
-                    HandlerController.Buttons btn = HandlerController.Buttons.values()[calibrationIndex];
+                    parsedBtn = true;
+                    HandlerController.Buttons btn = buttons[calibrationIndex];
                     switch(btn)
                     {
                         case A: tempMapping.btnA = i; break;
@@ -152,6 +206,7 @@ public class InputScreen_TitleScreen implements InputScreen {
                         case DpadUp: if(i >= controller.getButtonCount()) tempMapping.axisIndexDpadX = i; break;
                         case DpadDown: if(i >= controller.getButtonCount()) tempMapping.axisIndexDpadX = i - 1; break;
                     }
+                    break;
                 }
             }
             if(parsedBtn) {
