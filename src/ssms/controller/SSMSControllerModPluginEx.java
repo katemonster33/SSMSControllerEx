@@ -394,9 +394,6 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         Y Rotation: right stick, top -1 to bottom 1
         Z Axis: sum of triggers, left trigger adds up to 1 and right trigger removes up to 1
         */
-        {
-            
-        }
         for ( int i = 0; i < Controllers.getControllerCount(); i++ ) {
             Controller con = Controllers.getController(i);
             logger.info("Found controller: "+con.getName());
@@ -420,6 +417,16 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                     con.poll();
                     controller = new HandlerController(con, conMap);
                     Global.getLogger(SSMSControllerModPluginEx.class).log(Level.INFO, "Identified controller [" + con.getName() + "], mappings associated successfully!");
+                    break;
+                }
+            }
+        }
+        if(controller == null) {
+            for ( int i = 0; i < Controllers.getControllerCount(); i++ ) {
+                Controller con = Controllers.getController(i);
+                if (con.getButtonCount() > 6 && con.getAxisCount() >= 2) {
+                    controller = new HandlerController(con, null);
+                    Global.getLogger(SSMSControllerModPluginEx.class).log(Level.INFO, "Identified controller [" + con.getName() + "], no mappings loaded!!");
                     break;
                 }
             }

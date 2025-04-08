@@ -66,7 +66,7 @@ public class InputScreenManager {
         indicatorSprites.clear();
         boolean ok = true;
         for ( Indicators ind : Indicators.values() ) {
-            SpriteAPI img = mapping != null ? mapping.indicators.get(ind): null;
+            SpriteAPI img = mapping != null ? mapping.indicators.get(ind): SSMSControllerModPluginEx.defaultIndicators.get(ind);
             if ( img != null ) {
                 img.setBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
                 indicatorSprites.put(ind, img);
@@ -256,12 +256,13 @@ public class InputScreenManager {
         
         float yMin = viewport.convertWorldYtoScreenY(viewport.getLLY()), 
             xMax = 0;
+            xMax = viewport.convertWorldXtoScreenX(viewport.getLLX() + viewport.getVisibleWidth());
         if(horizontalAlignment == AlignmentHorizontal.left) {
-            xMax = viewport.getCenter().x;
+            //xMax = viewport.getCenter().x;
         } else if(horizontalAlignment == AlignmentHorizontal.middle) { 
 
         } else if(horizontalAlignment == AlignmentHorizontal.right) {
-            viewport.convertWorldXtoScreenX(horizontalAlignment == AlignmentHorizontal.left ? 200 :  viewport.getLLX() + viewport.getVisibleWidth());
+            xMax = viewport.convertWorldXtoScreenX(viewport.getLLX() + viewport.getVisibleWidth());
         }
         
         final float lineHeight = 25, textLineHeight = UIUtil.getInstance().getTextHeight("A"), spacing = 8f, textWidth = 200f;

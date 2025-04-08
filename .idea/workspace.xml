@@ -9,13 +9,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f93bfbfa-f590-465e-a84d-27f995dd3431" name="Changes" comment="Fixed button mapping for PS4 controller on Linux.">
+    <list default="true" id="f93bfbfa-f590-465e-a84d-27f995dd3431" name="Changes" comment="Working on rewriting button mapping code to work off the community-based controller mapping text file. This requires some extra work I haven't done yet though, so everything is broken.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jars/SSMSControllerEx.jar" beforeDir="false" afterPath="$PROJECT_DIR$/jars/SSMSControllerEx.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/AxisId.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/ControllerMapping.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/ControllerMapping.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/HandlerController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/HandlerController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ssms/controller/EveryFrameCombatPlugin_Controller.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/EveryFrameCombatPlugin_Controller.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ssms/controller/SSMSControllerModPluginEx.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/SSMSControllerModPluginEx.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreenManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreenManager.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -115,28 +114,49 @@
       <option name="project" value="LOCAL" />
       <updated>1743882521020</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Working on rewriting button mapping code to work off the community-based controller mapping text file. This requires some extra work I haven't done yet though, so everything is broken.">
+      <option name="closed" value="true" />
+      <created>1743982562163</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1743982562163</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Implemented PS4 controller on Linux (buttons are wrong, need to fix)&#10;Was able to see the SSMSController UI in-game for the first time :)" />
     <MESSAGE value="Renaming artifacts to SSMSControllerEx - changed README, added credit to razuhl" />
     <MESSAGE value="Fixed button mapping for PS4 controller on Linux." />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed button mapping for PS4 controller on Linux." />
+    <MESSAGE value="Working on rewriting button mapping code to work off the community-based controller mapping text file. This requires some extra work I haven't done yet though, so everything is broken." />
+    <option name="LAST_COMMIT_MESSAGE" value="Working on rewriting button mapping code to work off the community-based controller mapping text file. This requires some extra work I haven't done yet though, so everything is broken." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/out/production/SSMSController/ssms/controller/SSMSControllerModPluginEx.class</url>
-          <line>33</line>
-          <option name="timeStamp" value="1" />
+          <url>file://$PROJECT_DIR$/src/ssms/controller/HandlerController.java</url>
+          <line>182</line>
+          <option name="timeStamp" value="29" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <pin-to-top-manager>
       <pinned-members>
         <PinnedItemInfo parentTag="net.java.games.input.LinuxCombinedController" memberName="eventController" />
+        <PinnedItemInfo parentTag="org.lwjgl.util.vector.Vector2f" memberName="x" />
       </pinned-members>
     </pin-to-top-manager>
   </component>

@@ -88,12 +88,13 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
         if(Global.getCurrentState() == GameState.TITLE) {
             if ( !InputScreenManager.getInstance().transitionToScope("TitleScreen", engine) ) {
                 Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to transition into title screen scope!");
-            } else skipFrame = false;
+            } else {
+                skipFrame = false;
+                initDone = true;
+            }
         } else if ( engine != null && engine.getContext() != null && (engine.isSimulation() || (engine.getCombatUI() != null && CombatState.class.isAssignableFrom(engine.getCombatUI().getClass())))
         && SSMSControllerModPluginEx.controller != null && SSMSControllerModPluginEx.controller.mapping != null ) {
-            if(Global.getCurrentState() == GameState.TITLE) {
-                skipFrame = false;
-            } else if ( !InputScreenManager.getInstance().transitionToScope("Battle", engine) ) {
+            if ( !InputScreenManager.getInstance().transitionToScope("Battle", engine) ) {
                 Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to transition into battle scope!");
                 InputScreenManager.getInstance().transitionToScope("NoScope");
             } else {
@@ -120,26 +121,28 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
             return;
         }
         InputScreenManager man = InputScreenManager.getInstance();
-        InputScope_Battle battleScope = (InputScope_Battle) man.getCurrentScope();
         HandlerController handler = SSMSControllerModPluginEx.controller;
         handler.poll();
-        
-        if ( !battleScope.engine.getCombatUI().isShowingCommandUI() ) {
-            if ( wasShowingWarroom ) {
-                battleScope.adjustZoom();
-            }
-            
-            ShipAPI ps = getControlledShip();
-            if ( ps != null && battleScope.engine.isEntityInPlay(ps) ) {
-                if ( !battleScope.psCache.isForShip(ps) ) {
-                    battleScope.psCache.setShip(ps, handler, battleScope.engine);
+        if(InputScope_Battle.class.isAssignableFrom(man.getCurrentScope().getClass())) {
+            InputScope_Battle battleScope = (InputScope_Battle) man.getCurrentScope();
+
+            if (!battleScope.engine.getCombatUI().isShowingCommandUI()) {
+                if (wasShowingWarroom) {
+                    battleScope.adjustZoom();
+                }
+
+                ShipAPI ps = getControlledShip();
+                if (ps != null && battleScope.engine.isEntityInPlay(ps)) {
+                    if (!battleScope.psCache.isForShip(ps)) {
+                        battleScope.psCache.setShip(ps, handler, battleScope.engine);
+                    }
                 }
             }
-        }
-        
-        wasShowingWarroom = battleScope.engine.getCombatUI().isShowingCommandUI();
-        if ( battleScope.engine.isPaused() ) {
-            man.refreshIndicatorTimeout();
+
+            wasShowingWarroom = battleScope.engine.getCombatUI().isShowingCommandUI();
+            if (battleScope.engine.isPaused()) {
+                man.refreshIndicatorTimeout();
+            }
         }
         
         //TODO inputs for the warroom
