@@ -52,10 +52,12 @@ public class InputScreen_TitleScreen implements InputScreen {
         CalibratingInputs
     };
     int calibrationIndex = -1;
+    ArrayList<Integer> lastParsedIndices = new ArrayList<Integer>();
     int btnCount = -1;
     boolean[] parsedIndices;
     ControllerMapping tempMapping = null;
     State currState = State.Normal;
+    boolean parsedBtn = false;
 
     public InputScreen_TitleScreen() {
         indicators = new ArrayList<>();
@@ -91,53 +93,48 @@ public class InputScreen_TitleScreen implements InputScreen {
 
     Indicators getIndicatorForButton(HandlerController.Buttons btn)
     {
-        switch(btn)
-        {
-            case A: return Indicators.A;
-            case B: return Indicators.B;
-            case X: return Indicators.X;
-            case Y: return Indicators.Y;
-            case Select: return Indicators.Select;
-            case Start: return Indicators.Start;
-            case LeftStickButton: return Indicators.LeftStickButton;
-            case RightStickButton: return Indicators.RightStickButton;
-            case LeftStickLeft: return Indicators.LeftStickLeft;
-            case LeftStickDown: return Indicators.LeftStickDown;
-            case LeftStickRight: return Indicators.LeftStickRight;
-            case LeftStickUp: return Indicators.LeftStickUp;
-            case LeftTrigger: return Indicators.LeftTrigger;
-            case RightStickDown: return Indicators.RightStickDown;
-            case RightStickLeft: return Indicators.RightStickLeft;
-            case RightStickRight: return Indicators.RightStickRight;
-            case RightStickUp: return Indicators.RightStickUp;
-            case RightTrigger: return Indicators.RightTrigger;
-            case BumperLeft: return Indicators.BumperLeft;
-            case BumperRight: return Indicators.BumperRight;
-            
-            case DpadDown:
-            case DpadLeft:
-            case DpadRight:
-            case DpadUp:
-            default:
-                return null;
-        }
+        return switch (btn) {
+            case A -> Indicators.A;
+            case B -> Indicators.B;
+            case X -> Indicators.X;
+            case Y -> Indicators.Y;
+            case Select -> Indicators.Select;
+            case Start -> Indicators.Start;
+            case LeftStickButton -> Indicators.LeftStickButton;
+            case RightStickButton -> Indicators.RightStickButton;
+            case LeftStickLeft -> Indicators.LeftStickLeft;
+            case LeftStickDown -> Indicators.LeftStickDown;
+            case LeftStickRight -> Indicators.LeftStickRight;
+            case LeftStickUp -> Indicators.LeftStickUp;
+            case LeftTrigger -> Indicators.LeftTrigger;
+            case RightStickDown -> Indicators.RightStickDown;
+            case RightStickLeft -> Indicators.RightStickLeft;
+            case RightStickRight -> Indicators.RightStickRight;
+            case RightStickUp -> Indicators.RightStickUp;
+            case RightTrigger -> Indicators.RightTrigger;
+            case BumperLeft -> Indicators.BumperLeft;
+            case BumperRight -> Indicators.BumperRight;
+            default -> null;
+        };
     }
 
     @Override
     public void renderUI(ViewportAPI viewport) {
-        if(currState == State.CalibratingInputs && calibrationIndex != -1 && calibrationIndex < buttons.length) {
+        if(currState == State.CalibratingInputs && calibrationIndex != -1 && calibrationIndex <= buttons.length) {
             var indicatorEnum = getIndicatorForButton(buttons[calibrationIndex]);
             if(indicatorEnum != null) {
                 var sprite = InputScreenManager.getInstance().indicatorSprites.get(indicatorEnum);
                 if(sprite != null) {
+                    sprite.setWidth(50.f);
+                    sprite.setHeight(50.f);
                     var pos = viewport.getCenter();
                     pos.x = viewport.convertWorldXtoScreenX(pos.x);
                     pos.y = viewport.convertWorldYtoScreenY(pos.y);
                     var text = InputScreenManager.getInstance().defaultFont.createText("Press this button, or hold any button to skip: ", Color.white);
-                    float totalWidth = text.getWidth() + 8 + sprite.getWidth();
+                    float totalWidth = text.getWidth() + sprite.getWidth();
                     pos.x -= (totalWidth / 2);
-                    sprite.render(pos.x, pos.y + (sprite.getHeight() / 2));
-                    text.draw(pos.x + sprite.getWidth() + 8, pos.y + (text.getHeight() / 2));
+                    text.draw(pos.x, pos.y + (text.getHeight() / 2) + 50);
+                    sprite.render(pos.x + text.getWidth() , pos.y + (sprite.getHeight() / 2));
                 }
             }
         }
@@ -166,12 +163,15 @@ public class InputScreen_TitleScreen implements InputScreen {
                 calibrationIndex = 0;
                 btnCount = controller.getAxisCount() * 2 + controller.getButtonCount();
                 parsedIndices = new boolean[btnCount];
+                lastParsedIndices.clear();
+                parsedBtn = false;
             }
-            boolean parsedBtn = false;
+            HandlerController.Buttons btn = buttons[calibrationIndex];
             for(int i = 0; i < btnCount; i++) {
-                if(SSMSControllerModPluginEx.controller.getBtnEvent(i) == 1 && !parsedIndices[i]) {
+                if(SSMSControllerModPluginEx.controller.getBtnEvent(i) == 1 && SSMSControllerModPluginEx.controller.getBtnState(i) && !parsedIndices[i] && !lastParsedIndices.contains(i)) {
+                    lastParsedIndices.add(i);
                     parsedBtn = true;
-                    HandlerController.Buttons btn = buttons[calibrationIndex];
+                    parsedIndices[i] = true;
                     switch(btn)
                     {
                         case A: tempMapping.btnA = i; break;
@@ -183,22 +183,16 @@ public class InputScreen_TitleScreen implements InputScreen {
 
                         case Select: tempMapping.btnSelect = i; break;
                         case Start: tempMapping.btnStart = i; break;
-                        case LeftStickLeft: tempMapping.axisIndexLX = i; break;
-                        case LeftStickRight: tempMapping.axisIndexLX = i - 1; break;
-                        case LeftStickUp: tempMapping.axisIndexLY = i; break;
-                        case LeftStickDown: tempMapping.axisIndexLY = i - 1; break;
-                        case RightStickLeft: tempMapping.axisIndexRX = i; break;
-                        case RightStickRight: tempMapping.axisIndexRX = i - 1; break;
-                        case RightStickUp: tempMapping.axisIndexRY = i; break;
-                        case RightStickDown: tempMapping.axisIndexRY = i - 1; break;
-                        case LeftStickButton: tempMapping.btnLeftStick = i; break;
-                        case RightStickButton: tempMapping.btnLeftStick = i; break;
+                        case LeftStickLeft: case LeftStickRight: tempMapping.axisIndexLX = (i - controller.getButtonCount()) / 2; break;
+                        case LeftStickUp: case LeftStickDown: tempMapping.axisIndexLY = (i - controller.getButtonCount()) / 2; break;
+                        case RightStickLeft: case RightStickRight: tempMapping.axisIndexRX = (i - controller.getButtonCount()) / 2; break;
+                        case RightStickUp: case RightStickDown: tempMapping.axisIndexRY = (i - controller.getButtonCount()) / 2; break;
                         case LeftTrigger: 
-                            if(i >= controller.getButtonCount()) tempMapping.axisIndexLT = i; 
+                            if(i >= controller.getButtonCount()) tempMapping.axisIndexLT = tempMapping.axisIndexRT = (i - controller.getButtonCount()) / 2;
                             else tempMapping.btnLeftTrigger = i;
                             break;
                         case RightTrigger:
-                            if(i >= controller.getButtonCount()) tempMapping.axisIndexRT = i; 
+                            if(i >= controller.getButtonCount()) tempMapping.axisIndexLT = tempMapping.axisIndexRT = (i - controller.getButtonCount()) / 2;
                             else tempMapping.btnRightTrigger = i;
                             break;
                         case DpadLeft: if(i >= controller.getButtonCount()) tempMapping.axisIndexDpadX = i; break;
@@ -210,16 +204,32 @@ public class InputScreen_TitleScreen implements InputScreen {
                 }
             }
             if(parsedBtn) {
-                calibrationIndex++;
-                if(calibrationIndex >= HandlerController.Buttons.values().length) {
-                    SSMSControllerModPluginEx.controller = new HandlerController(SSMSControllerModPluginEx.controller.controller, tempMapping);
-                    tempMapping = null;
-                    calibrationIndex = -1;
-                    controller = SSMSControllerModPluginEx.controller.controller;
-                    btnCount = controller.getAxisCount() * 2 + controller.getButtonCount();
-                    parsedIndices = new boolean[btnCount];
+                boolean allParsedIndicesOff = true;
+                if(calibrationIndex != 18 || tempMapping.axisIndexRT == null) {
+                    for (var lastIdx : lastParsedIndices) {
+                        if (lastIdx != null && SSMSControllerModPluginEx.controller.getBtnState(lastIdx)) {
+                            allParsedIndicesOff = false;
+                            break;
+                        }
+                    }
                 }
-                currState = State.Normal;
+                if(allParsedIndicesOff) {
+                    lastParsedIndices.clear();
+                    calibrationIndex++;
+                    parsedBtn = false;
+                    if(calibrationIndex == 18 && tempMapping.axisIndexRT != null) {
+                        calibrationIndex++;
+                    }
+                    if(calibrationIndex > 18) {
+                        SSMSControllerModPluginEx.controller = new HandlerController(SSMSControllerModPluginEx.controller.controller, tempMapping);
+                        tempMapping = null;
+                        calibrationIndex = -1;
+                        controller = SSMSControllerModPluginEx.controller.controller;
+                        btnCount = controller.getAxisCount() * 2 + controller.getButtonCount();
+                        parsedIndices = null;
+                        currState = State.Normal;
+                    }
+                }
             }
             
         }

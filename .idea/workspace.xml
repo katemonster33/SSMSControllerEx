@@ -9,12 +9,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f93bfbfa-f590-465e-a84d-27f995dd3431" name="Changes" comment="Working on rewriting button mapping code to work off the community-based controller mapping text file. This requires some extra work I haven't done yet though, so everything is broken.">
+    <list default="true" id="f93bfbfa-f590-465e-a84d-27f995dd3431" name="Changes" comment="Fixing issues preventing the input screen from being shown">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jars/SSMSControllerEx.jar" beforeDir="false" afterPath="$PROJECT_DIR$/jars/SSMSControllerEx.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/EveryFrameCombatPlugin_Controller.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/EveryFrameCombatPlugin_Controller.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/SSMSControllerModPluginEx.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/SSMSControllerModPluginEx.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreenManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreenManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ssms/controller/HandlerController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/HandlerController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScope_TitleScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScope_TitleScreen.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_TitleScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_TitleScreen.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,22 +36,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;Application.Run Starsector.executor&quot;: &quot;Debug&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/katie/starsector/mods/LunaLib/src&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Libraries&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.20665084&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;project.propCompiler&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Application.Run Starsector.executor": "Debug",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "master",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/home/katie/starsector/mods/LunaLib/src",
+    "project.structure.last.edited": "Libraries",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.20665084",
+    "settings.editor.selected.configurable": "project.propCompiler"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/jars" />
@@ -122,7 +122,15 @@
       <option name="project" value="LOCAL" />
       <updated>1743982562163</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Fixing issues preventing the input screen from being shown">
+      <option name="closed" value="true" />
+      <created>1744078775313</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1744078775313</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -141,15 +149,16 @@
     <MESSAGE value="Renaming artifacts to SSMSControllerEx - changed README, added credit to razuhl" />
     <MESSAGE value="Fixed button mapping for PS4 controller on Linux." />
     <MESSAGE value="Working on rewriting button mapping code to work off the community-based controller mapping text file. This requires some extra work I haven't done yet though, so everything is broken." />
-    <option name="LAST_COMMIT_MESSAGE" value="Working on rewriting button mapping code to work off the community-based controller mapping text file. This requires some extra work I haven't done yet though, so everything is broken." />
+    <MESSAGE value="Fixing issues preventing the input screen from being shown" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixing issues preventing the input screen from being shown" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/ssms/controller/HandlerController.java</url>
-          <line>182</line>
-          <option name="timeStamp" value="29" />
+          <url>file://$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_TitleScreen.java</url>
+          <line>122</line>
+          <option name="timeStamp" value="72" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

@@ -85,6 +85,7 @@ public class InputScope_TitleScreen implements InputScope {
     public void selectNextButton()
     {
         if(titleScreenButtons != null && !titleScreenButtons.isEmpty()) {
+            int oldSelectedButton = selectedButton;
             if(selectedButton == -1) {
                 selectedButton = 0;
             } else if(selectedButton < (titleScreenButtons.size() - 1)) {
@@ -96,6 +97,9 @@ public class InputScope_TitleScreen implements InputScope {
             if(selectedButton >= titleScreenButtons.size()) {
                 selectedButton = 0;
             }
+            if(selectedButton != oldSelectedButton && oldSelectedButton != -1) {
+                titleScreenButtons.get(oldSelectedButton).unhighlight();
+            }
             titleScreenButtons.get(selectedButton).highlight();
         }
     }
@@ -103,6 +107,7 @@ public class InputScope_TitleScreen implements InputScope {
     public void selectPrevButton()
     {
         if(titleScreenButtons != null && !titleScreenButtons.isEmpty()) {
+            int oldSelectedButton = selectedButton;
             if(selectedButton == -1) {
                 selectedButton = 0;
             } else if(selectedButton > 0) {
@@ -113,6 +118,9 @@ public class InputScope_TitleScreen implements InputScope {
             }
             if(selectedButton < 0) {
                 selectedButton = titleScreenButtons.size() - 1;
+            }
+            if(selectedButton != oldSelectedButton && oldSelectedButton != -1) {
+                titleScreenButtons.get(oldSelectedButton).unhighlight();
             }
             titleScreenButtons.get(selectedButton).highlight();
         }

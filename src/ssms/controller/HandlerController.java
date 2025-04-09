@@ -74,10 +74,13 @@ public class HandlerController {
        }
    }
 
-   int getAxisIndex(AxisId axisId, Map<String,Integer> axisIndices, int axisCount)
+   int getAxisIndex(AxisId axisId, Integer axisIndex, Map<String,Integer> axisIndices, int axisCount)
    {
        if(axisId == null)
        {
+           if(axisIndex != null && axisIndex >= 0) {
+               return axisIndex;
+           }
            return -1;
        }
        switch(axisId)
@@ -117,13 +120,13 @@ public class HandlerController {
         }
         
         if ( mapping != null ) {
-            axisLeftStickX = getAxisIndex(mapping.axisIdLX, axisIndices, controller.getAxisCount());
-            axisLeftStickY = getAxisIndex(mapping.axisIdLY, axisIndices, controller.getAxisCount());
-            axisRightStickX = getAxisIndex(mapping.axisIdRX, axisIndices, controller.getAxisCount());
-            axisRightStickY = getAxisIndex(mapping.axisIdRY, axisIndices, controller.getAxisCount());
-            axisDpadX = getAxisIndex(mapping.axisIdDpadX, axisIndices, controller.getAxisCount());
-            axisDpadY = getAxisIndex(mapping.axisIdDpadY, axisIndices, controller.getAxisCount());
-            axisTrigger = getAxisIndex(mapping.axisIdLT, axisIndices, controller.getAxisCount());
+            axisLeftStickX = getAxisIndex(mapping.axisIdLX, mapping.axisIndexLX, axisIndices, controller.getAxisCount());
+            axisLeftStickY = getAxisIndex(mapping.axisIdLY, mapping.axisIndexLY, axisIndices, controller.getAxisCount());
+            axisRightStickX = getAxisIndex(mapping.axisIdRX, mapping.axisIndexRX, axisIndices, controller.getAxisCount());
+            axisRightStickY = getAxisIndex(mapping.axisIdRY, mapping.axisIndexRY, axisIndices, controller.getAxisCount());
+            axisDpadX = getAxisIndex(mapping.axisIdDpadX, mapping.axisIndexDpadX, axisIndices, controller.getAxisCount());
+            axisDpadY = getAxisIndex(mapping.axisIdDpadY, mapping.axisIndexDpadY, axisIndices, controller.getAxisCount());
+            axisTrigger = getAxisIndex(mapping.axisIdLT, mapping.axisIndexLT, axisIndices, controller.getAxisCount());
             
             btnA = getIndexCoercingNull(mapping.btnA,controller.getButtonCount());
             btnB = getIndexCoercingNull(mapping.btnB,controller.getButtonCount());
@@ -144,6 +147,10 @@ public class HandlerController {
 
             this.axisBtnConversionDeadzone = 0.85f;
             this.joystickDeadzone = 0.0625f;
+        }
+
+        for(int index = 0; index < controller.getAxisCount(); index++) {
+            controller.setDeadZone(index, 0f);
         }
         
         // if ( axisLeftStickX >= 0 ) {
@@ -266,6 +273,11 @@ public class HandlerController {
     public int getBtnEvent(int i) {
         if ( i < 0 ) return 0;
         return btnEvents[i];
+    }
+
+    public boolean getBtnState(int i) {
+        if ( i < 0 ) return false;
+        return btnStates[i];
     }
     
     private int getBtnEvent(int i, int j) {
