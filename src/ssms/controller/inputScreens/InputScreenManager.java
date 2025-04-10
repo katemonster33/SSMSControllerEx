@@ -21,6 +21,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 //import com.fs.starfarer.api.ui.Alignment;
+import com.fs.starfarer.api.ui.TooltipMakerAPI;
 import com.fs.starfarer.api.util.Pair;
 import java.awt.Color;
 import java.util.EnumMap;
@@ -29,10 +30,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.log4j.Level;
 import org.lwjgl.opengl.GL11;
-import ssms.controller.ControllerMapping;
-import ssms.controller.HandlerController;
-import ssms.controller.Indicators;
-import ssms.controller.SSMSControllerModPluginEx;
+import ssms.controller.*;
 //import ssms.qol.ui.UIUtil;
 
 import org.lazywizard.lazylib.ui.*;
@@ -56,6 +54,7 @@ public class InputScreenManager {
     private Transition nextScreen;
     private long indicatorTimeout;
     float textLineHeight;
+    IndicatorDisplayPanel displayPanel;
     private class Transition {
         protected String id;
         protected Object[] args;
@@ -67,6 +66,7 @@ public class InputScreenManager {
     }
     
     final public boolean updateIndicators() {
+
         HandlerController controller = SSMSControllerModPluginEx.controller;
         ControllerMapping mapping = controller != null ? controller.mapping : null;
         indicatorSprites.clear();
@@ -162,6 +162,7 @@ public class InputScreenManager {
         //moving to scope sets the screen id for the input screen that has the initial annoation and a matching scope
         //scope can hold variables like the engine for combat
         //transitions into the same scope are legal, they happen if no other scope is active between two seperate scope entries
+        displayPanel = null;
         if ( scopes.containsKey(scopeId) ) {
             InputScope scope = scopes.get(scopeId);
             return transitionToScope(scopeId, args, scope.getDefaultScreen(), null);
@@ -264,39 +265,51 @@ public class InputScreenManager {
     private void renderIndicators(ViewportAPI viewport) {
         
         InputScreen screen = getCurrentScreen();
-        List<Pair<Indicators, String>> indicators = screen.getIndicators();
-        if ( indicators == null || indicators.isEmpty() ) return;
-        
-        float yMin = viewport.convertWorldYtoScreenY(viewport.getLLY()), xMax = 0;
-        xMax = viewport.convertWorldXtoScreenX(viewport.getLLX() + viewport.getVisibleWidth());
-        
-        final float lineHeight = 25, spacing = 8f, textWidth = 200f;
-        float x = xMax - textWidth - lineHeight - spacing - spacing, y = yMin + indicators.size() * (lineHeight + spacing) + spacing;
-        for ( Pair<Indicators,String> e : indicators ) {
-            if ( e.one != null ) {
-                SpriteAPI sprite = indicatorSprites.get(e.one);
-                if ( sprite != null ) {
-                    sprite.setWidth(lineHeight);
-                    sprite.setHeight(lineHeight);
-                    sprite.render(x, y);
+        if(screen != null) {
+            if(displayPanel == null) {
+                try {
+                    displayPanel = new IndicatorDisplayPanel(screen.getIndicators());
+                } catch(FontException | IllegalArgumentException ex) {
+                    Global.getLogger(getClass()).fatal("Could not create the panel for displaying indicator sprites!", ex);
                 }
-                //UIUtil.getInstance().renderText(e.two, Color.white, x + spacing + lineHeight, y, textWidth, lineHeight, Alignment.LMID);
-
-                var str = defaultFont.createText(e.two, Color.white, textLineHeight, textWidth, lineHeight);
-                str.setAlignment(TextAlignment.LEFT);
-                str.setAnchor(TextAnchor.TOP_LEFT);
-                str.draw(x + spacing + lineHeight, y + textLineHeight + 2);
-                y -= lineHeight + spacing;
-            } else {
-                //UIUtil.getInstance().renderText(e.two, Color.white, x, y, textWidth + spacing + lineHeight, textLineHeight, Alignment.LMID);
-                var str = defaultFont.createText(e.two, Color.white, textLineHeight, textWidth + spacing + lineHeight, lineHeight);
-                str.setAlignment(TextAlignment.LEFT);
-                str.setAnchor(TextAnchor.CENTER_LEFT);
-                str.draw(x, y - textLineHeight);
-
-                y -= textLineHeight + spacing;
+            }
+            if(displayPanel != null) {
+                displayPanel.render(viewport.getAlphaMult());
             }
         }
+//        List<Pair<Indicators, String>> indicators = screen.getIndicators();
+//        if ( indicators == null || indicators.isEmpty() ) return;
+//
+//        float yMin = viewport.convertWorldYtoScreenY(viewport.getLLY()), xMax = 0;
+//        xMax = viewport.convertWorldXtoScreenX(viewport.getLLX() + viewport.getVisibleWidth());
+//
+//        final float lineHeight = 25, spacing = 8f, textWidth = 200f;
+//        float x = xMax - textWidth - lineHeight - spacing - spacing, y = yMin + indicators.size() * (lineHeight + spacing) + spacing;
+//        for ( Pair<Indicators,String> e : indicators ) {
+//            if ( e.one != null ) {
+//                SpriteAPI sprite = indicatorSprites.get(e.one);
+//                if ( sprite != null ) {
+//                    sprite.setWidth(lineHeight);
+//                    sprite.setHeight(lineHeight);
+//                    sprite.render(x, y);
+//                }
+//                //UIUtil.getInstance().renderText(e.two, Color.white, x + spacing + lineHeight, y, textWidth, lineHeight, Alignment.LMID);
+//
+//                var str = defaultFont.createText(e.two, Color.white, textLineHeight, textWidth, lineHeight);
+//                str.setAlignment(TextAlignment.LEFT);
+//                str.setAnchor(TextAnchor.TOP_LEFT);
+//                str.draw(x + spacing + lineHeight, y + textLineHeight + 2);
+//                y -= lineHeight + spacing;
+//            } else {
+//                //UIUtil.getInstance().renderText(e.two, Color.white, x, y, textWidth + spacing + lineHeight, textLineHeight, Alignment.LMID);
+//                var str = defaultFont.createText(e.two, Color.white, textLineHeight, textWidth + spacing + lineHeight, lineHeight);
+//                str.setAlignment(TextAlignment.LEFT);
+//                str.setAnchor(TextAnchor.CENTER_LEFT);
+//                str.draw(x, y - textLineHeight);
+//
+//                y -= textLineHeight + spacing;
+//            }
+//        }
     }
     
     public void stopFrame() {
