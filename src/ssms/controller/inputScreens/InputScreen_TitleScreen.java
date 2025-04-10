@@ -183,6 +183,8 @@ public class InputScreen_TitleScreen implements InputScreen {
 
                         case Select: tempMapping.btnSelect = i; break;
                         case Start: tempMapping.btnStart = i; break;
+                        case LeftStickButton: tempMapping.btnLeftStick = i; break;
+                        case RightStickButton: tempMapping.btnRightStick = i; break;
                         case LeftStickLeft: case LeftStickRight: tempMapping.axisIndexLX = (i - controller.getButtonCount()) / 2; break;
                         case LeftStickUp: case LeftStickDown: tempMapping.axisIndexLY = (i - controller.getButtonCount()) / 2; break;
                         case RightStickLeft: case RightStickRight: tempMapping.axisIndexRX = (i - controller.getButtonCount()) / 2; break;
