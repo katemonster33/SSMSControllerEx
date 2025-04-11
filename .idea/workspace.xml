@@ -9,11 +9,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f93bfbfa-f590-465e-a84d-27f995dd3431" name="Changes" comment="Finished implementing the controller calibration routine, works on PS4 controller.">
+    <list default="true" id="f93bfbfa-f590-465e-a84d-27f995dd3431" name="Changes" comment="Finished implementing the indicator display panel, now it displays a nice rectangle around the indicator sprites to put emphasis on them">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/config/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/config/settings.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jars/SSMSControllerEx.jar" beforeDir="false" afterPath="$PROJECT_DIR$/jars/SSMSControllerEx.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/IndicatorDisplayPanel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/IndicatorDisplayPanel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_TitleScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_TitleScreen.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ssms/controller/SSMSControllerModPluginEx.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/SSMSControllerModPluginEx.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -137,7 +137,15 @@
       <option name="project" value="LOCAL" />
       <updated>1744168906686</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Finished implementing the indicator display panel, now it displays a nice rectangle around the indicator sprites to put emphasis on them">
+      <option name="closed" value="true" />
+      <created>1744330025325</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1744330025325</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -158,20 +166,21 @@
     <MESSAGE value="Working on rewriting button mapping code to work off the community-based controller mapping text file. This requires some extra work I haven't done yet though, so everything is broken." />
     <MESSAGE value="Fixing issues preventing the input screen from being shown" />
     <MESSAGE value="Finished implementing the controller calibration routine, works on PS4 controller." />
-    <option name="LAST_COMMIT_MESSAGE" value="Finished implementing the controller calibration routine, works on PS4 controller." />
+    <MESSAGE value="Finished implementing the indicator display panel, now it displays a nice rectangle around the indicator sprites to put emphasis on them" />
+    <option name="LAST_COMMIT_MESSAGE" value="Finished implementing the indicator display panel, now it displays a nice rectangle around the indicator sprites to put emphasis on them" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/ssms/controller/IndicatorDisplayPanel.java</url>
-          <line>106</line>
-          <option name="timeStamp" value="14" />
+          <url>file://$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_TitleScreen.java</url>
+          <line>164</line>
+          <option name="timeStamp" value="18" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/ssms/controller/IndicatorDisplayPanel.java</url>
-          <line>39</line>
-          <option name="timeStamp" value="15" />
+          <url>file://$PROJECT_DIR$/src/ssms/controller/HandlerController.java</url>
+          <line>189</line>
+          <option name="timeStamp" value="23" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

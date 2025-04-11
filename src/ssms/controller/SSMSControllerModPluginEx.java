@@ -410,9 +410,8 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         if ( controllerMappings != null ) {
             for ( int i = 0; i < Controllers.getControllerCount(); i++ ) {
                 Controller con = Controllers.getController(i);
-                String guid = getControllerGuid(con);
                 //String conName = con.getName(); //new StringBuilder(con.getName()).append("(").append(con.getAxisCount()).append(",").append(con.getButtonCount()).append(")").toString();
-                ControllerMapping conMap = controllerMappings.get(guid);
+                ControllerMapping conMap = controllerMappings.get(con.getName());
                 if ( conMap != null ) {
                     con.poll();
                     controller = new HandlerController(con, conMap);
@@ -437,24 +436,24 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         } 
     }
 
-    static String getControllerGuid(Controller con) {
-        String platform = System.getProperty("os.name");
-        try {
-            if(platform.contains("Windows")) {
-                var privateDevField = ClassReflector.GetInstance().getDeclaredField(con.getClass(), "target");
-                var privateDev = FieldReflector.GetInstance().GetVariable(privateDevField, con);
-                var field = ClassReflector.GetInstance().getDeclaredField(privateDev.getClass(), "device");
-                var device = FieldReflector.GetInstance().GetVariable(field, privateDev);
-                var guidField = ClassReflector.GetInstance().getDeclaredField(device.getClass(), "guid");
-                return (String) FieldReflector.GetInstance().GetVariable(guidField, device);
-            } else if(platform.contains("Mac OS X")) {
-
-            } else if(platform.contains("Linux")) {
-
-            }
-        } catch(Throwable ex) {
-            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.FATAL, "Failed to reflect controller GUID! " + ex);
-        }
-        return null;
-    }
+//    static String getControllerGuid(Controller con) {
+//        String platform = System.getProperty("os.name");
+//        try {
+//            if(platform.contains("Windows")) {
+//                var privateDevField = ClassReflector.GetInstance().getDeclaredField(con.getClass(), "target");
+//                var privateDev = FieldReflector.GetInstance().GetVariable(privateDevField, con);
+//                var field = ClassReflector.GetInstance().getDeclaredField(privateDev.getClass(), "device");
+//                var device = FieldReflector.GetInstance().GetVariable(field, privateDev);
+//                var guidField = ClassReflector.GetInstance().getDeclaredField(device.getClass(), "guid");
+//                return (String) FieldReflector.GetInstance().GetVariable(guidField, device);
+//            } else if(platform.contains("Mac OS X")) {
+//
+//            } else if(platform.contains("Linux")) {
+//
+//            }
+//        } catch(Throwable ex) {
+//            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.FATAL, "Failed to reflect controller GUID! " + ex);
+//        }
+//        return null;
+//    }
 }
