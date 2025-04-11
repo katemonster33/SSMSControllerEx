@@ -17,17 +17,22 @@
  */
 package ssms.controller.inputScreens;
 
+import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 //import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.TooltipMakerAPI;
+import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import java.awt.Color;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.fs.starfarer.title.TitleScreenState;
+import com.fs.state.AppDriver;
 import org.apache.log4j.Level;
 import org.lwjgl.opengl.GL11;
 import ssms.controller.*;
@@ -36,6 +41,7 @@ import ssms.controller.*;
 import org.lazywizard.lazylib.ui.*;
 import org.lazywizard.lazylib.ui.LazyFont.TextAlignment;
 import org.lazywizard.lazylib.ui.LazyFont.TextAnchor;
+import ssms.controller.reflection.CombatStateReflector;
 
 /**
  *
@@ -48,7 +54,7 @@ public class InputScreenManager {
     protected TextAlignment horizontaAlignment = TextAlignment.RIGHT;
     private Map<String,InputScreen> screens;//screen can belong to multiple scopes
     private Map<String,InputScope> scopes;
-    protected Map<Indicators,SpriteAPI> indicatorSprites;
+    //protected Map<Indicators,SpriteAPI> indicatorSprites;
     private InputScreen currentScreen;
     private InputScope currentScope;
     private Transition nextScreen;
@@ -66,22 +72,22 @@ public class InputScreenManager {
     }
     
     final public boolean updateIndicators() {
-
-        HandlerController controller = SSMSControllerModPluginEx.controller;
-        ControllerMapping mapping = controller != null ? controller.mapping : null;
-        indicatorSprites.clear();
-        boolean ok = true;
-        for ( Indicators ind : Indicators.values() ) {
-            SpriteAPI img = mapping != null ? mapping.indicators.get(ind): SSMSControllerModPluginEx.defaultIndicators.get(ind);
-            if ( img != null ) {
-                img.setBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-                indicatorSprites.put(ind, img);
-            } else {
-                indicatorSprites.put(ind, null);
-            }
-        }
-        
-        return ok;
+        return true;
+//        HandlerController controller = SSMSControllerModPluginEx.controller;
+//        ControllerMapping mapping = controller != null ? controller.mapping : null;
+//        indicatorSprites.clear();
+//        boolean ok = true;
+//        for ( Indicators ind : Indicators.values() ) {
+//            SpriteAPI img = mapping != null ? mapping.indicators.get(ind): SSMSControllerModPluginEx.defaultIndicators.get(ind);
+//            if ( img != null ) {
+//                img.setBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+//                indicatorSprites.put(ind, img);
+//            } else {
+//                indicatorSprites.put(ind, null);
+//            }
+//        }
+//
+//        return ok;
     }
     
     private InputScreenManager() {
@@ -89,7 +95,7 @@ public class InputScreenManager {
         scopes = new HashMap<>();
         currentScope = new InputScope_360(); currentScope.activate();
         currentScreen = new InputScreen_Bluescreen(); currentScreen.activate();
-        indicatorSprites = new EnumMap<>(Indicators.class);
+        //indicatorSprites = new EnumMap<>(Indicators.class);
         updateIndicators();
         try {
             defaultFont = LazyFont.loadFont("graphics/fonts/insignia21LTaa.fnt");
@@ -268,14 +274,31 @@ public class InputScreenManager {
         if(screen != null) {
             if(displayPanel == null) {
                 try {
-                    displayPanel = new IndicatorDisplayPanel(screen.getIndicators());
-                } catch(FontException | IllegalArgumentException ex) {
+                    UIPanelAPI mainPanel = null;
+                    switch(Global.getCurrentState())
+                    {
+                        case TITLE:
+                            TitleScreenState titlescreen  = (TitleScreenState) AppDriver.getInstance().getCurrentState();
+                            mainPanel = titlescreen.getScreenPanel();
+                            break;
+                        case CAMPAIGN:
+                            mainPanel = Global.getSector().getCampaignUI().getHintPanel();
+                            break;
+                        case COMBAT:
+                            mainPanel = CombatStateReflector.GetInstance().getWidgetPanel();
+                            break;
+
+                    }
+                    if(mainPanel != null) {
+                        displayPanel = new IndicatorDisplayPanel(mainPanel, screen.getIndicators());
+                    }
+                } catch(IllegalArgumentException ex) {
                     Global.getLogger(getClass()).fatal("Could not create the panel for displaying indicator sprites!", ex);
                 }
             }
-            if(displayPanel != null) {
-                displayPanel.render(viewport.getAlphaMult());
-            }
+//            if(displayPanel != null) {
+//                displayPanel.render(viewport.getAlphaMult());
+//            }
         }
 //        List<Pair<Indicators, String>> indicators = screen.getIndicators();
 //        if ( indicators == null || indicators.isEmpty() ) return;

@@ -61,7 +61,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
     static public HandlerController controller = new HandlerController();
     static public List<Class<?>> registeredSteeringController = new ArrayList<>();
     static public HashMap<String, ControllerMapping> controllerMappings;
-    static public EnumMap<Indicators,SpriteAPI> defaultIndicators;
+    static public EnumMap<Indicators,String> defaultIndicators;
     
     @Override
     public void onApplicationLoad() throws Exception {
@@ -309,8 +309,8 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         return output;
     }
 
-    protected HashMap<String, EnumMap<Indicators, SpriteAPI>> configureSettingsApplicationController(JSONObject graphicsObject) {
-        HashMap<String, EnumMap<Indicators, SpriteAPI>> output = new HashMap<>();
+    protected HashMap<String, EnumMap<Indicators, String>> configureSettingsApplicationController(JSONObject graphicsObject) {
+        HashMap<String, EnumMap<Indicators, String>> output = new HashMap<>();
         try {
             JSONArray names = graphicsObject.names();
             for (int i =0; i < names.length(); i++) {
@@ -319,16 +319,14 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                 JSONObject obj = graphicsObject.getJSONObject(controllerName);
                 if(obj == null) continue;
                 JSONArray indicatorNames = obj.names();
-                EnumMap<Indicators, SpriteAPI> controllerIndicators = new EnumMap<>(Indicators.class);
+                EnumMap<Indicators, String> controllerIndicators = new EnumMap<>(Indicators.class);
                 for(int nameIndex = 0; nameIndex < indicatorNames.length(); nameIndex++) {
                     String indicatorName = indicatorNames.getString(nameIndex);
                     String filePath = obj.getString(indicatorName);
                     if(filePath == null) continue;
-                    SpriteAPI sprite = Global.getSettings().getSprite(filePath);
-                    if(sprite == null) continue;
                     else if(filePath.contains("graphics/indicators")) {
                         Indicators ind = Enum.valueOf(Indicators.class, indicatorName);
-                        controllerIndicators.put(ind, sprite);
+                        controllerIndicators.put(ind, filePath);
                     }
                 }
                 output.put(controllerName, controllerIndicators);

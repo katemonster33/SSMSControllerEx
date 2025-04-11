@@ -19,6 +19,7 @@ package ssms.controller.inputScreens;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.CustomPanelAPI;
 import com.fs.starfarer.api.ui.LabelAPI;
@@ -133,18 +134,21 @@ public class InputScreen_TitleScreen implements InputScreen {
         if(currState == State.CalibratingInputs && calibrationIndex != -1 && calibrationIndex <= buttons.length) {
             var indicatorEnum = getIndicatorForButton(buttons[calibrationIndex]);
             if(indicatorEnum != null) {
-                var sprite = InputScreenManager.getInstance().indicatorSprites.get(indicatorEnum);
-                if(sprite != null) {
-                    sprite.setWidth(50.f);
-                    sprite.setHeight(50.f);
-                    var pos = viewport.getCenter();
-                    pos.x = viewport.convertWorldXtoScreenX(pos.x);
-                    pos.y = viewport.convertWorldYtoScreenY(pos.y);
-                    var text = InputScreenManager.getInstance().defaultFont.createText("Press this button, or hold any button to skip: ", Color.white);
-                    float totalWidth = text.getWidth() + sprite.getWidth();
-                    pos.x -= (totalWidth / 2);
-                    text.draw(pos.x, pos.y + (text.getHeight() / 2) + 50);
-                    sprite.render(pos.x + text.getWidth() , pos.y + (sprite.getHeight() / 2));
+                var spritePath =  SSMSControllerModPluginEx.defaultIndicators.get(indicatorEnum);
+                if(spritePath != null) {
+                    SpriteAPI sprite = Global.getSettings().getSprite(spritePath);
+                    if(sprite != null) {
+                        sprite.setWidth(50.f);
+                        sprite.setHeight(50.f);
+                        var pos = viewport.getCenter();
+                        pos.x = viewport.convertWorldXtoScreenX(pos.x);
+                        pos.y = viewport.convertWorldYtoScreenY(pos.y);
+                        var text = InputScreenManager.getInstance().defaultFont.createText("Press this button, or hold any button to skip: ", Color.white);
+                        float totalWidth = text.getWidth() + sprite.getWidth();
+                        pos.x -= (totalWidth / 2);
+                        text.draw(pos.x, pos.y + (text.getHeight() / 2) + 50);
+                        sprite.render(pos.x + text.getWidth(), pos.y + (sprite.getHeight() / 2));
+                    }
                 }
             }
         }

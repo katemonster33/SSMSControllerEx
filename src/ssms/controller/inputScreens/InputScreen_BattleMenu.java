@@ -23,6 +23,9 @@ import com.fs.starfarer.api.combat.CombatFleetManagerAPI;
 import com.fs.starfarer.api.combat.CombatTaskManagerAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.mission.FleetSide;
+import com.fs.starfarer.api.ui.ButtonAPI;
+import com.fs.starfarer.api.ui.CustomPanelAPI;
+import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.coreui.w;
 import com.fs.state.AppDriver;
@@ -69,6 +72,50 @@ public class InputScreen_BattleMenu implements InputScreen {
     protected UIComponent_Parent root;
     protected boolean prevMenuEntry, nextMenuEntry, selectMenuEntry;
     protected List<Pair<Indicators, String>> indicators;
+    String[] mainButtonTexts = { "Pause", "Warroom", "Autopilot", "Broadside", "Zoom", "Full Assault", "Full Retreat", "Cancel"};
+    String[] broadsideOptions = {"Front", "Right", "Left", }
+    String[] zoomOptions = {"2x", "3x", "4x"};
+
+    class BattleMenuUI extends LunaBaseCustomPanelPlugin {
+        UIPanelAPI parentPanel;
+        CustomPanelAPI subpanel;
+        final float spacing = 8;
+        public BattleMenuUI(UIPanelAPI parentPanel, String[] buttonTexts) {
+            this.parentPanel = parentPanel;
+
+            subpanel = Global.getSettings().createCustom(200 + 8, 30 * buttonTexts.length, this);
+            subpanel.getPosition().inBR(spacing, spacing);
+            var btnElem = subpanel.createUIElement(200, 30, false);
+            ButtonAPI prevBtn = null;
+            for(int index = 0; index < buttonTexts.length; index++) {
+                var btn = btnElem.addButton(buttonTexts[0], null, 200, 30, 0.f);
+                if(prevBtn == null) {
+                    btn.getPosition().inTMid(spacing / 2);
+                } else {
+                    btn.getPosition().belowMid(prevBtn, spacing / 2);
+                }
+                subpanel.addComponent(btn);
+            }
+            init(subpanel);
+        }
+        @Override
+        public void init() {
+            show();
+        }
+
+        public void show() {
+            parentPanel.addComponent(subpanel);
+        }
+
+        public void hide() {
+            parentPanel.removeComponent(subpanel);
+        }
+
+        @Override
+        public void buttonPressed(Object buttonId) {
+
+        }
+    };
 
     public InputScreen_BattleMenu() {
         indicators = new ArrayList<>();
@@ -84,7 +131,7 @@ public class InputScreen_BattleMenu implements InputScreen {
             CombatStateReflector.GetInstance().HideHud();
         } catch (Throwable t) {
             engine.getCombatUI().addMessage(0, "error: "+t.getMessage());
-            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to hide HUD!", t);
+            Global.getLogger(SSMSControllerModPluginEx.class).error("Failed to hide HUD!", t);
         }
         
         handler = null;
@@ -104,7 +151,7 @@ public class InputScreen_BattleMenu implements InputScreen {
             CombatStateReflector.GetInstance().HideHud();
         } catch (Throwable t) {
             engine.getCombatUI().addMessage(0, "error: "+t.getMessage());
-            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to hide HUD, ensure SSMSUnlock is installed!", t);
+            Global.getLogger(SSMSControllerModPluginEx.class).error("Failed to hide HUD!", t);
         }
         root = null;
         selectedBtnIndex = -1;

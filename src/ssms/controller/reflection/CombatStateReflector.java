@@ -4,6 +4,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
+import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.combat.CombatState;
 import org.apache.log4j.Level;
 
@@ -22,6 +23,7 @@ public class CombatStateReflector {
     MethodHandle showWarRoom = null;
     MethodHandle isAutoPilotOn = null;
     MethodHandle setAutoPilot = null;
+    Object getWidgetPanel = null;
     ZoomTrackerReflector zoomTracker;
     public Object cs;
     static CombatStateReflector instance;
@@ -36,6 +38,8 @@ public class CombatStateReflector {
             
             isAutoPilotOn = MethodHandles.lookup().findVirtual(cs.getClass(), "isAutopilotOn", MethodType.methodType(boolean.class));
 
+            getWidgetPanel = ClassReflector.GetInstance().findDeclaredMethod(cs.getClass(), "getWidgetPanel");
+
         } catch(Throwable ex) {
             Global.getLogger(SSMSControllerModPluginEx.class).log(Level.FATAL, "Couldn't find essential methods of CombatState class!");
         }
@@ -46,6 +50,16 @@ public class CombatStateReflector {
         if(instance == null) instance = new CombatStateReflector();
 
         return instance;
+    }
+
+    public UIPanelAPI getWidgetPanel()
+    {
+        try {
+           return (UIPanelAPI)MethodReflector.GetInstance().invoke(getWidgetPanel, cs);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).fatal("Could not fetch the widget panel of CombatState!", ex);
+        }
+        return null;
     }
 
     public void setAutoOmniShield() {
