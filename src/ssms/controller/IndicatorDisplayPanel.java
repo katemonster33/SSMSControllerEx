@@ -15,6 +15,7 @@ import lunalib.lunaUI.panel.LunaBaseCustomPanelPlugin;
 
 import org.lazywizard.lazylib.ui.FontException;
 import org.lazywizard.lazylib.ui.LazyFont;
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.inputScreens.InputScreen;
 
@@ -25,96 +26,94 @@ import java.util.List;
 public class IndicatorDisplayPanel extends LunaBaseCustomPanelPlugin {
     static LazyFont defaultFont;
     static float textLineHeight;
+    LunaElement rect;
 
     final float lineHeight = 25, spacing = 8f, textWidth = 200f;
-    protected List<Pair<Indicators, String>> indicators;
-    List<Pair<SpriteAPI, Vector2f>> sprites;
     CustomPanelAPI subpanel;
-    List<Pair<LazyFont.DrawableString, Vector2f>> indicatorTexts;
+    List<Pair<LazyFont.DrawableString, SpriteAPI>> indicators;
     public IndicatorDisplayPanel(List<Pair<Indicators, String>> args) throws FontException, IllegalArgumentException {
-        indicators = new ArrayList<>(args);
         if(defaultFont == null) {
             defaultFont = LazyFont.loadFont("graphics/fonts/insignia21LTaa.fnt");
             textLineHeight = defaultFont.createText("A").getHeight();
         }
 
-        if ( indicators == null || indicators.isEmpty() ) {
+        if ( args == null || args.isEmpty() ) {
             throw new IllegalArgumentException("indicators list cannot be empty!");
         }
-        subpanel = Global.getSettings().createCustom(400, 25 * indicators.size(), null);
+        indicators = new ArrayList<>();
+        subpanel =  Global.getSettings().createCustom(400, 25 * args.size(), this);
 
+        initFromScript(subpanel);
+        //Global.getSettings().cre
         //subpanel.getPosition().rightOfMid(null, 0);
         var viewport = Global.getSector().getViewport();
         float yMin = viewport.convertWorldYtoScreenY(viewport.getLLY()), xMax = viewport.convertWorldXtoScreenX(viewport.getLLX() + viewport.getVisibleWidth());
         //float y = subpanel.getPosition().getY(), x = subpanel.getPosition().getX();
         
-        float x = xMax - textWidth - lineHeight - spacing - spacing, y = yMin + indicators.size() * (lineHeight + spacing) + spacing;
-        
-        subpanel.getPosition().setLocation(x, yMin);
-        subpanel.getPosition().setSize(400, 40 * indicators.size());
-        var rectElem = subpanel.createUIElement(400, 25 * indicators.size(), false);
-        rectElem.getPosition().setLocation(x, y);
-        rectElem.getPosition().setSize(400, 25 * indicators.size());
-        var rect = rectElem.createRect(Global.getSettings().getDarkPlayerColor(), 5.f);
-        rect.getPosition().setLocation(x, y);
-        rect.getPosition().setSize(400, 25 * indicators.size());
-        //rect.getPosition().setLocation(yMin, xMax);
-        subpanel.addComponent(rect);
-
-        sprites = new ArrayList<>();
-        indicatorTexts = new ArrayList<>();
-        for ( Pair<Indicators,String> e : indicators ) {
+        float x = xMax - textWidth - lineHeight - spacing - spacing, y = yMin + args.size() * (lineHeight + spacing) + spacing;
+        subpanel.getPosition().setLocation(x - spacing, yMin + lineHeight);
+        subpanel.getPosition().setSize(xMax - x + spacing, y - yMin + spacing);
+        for ( Pair<Indicators,String> e : args ) {
             if ( e.one != null ) {
-                SpriteAPI sprite = SSMSControllerModPluginEx.defaultIndicators.get(e.one);
-                if ( sprite != null ) {
-                    //sprite.render(x, y);
-                    sprites.add(new Pair<>(sprite, new Vector2f(x, y)));
-                }
-                //UIUtil.getInstance().renderText(e.two, Color.white, x + spacing + lineHeight, y, textWidth, lineHeight, Alignment.LMID);
-
                 var str = defaultFont.createText(e.two, Color.white, textLineHeight, textWidth, lineHeight);
                 str.setAlignment(LazyFont.TextAlignment.LEFT);
                 str.setAnchor(LazyFont.TextAnchor.TOP_LEFT);
-                indicatorTexts.add(new Pair<>(str, new Vector2f(x + spacing + lineHeight, y + textLineHeight + 2)));
-                y -= lineHeight + spacing;
+                indicators.add(new Pair<>(str, SSMSControllerModPluginEx.defaultIndicators.get(e.one)));
             } else {
-                LunaSpriteElement
-                //UIUtil.getInstance().renderText(e.two, Color.white, x, y, textWidth + spacing + lineHeight, textLineHeight, Alignment.LMID);
                 var str = defaultFont.createText(e.two, Color.white, textLineHeight, textWidth + spacing + lineHeight, lineHeight);
                 str.setAlignment(LazyFont.TextAlignment.LEFT);
                 str.setAnchor(LazyFont.TextAnchor.CENTER_LEFT);
-                //str.draw(x, y - textLineHeight);
-                indicatorTexts.add(new Pair<>(str, new Vector2f(x, y - textLineHeight)));
-
-                y -= textLineHeight + spacing;
+                indicators.add(new Pair<>(str, null));
             }
         }
-        // LunaElement elem  = new LunaElement(null, x, y);
-        // elem.addText(null, null, null, null);
-        initFromScript(subpanel);
     }
     // @Override
     // public void positionChanged(PositionAPI position) {
 
     // }
 
-    // @Override
-    // public void renderBelow(float alphaMult) {
-
-    // }
+     @Override
+     public void renderBelow(float alphaMult) {
+        //super.renderBelow(alphaMult);
+        //rect.renderBelow(alphaMult);
+     }
 
     @Override
     public void render(float alphaMult) {
         //subpanel.render(alphaMult);
-        for(var spritePair  : sprites) {
-            spritePair.one.setWidth(lineHeight);
-            spritePair.one.setHeight(lineHeight);
-            spritePair.one.render(spritePair.two.x, spritePair.two.y);
+        GL11.glPushMatrix();
+
+        GL11.glTranslatef(0f, 0f, 0f);
+        GL11.glRotatef(0f, 0f, 0f, 1f);
+
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+
+        //GL11.glDisable(GL11.GL_BLEND);
+        GL11.glEnable(GL11.GL_BLEND);
+        Color c = Global.getSettings().getDarkPlayerColor().darker().darker();
+        GL11.glColor4f(c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f, 0.8f * alphaMult);
+        GL11.glBegin(GL11.GL_TRIANGLES);
+        float minX = subpanel.getPosition().getX(), minY = subpanel.getPosition().getY(),
+                maxX = minX + subpanel.getPosition().getWidth(), maxY = minY + subpanel.getPosition().getHeight();
+        GL11.glVertex2f(minX, maxY);
+        GL11.glVertex2f(minX, minY);
+        GL11.glVertex2f(maxX, maxY);
+        GL11.glVertex2f(maxX, maxY);
+        GL11.glVertex2f(minX, minY);
+        GL11.glVertex2f(maxX, minY);
+        GL11.glEnd();
+        GL11.glPopMatrix();
+
+        float x = subpanel.getPosition().getX() + spacing, y = subpanel.getPosition().getY() + subpanel.getPosition().getHeight() - spacing - lineHeight;
+        for ( var indicator : indicators ) {
+            if ( indicator.two != null ) {
+                indicator.two.setHeight(lineHeight);
+                indicator.two.setWidth(lineHeight);
+                indicator.two.render(x, y);
+            }
+            indicator.one.draw(x + spacing + lineHeight, y + textLineHeight + 2);
+            y -= lineHeight + spacing;
         }
-        for(var strPair : indicatorTexts) {
-            strPair.one.draw(strPair.two);
-        }
-        super.render(alphaMult);
     }
 
     // @Override

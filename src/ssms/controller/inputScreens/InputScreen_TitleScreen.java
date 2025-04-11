@@ -17,7 +17,11 @@
  */
 package ssms.controller.inputScreens;
 
+import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
+import com.fs.starfarer.api.ui.Alignment;
+import com.fs.starfarer.api.ui.CustomPanelAPI;
+import com.fs.starfarer.api.ui.LabelAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.combat.entities.Ship;
 
@@ -58,6 +62,8 @@ public class InputScreen_TitleScreen implements InputScreen {
     ControllerMapping tempMapping = null;
     State currState = State.Normal;
     boolean parsedBtn = false;
+    CustomPanelAPI customPanel;
+    LabelAPI label;
 
     public InputScreen_TitleScreen() {
         indicators = new ArrayList<>();
@@ -83,7 +89,6 @@ public class InputScreen_TitleScreen implements InputScreen {
     public void activate(Object ...args) {
         //InputScreenManager.getInstance().horizontalAlignment = AlignmentHorizontal.left;
         controller = SSMSControllerModPluginEx.controller.controller;
-        
         scope = (InputScope_TitleScreen)InputScreenManager.getInstance().getCurrentScope();
     }
     
@@ -120,6 +125,11 @@ public class InputScreen_TitleScreen implements InputScreen {
 
     @Override
     public void renderUI(ViewportAPI viewport) {
+        if(customPanel != null) {
+
+            customPanel.render(1.f);
+            label.render(1.f);
+        }
         if(currState == State.CalibratingInputs && calibrationIndex != -1 && calibrationIndex <= buttons.length) {
             var indicatorEnum = getIndicatorForButton(buttons[calibrationIndex]);
             if(indicatorEnum != null) {
@@ -199,8 +209,8 @@ public class InputScreen_TitleScreen implements InputScreen {
                             break;
                         case DpadLeft: if(i >= controller.getButtonCount()) tempMapping.axisIndexDpadX = i; break;
                         case DpadRight: if(i >= controller.getButtonCount()) tempMapping.axisIndexDpadX = i - 1; break;
-                        case DpadUp: if(i >= controller.getButtonCount()) tempMapping.axisIndexDpadX = i; break;
-                        case DpadDown: if(i >= controller.getButtonCount()) tempMapping.axisIndexDpadX = i - 1; break;
+                        case DpadUp: if(i >= controller.getButtonCount()) tempMapping.axisIndexDpadY = i; break;
+                        case DpadDown: if(i >= controller.getButtonCount()) tempMapping.axisIndexDpadY = i - 1; break;
                     }
                     break;
                 }
