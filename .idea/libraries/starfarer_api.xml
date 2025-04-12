@@ -7,7 +7,6 @@
       <root url="jar://$PROJECT_DIR$/../starsector/mods/LazyLib/jars/LazyLib.jar!/" />
       <root url="jar://$PROJECT_DIR$/../starsector/mods/LunaLib/jars/LunaLib-Kotlin.jar!/" />
       <root url="jar://$PROJECT_DIR$/../starsector/mods/LunaLib/jars/LunaLib.jar!/" />
-      <root url="jar://$PROJECT_DIR$/../starsector/mods/SSMSQoLEx/jars/SSMSQoLEx.jar!/" />
       <root url="jar://$PROJECT_DIR$/../starsector/commons-compiler-jdk.jar!/" />
       <root url="jar://$PROJECT_DIR$/../starsector/commons-compiler.jar!/" />
       <root url="jar://$PROJECT_DIR$/../starsector/fs.common_obf.jar!/" />

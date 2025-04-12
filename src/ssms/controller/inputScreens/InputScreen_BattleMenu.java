@@ -25,35 +25,14 @@ import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.mission.FleetSide;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.CustomPanelAPI;
-import com.fs.starfarer.api.ui.TooltipMakerAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.coreui.w;
-import com.fs.state.AppDriver;
-import java.lang.reflect.Field;
 import java.util.*;
-import java.util.concurrent.Callable;
-
-import lunalib.backend.ui.components.base.LunaUIButton;
-import lunalib.lunaUI.LunaUIUtils;
 import lunalib.lunaUI.panel.LunaBaseCustomPanelPlugin;
-import org.apache.log4j.Level;
-//import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.Rectangle;
 import ssms.controller.HandlerController;
 import ssms.controller.Indicators;
 import ssms.controller.SSMSControllerModPluginEx;
 import ssms.controller.reflection.CombatStateReflector;
-//import ssms.qol.ui.AlignmentHorizontal;
-//import ssms.qol.ui.AlignmentVertical;
-//import ssms.qol.ui.UIComponentFactory;
-//import ssms.qol.ui.UIComponentParentFactory;
-//import ssms.qol.ui.UIComponent_Button;
-//import ssms.qol.ui.UIComponent_Column;
-//import ssms.qol.ui.UIComponent_Parent;
-//import ssms.qol.ui.UIComponent_Row;
-//import ssms.qol.ui.UIContext;
-//import ssms.qol.ui.UIUtil;
 
 /**
  *f5

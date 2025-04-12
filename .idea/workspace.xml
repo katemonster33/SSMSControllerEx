@@ -9,23 +9,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f93bfbfa-f590-465e-a84d-27f995dd3431" name="Changes" comment="re-enabled controller mappings, added the Switch controller on Linux">
-      <change beforePath="$PROJECT_DIR$/.idea/libraries/starfarer_api.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/libraries/starfarer_api.xml" afterDir="false" />
+    <list default="true" id="f93bfbfa-f590-465e-a84d-27f995dd3431" name="Changes" comment="Moved the controller pause menu that shows during combat, away from SSMSQoL, to prevent the crashes that can happen on certain platforms. Fixed tons of exceptions seen during combat">
       <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_4_3_25,_8_55 PM_[Changes]/SSMSController.jar" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_4_3_25,_8_55 PM_[Changes]/shelved.patch" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_4_3_25__8_55PM__Changes_.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/data/config/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/data/config/settings.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jars/SSMSControllerEx.jar" beforeDir="false" afterPath="$PROJECT_DIR$/jars/SSMSControllerEx.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScope_Battle.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScope_Battle.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScope_TitleScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScope_TitleScreen.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mod_info.json" beforeDir="false" afterPath="$PROJECT_DIR$/mod_info.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreenManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreenManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_BattleMenu.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_BattleMenu.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_TitleScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_TitleScreen.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/reflection/CombatStateReflector.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/reflection/CombatStateReflector.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/reflection/WeaponReflection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/reflection/WeaponReflection.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/reflection/ZoomTrackerReflector.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/reflection/ZoomTrackerReflector.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -157,7 +151,15 @@
       <option name="project" value="LOCAL" />
       <updated>1744330025325</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Moved the controller pause menu that shows during combat, away from SSMSQoL, to prevent the crashes that can happen on certain platforms. Fixed tons of exceptions seen during combat">
+      <option name="closed" value="true" />
+      <created>1744425681659</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1744425681659</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -180,7 +182,8 @@
     <MESSAGE value="Finished implementing the controller calibration routine, works on PS4 controller." />
     <MESSAGE value="Finished implementing the indicator display panel, now it displays a nice rectangle around the indicator sprites to put emphasis on them" />
     <MESSAGE value="re-enabled controller mappings, added the Switch controller on Linux" />
-    <option name="LAST_COMMIT_MESSAGE" value="re-enabled controller mappings, added the Switch controller on Linux" />
+    <MESSAGE value="Moved the controller pause menu that shows during combat, away from SSMSQoL, to prevent the crashes that can happen on certain platforms. Fixed tons of exceptions seen during combat" />
+    <option name="LAST_COMMIT_MESSAGE" value="Moved the controller pause menu that shows during combat, away from SSMSQoL, to prevent the crashes that can happen on certain platforms. Fixed tons of exceptions seen during combat" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

@@ -17,31 +17,18 @@
  */
 package ssms.controller.inputScreens;
 
-import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
-import com.fs.starfarer.api.ui.Alignment;
-import com.fs.starfarer.api.ui.CustomPanelAPI;
-import com.fs.starfarer.api.ui.LabelAPI;
-import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.combat.entities.Ship;
-
-import com.fs.starfarer.title.TitleScreenState;
-import com.fs.state.AppDriver;
 import ssms.controller.ControllerMapping;
 import ssms.controller.HandlerController;
 import ssms.controller.Indicators;
 import ssms.controller.SSMSControllerModPluginEx;
-import ssms.qol.ui.AlignmentHorizontal;
 
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
-import org.lazywizard.lazylib.ui.LazyFont;
 import org.lwjgl.input.Controller;
 
 /**

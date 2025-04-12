@@ -2,7 +2,8 @@
 
 ## Dependencies
 
-SSMSQoLEx - https://github.com/katemonster33/SSMSQoLEx
+LunaLib - https://github.com/Lukas22041/LunaLib
+LazyLib - https://github.com/LazyWizard/lazylib
 
 ## Features
 
