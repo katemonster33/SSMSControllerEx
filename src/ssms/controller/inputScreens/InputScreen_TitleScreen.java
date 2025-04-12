@@ -17,15 +17,19 @@
  */
 package ssms.controller.inputScreens;
 
+import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.CustomPanelAPI;
 import com.fs.starfarer.api.ui.LabelAPI;
+import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.combat.entities.Ship;
 
+import com.fs.starfarer.title.TitleScreenState;
+import com.fs.state.AppDriver;
 import ssms.controller.ControllerMapping;
 import ssms.controller.HandlerController;
 import ssms.controller.Indicators;
@@ -63,9 +67,6 @@ public class InputScreen_TitleScreen implements InputScreen {
     ControllerMapping tempMapping = null;
     State currState = State.Normal;
     boolean parsedBtn = false;
-    CustomPanelAPI customPanel;
-    LabelAPI label;
-
     public InputScreen_TitleScreen() {
         indicators = new ArrayList<>();
         indicators.add(new Pair<>(Indicators.LeftStickUp, "Up"));
@@ -126,11 +127,6 @@ public class InputScreen_TitleScreen implements InputScreen {
 
     @Override
     public void renderUI(ViewportAPI viewport) {
-        if(customPanel != null) {
-
-            customPanel.render(1.f);
-            label.render(1.f);
-        }
         if(currState == State.CalibratingInputs && calibrationIndex != -1 && calibrationIndex <= buttons.length) {
             var indicatorEnum = getIndicatorForButton(buttons[calibrationIndex]);
             if(indicatorEnum != null) {

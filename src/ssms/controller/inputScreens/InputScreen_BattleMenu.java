@@ -25,38 +25,35 @@ import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.mission.FleetSide;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.CustomPanelAPI;
+import com.fs.starfarer.api.ui.TooltipMakerAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.coreui.w;
 import com.fs.state.AppDriver;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 import lunalib.backend.ui.components.base.LunaUIButton;
 import lunalib.lunaUI.LunaUIUtils;
 import lunalib.lunaUI.panel.LunaBaseCustomPanelPlugin;
 import org.apache.log4j.Level;
-import org.lwjgl.opengl.GL11;
+//import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.Rectangle;
 import ssms.controller.HandlerController;
 import ssms.controller.Indicators;
 import ssms.controller.SSMSControllerModPluginEx;
 import ssms.controller.reflection.CombatStateReflector;
-import ssms.qol.ui.AlignmentHorizontal;
-import ssms.qol.ui.AlignmentVertical;
-import ssms.qol.ui.UIComponentFactory;
-import ssms.qol.ui.UIComponentParentFactory;
-import ssms.qol.ui.UIComponent_Button;
-import ssms.qol.ui.UIComponent_Column;
-import ssms.qol.ui.UIComponent_Parent;
-import ssms.qol.ui.UIComponent_Row;
-import ssms.qol.ui.UIContext;
-import ssms.qol.ui.UIUtil;
+//import ssms.qol.ui.AlignmentHorizontal;
+//import ssms.qol.ui.AlignmentVertical;
+//import ssms.qol.ui.UIComponentFactory;
+//import ssms.qol.ui.UIComponentParentFactory;
+//import ssms.qol.ui.UIComponent_Button;
+//import ssms.qol.ui.UIComponent_Column;
+//import ssms.qol.ui.UIComponent_Parent;
+//import ssms.qol.ui.UIComponent_Row;
+//import ssms.qol.ui.UIContext;
+//import ssms.qol.ui.UIUtil;
 
 /**
  *f5
@@ -68,38 +65,47 @@ public class InputScreen_BattleMenu implements InputScreen {
     protected HandlerController handler;
     protected InputScope_Battle scope;
     protected CombatEngineAPI engine;
-    protected int selectedBtnIndex = -1;
-    protected UIComponent_Parent root;
-    protected boolean prevMenuEntry, nextMenuEntry, selectMenuEntry;
     protected List<Pair<Indicators, String>> indicators;
-    String[] mainButtonTexts = { "Pause", "Warroom", "Autopilot", "Broadside", "Zoom", "Full Assault", "Full Retreat", "Cancel"};
-    String[] broadsideOptions = {"Front", "Right", "Left", }
-    String[] zoomOptions = {"2x", "3x", "4x"};
+    BattleMenuUI currentMenu;
 
-    class BattleMenuUI extends LunaBaseCustomPanelPlugin {
+    public abstract static class BattleMenuUI extends LunaBaseCustomPanelPlugin {
+        int currentSelectedIndex = -1;
         UIPanelAPI parentPanel;
         CustomPanelAPI subpanel;
         final float spacing = 8;
+        List<String> buttonTexts;
+        List<ButtonAPI> buttons;
         public BattleMenuUI(UIPanelAPI parentPanel, String[] buttonTexts) {
+            this.buttonTexts = new ArrayList<>();
+            Collections.addAll(this.buttonTexts, buttonTexts);
             this.parentPanel = parentPanel;
 
-            subpanel = Global.getSettings().createCustom(200 + 8, 30 * buttonTexts.length, this);
-            subpanel.getPosition().inBR(spacing, spacing);
-            var btnElem = subpanel.createUIElement(200, 30, false);
-            ButtonAPI prevBtn = null;
-            for(int index = 0; index < buttonTexts.length; index++) {
-                var btn = btnElem.addButton(buttonTexts[0], null, 200, 30, 0.f);
-                if(prevBtn == null) {
-                    btn.getPosition().inTMid(spacing / 2);
-                } else {
-                    btn.getPosition().belowMid(prevBtn, spacing / 2);
-                }
-                subpanel.addComponent(btn);
-            }
-            init(subpanel);
+            subpanel = Global.getSettings().createCustom(200, 30 * buttonTexts.length + (spacing * 2), this);
+            subpanel.getPosition().inMid();
+            initFromScript(subpanel);
         }
         @Override
         public void init() {
+            ButtonAPI prevBtn = null;
+            buttons = new ArrayList<>();
+            //for(int index = 0; index < buttonTexts.length; index++) {
+            var btnElem = subpanel.createUIElement(180, 30 * buttonTexts.size(), false);
+            btnElem.getPosition().inMid();
+            for(var str : buttonTexts) {
+                var btn = btnElem.addButton(str, str, 180, 28, 0.f);
+                if(prevBtn == null) {
+                    btn.getPosition().inTMid(0.f);
+                } else {
+                    btn.getPosition().belowMid(prevBtn, 2.f);
+                }
+                prevBtn = btn;
+                buttons.add(btn);
+            }
+            if(!buttons.isEmpty()) {
+                currentSelectedIndex = 0;
+                buttons.get(0).highlight();
+            }
+            subpanel.addUIElement(btnElem);
             show();
         }
 
@@ -111,9 +117,38 @@ public class InputScreen_BattleMenu implements InputScreen {
             parentPanel.removeComponent(subpanel);
         }
 
-        @Override
-        public void buttonPressed(Object buttonId) {
+        public void buttonSelected(int index) {
+            if(currentSelectedIndex != -1) {
+                buttons.get(index).unhighlight();
+            }
+            if(index >= 0 && index < buttons.size()) {
+                buttons.get(index).highlight();
+                currentSelectedIndex = index;
+            }
+        }
 
+        public abstract void onClicked(int index);
+
+        public void handleInput(HandlerController controller) throws IllegalArgumentException {
+            if(buttons.isEmpty()) {
+                throw new IllegalArgumentException("Cannot handle inputs on empty BattleMenuUI!");
+            }
+            if ( controller.getButtonEvent(HandlerController.Buttons.BumperLeft) == 1) {
+                buttons.get(currentSelectedIndex).unhighlight();
+                currentSelectedIndex--;
+                if(currentSelectedIndex < 0) currentSelectedIndex = buttons.size() - 1;
+                buttons.get(currentSelectedIndex).highlight();
+            } else if(controller.getButtonEvent(HandlerController.Buttons.BumperRight) == 1) {
+                buttons.get(currentSelectedIndex).unhighlight();
+                currentSelectedIndex++;
+                if(currentSelectedIndex >= buttons.size()) currentSelectedIndex = 0;
+                buttons.get(currentSelectedIndex).highlight();
+            }
+            if ( controller.getButtonEvent(HandlerController.Buttons.Select) == 1 ) {
+                if(currentSelectedIndex != -1) {
+                    onClicked(currentSelectedIndex);
+                }
+            }
         }
     };
 
@@ -127,17 +162,19 @@ public class InputScreen_BattleMenu implements InputScreen {
     @Override
     public void deactivate() {
         scope.timeDilation(false,"MENU");
-        try {
-            CombatStateReflector.GetInstance().HideHud();
-        } catch (Throwable t) {
-            engine.getCombatUI().addMessage(0, "error: "+t.getMessage());
-            Global.getLogger(SSMSControllerModPluginEx.class).error("Failed to hide HUD!", t);
-        }
+//        try {
+//            CombatStateReflector.GetInstance().HideHud();
+//        } catch (Throwable t) {
+//            engine.getCombatUI().addMessage(0, "error: "+t.getMessage());
+//            Global.getLogger(SSMSControllerModPluginEx.class).error("Failed to hide HUD!", t);
+//        }
         
         handler = null;
         scope = null;
         engine = null;
-        root.dismis();
+        if(currentMenu != null) {
+            currentMenu.hide();
+        }
     }
 
     @Override
@@ -147,37 +184,21 @@ public class InputScreen_BattleMenu implements InputScreen {
         engine = scope.engine;
         
         scope.timeDilation(true,"MENU");
-        try {
-            CombatStateReflector.GetInstance().HideHud();
-        } catch (Throwable t) {
-            engine.getCombatUI().addMessage(0, "error: "+t.getMessage());
-            Global.getLogger(SSMSControllerModPluginEx.class).error("Failed to hide HUD!", t);
-        }
-        root = null;
-        selectedBtnIndex = -1;
-        
-        if ( args != null && args.length > 0 ) {
-            if ( args[0] != null ) {
-                if ( args[0].getClass() == int.class )
-                    selectedBtnIndex = (int)args[0];
-                else if ( args[0].getClass() == Integer.class )
-                    selectedBtnIndex = (Integer)args[0];
-            }
+//        try {
+//            CombatStateReflector.GetInstance().HideHud();
+//        } catch (Throwable t) {
+//            engine.getCombatUI().addMessage(0, "error: "+t.getMessage());
+//            Global.getLogger(SSMSControllerModPluginEx.class).error("Failed to hide HUD!", t);
+//        }
+        if(currentMenu != null) {
+            currentMenu.show();
         }
     }
     
     @Override
     public void preInput(float advance) {
-        if ( handler.getButtonEvent(HandlerController.Buttons.BumperRight) == 1 ) {
-            nextMenuEntry = true;
-            prevMenuEntry = false;
-        }
-        if ( handler.getButtonEvent(HandlerController.Buttons.BumperLeft) == 1 ) {
-            prevMenuEntry = true;
-            nextMenuEntry = false;
-        }
-        if ( handler.getButtonEvent(HandlerController.Buttons.Select) == 1 ) {
-            selectMenuEntry = true;
+        if(currentMenu != null) {
+            currentMenu.handleInput(handler);
         }
     }
 
@@ -192,43 +213,9 @@ public class InputScreen_BattleMenu implements InputScreen {
     
     @Override
     public void renderUI(ViewportAPI viewport) {
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        
-        if ( root == null ) {
-            root = assembleMenu();
-            float xMin = viewport.convertWorldXtoScreenX(viewport.getLLX()), 
-                yMin = viewport.convertWorldYtoScreenY(viewport.getLLY()), 
-                xMax = viewport.convertWorldXtoScreenX(viewport.getLLX() + viewport.getVisibleWidth()), 
-                yMax = viewport.convertWorldYtoScreenY(viewport.getLLY() + viewport.getVisibleHeight());
-            root.resize(new Rectangle((int)xMin, (int)yMin, (int)xMax, (int)yMax));
+        if(currentMenu == null) {
+            currentMenu = assembleMenu();
         }
-        
-        if ( selectedBtnIndex == -1 && (!nextMenuEntry && !prevMenuEntry) ) {
-            selectedBtnIndex = selectNextButton(root, -1);
-        }
-        
-        if ( nextMenuEntry ) {
-            selectedBtnIndex = selectNextButton(root, selectedBtnIndex);
-            nextMenuEntry = false;
-        } else if ( prevMenuEntry ) {
-            selectedBtnIndex = selectPrevButton(root, selectedBtnIndex);
-            prevMenuEntry = false;
-        } else if ( selectMenuEntry ) {
-            selectMenuEntry = false;
-            List<UIComponent_Button> btns = UIUtil.getInstance().findComponents(root, UIComponent_Button.class);
-            if ( this.selectedBtnIndex >= 0 && this.selectedBtnIndex < btns.size() ) {
-                btns.get(this.selectedBtnIndex).onClick();
-            }
-        }
-        
-        if ( root.isLayoutDirty() ) {
-            root.pack();
-        }
-        root.getContext().pushStyle(UIContext.StyleProperty.alphaFactor, viewport.getAlphaMult());
-        root.render();
-        root.getContext().popStyle(UIContext.StyleProperty.alphaFactor);
     }
 
     @Override
@@ -237,283 +224,113 @@ public class InputScreen_BattleMenu implements InputScreen {
     }
     
     protected void closeMenu() {
+        if(currentMenu != null) {
+            currentMenu.hide();
+            currentMenu = null;
+        }
         InputScreenManager.getInstance().transitionDelayed("BattleSteering");
     }
-    
-    protected int selectPrevButton(UIComponent_Parent root, int currentlySelectedBtnIndex) {
-        if ( root == null ) return -1;
-        List<UIComponent_Column> clmns = UIUtil.getInstance().findComponents(root, UIComponent_Column.class);
-        UIComponent_Column activeColumn = clmns.get(clmns.size()-1);
-        List<UIComponent_Button> btns = UIUtil.getInstance().findComponents(root, UIComponent_Button.class);
-        
-        int btnsSkipped = 0;
-        Iterator<UIComponent_Button> it = btns.iterator();
-        while ( it.hasNext() ) {
-            UIComponent_Button btn = it.next();
-            deselectButton(btn);
-            
-            UIComponent_Parent p = btn.parentComponent();
-            while ( p != null && p != activeColumn ) {
-                p = p.parentComponent();
-            }
-            if ( p == null ) {
-                btnsSkipped++;
-                it.remove();
-            }
+
+
+    void showBroadsideMenu() {
+        if(currentMenu != null) {
+            currentMenu.hide();
         }
-        currentlySelectedBtnIndex -= btnsSkipped;
-        if ( currentlySelectedBtnIndex < -1 ) currentlySelectedBtnIndex = -1;
-        if ( btns.isEmpty() ) {
-            return -1;
-        } else if ( --currentlySelectedBtnIndex < 0 ) {
-            selectButton(btns.get(btns.size()-1));
-            return btns.size() - 1 + btnsSkipped;
-        } else if ( currentlySelectedBtnIndex < btns.size() ) {
-            selectButton(btns.get(currentlySelectedBtnIndex));
-            return currentlySelectedBtnIndex + btnsSkipped;
-        } else {
-            selectButton(btns.get(0));
-            return btnsSkipped;
+        String[] broadsideOptions = {"Front", "Right", "Left", };
+        currentMenu = new BattleMenuUI(CombatStateReflector.GetInstance().getWidgetPanel(), broadsideOptions) {
+            @Override
+            public void onClicked(int index) {
+                switch (index) {
+                    case 0:
+                        scope.setZoom(2f);
+                        closeMenu();
+                        break;
+                    case 1:
+                        scope.setZoom(3f);
+                        closeMenu();
+                        break;
+                    case 2:
+                        scope.setZoom(4f);
+                        closeMenu();
+                        break;
+                }
+            }
+        };
+    }
+
+    void showZoomMenu() {
+
+        String[] zoomOptions = {"2x", "3x", "4x",};
+        if(currentMenu != null) {
+            currentMenu.hide();
         }
+        currentMenu = new BattleMenuUI(CombatStateReflector.GetInstance().getWidgetPanel(), zoomOptions) {
+            @Override
+            public void onClicked(int index) {
+                switch (index) {
+                    case 0:
+                        scope.setZoom(2f);
+                        closeMenu();
+                        break;
+                    case 1:
+                        scope.setZoom(3f);
+                        closeMenu();
+                        break;
+                    case 2:
+                        scope.setZoom(4f);
+                        closeMenu();
+                        break;
+                }
+            }
+        };
     }
     
-    protected int selectNextButton(UIComponent_Parent root, int currentlySelectedBtnIndex) {
-        if ( root == null ) return -1;
-        List<UIComponent_Column> clmns = UIUtil.getInstance().findComponents(root, UIComponent_Column.class);
-        UIComponent_Column activeColumn = clmns.get(clmns.size()-1);
-        List<UIComponent_Button> btns = UIUtil.getInstance().findComponents(root, UIComponent_Button.class);
-        
-        int btnsSkipped = 0;
-        Iterator<UIComponent_Button> it = btns.iterator();
-        while ( it.hasNext() ) {
-            UIComponent_Button btn = it.next();
-            deselectButton(btn);
-            
-            UIComponent_Parent p = btn.parentComponent();
-            while ( p != null && p != activeColumn ) {
-                p = p.parentComponent();
+    protected BattleMenuUI assembleMenu() {
+        String[] mainButtonTexts = { "Pause", "Warroom", "Autopilot", "Broadside", "Zoom", "Full Assault", "Full Retreat", "Toggle Steering Mode", "Cancel"};
+        return new BattleMenuUI(CombatStateReflector.GetInstance().getWidgetPanel(), mainButtonTexts) {
+            @Override
+            public void onClicked(int index) {
+                switch(index) {
+                    case 0:
+                        engine.setPaused(!engine.isPaused());
+                        closeMenu();
+                        break;
+                    case 1:
+                        CombatStateReflector.GetInstance().ShowWarRoom();
+                        closeMenu();
+                        break;
+                    case 2:
+                        CombatStateReflector.GetInstance().ToggleAutoPilot();
+                        closeMenu();
+                        break;
+                    case 3:
+                        showBroadsideMenu();
+                        break;
+                    case 4:
+                        showZoomMenu();
+                        break;
+                    case 5:
+                    case 6:
+                        CombatFleetManagerAPI fleetManager = engine.getFleetManager(FleetSide.PLAYER);
+                        if ( fleetManager != null ) {
+                            CombatTaskManagerAPI taskManager = fleetManager.getTaskManager(false);
+                            if(index == 5) {
+                                taskManager.setFullAssault(!taskManager.isFullAssault());
+                            } else if(index == 6) {
+                                taskManager.orderFullRetreat();
+                            }
+                        }
+                        closeMenu();
+                        break;
+                    case 7:
+                        scope.setControllerSteeringEnabled(!scope.isControllerSteeringEnabled());
+                        break;
+                    case 8:
+                        closeMenu();
+                        break;
+                }
             }
-            if ( p == null ) {
-                btnsSkipped++;
-                it.remove();
-            }
-        }
-        currentlySelectedBtnIndex -= btnsSkipped;
-        if ( currentlySelectedBtnIndex < -1 ) currentlySelectedBtnIndex = -1;
-        if ( btns.isEmpty() ) {
-            return -1;
-        } else if ( ++currentlySelectedBtnIndex < btns.size() ) {
-            selectButton(btns.get(currentlySelectedBtnIndex));
-            return currentlySelectedBtnIndex + btnsSkipped;
-        } else {
-            selectButton(btns.get(0));
-            return btnsSkipped;
-        }
-    }
-    
-    protected void deselectButton(UIComponent_Button btn) {
-        btn.addStyle(UIContext.StyleProperty.textColor, UIContext.StyleProperty.textColor.initialValue);
-        btn.addStyle(UIContext.StyleProperty.textMouseOverColor, UIContext.StyleProperty.textColor.initialValue);
-    }
-    
-    protected void selectButton(UIComponent_Button btn) {
-        btn.addStyle(UIContext.StyleProperty.textColor, UIContext.StyleProperty.textMouseOverColor.initialValue);
-        btn.addStyle(UIContext.StyleProperty.textMouseOverColor, UIContext.StyleProperty.textMouseOverColor.initialValue);
-    }
-    
-    protected UIComponent_Parent assembleMenu() {
-        UIComponent_Parent menu = UIComponentParentFactory.getFactory(new UIComponent_Row(AlignmentHorizontal.left, AlignmentVertical.top))
-                    .addChild(UIComponentParentFactory.getFactory(new UIComponent_Column(AlignmentHorizontal.left, AlignmentVertical.top))
-                        .addChild(UIComponentFactory.getFactory(new UIComponent_Button("Pause") {
-                                @Override
-                                public void onClick() {
-                                    engine.setPaused(!engine.isPaused());
-                                    closeMenu();
-                                }
-                            })
-                            .setWidth(200, 200, 200)
-                            .setHeight(30, 30, 30)
-                            .finish())
-                        .addChild(UIComponentFactory.getFactory(new UIComponent_Button("Warroom") {
-                                @Override
-                                public void onClick() {
-                                    CombatStateReflector.GetInstance().ShowWarRoom();
-                                    closeMenu();
-                                }
-                            })
-                            .setWidth(200, 200, 200)
-                            .setHeight(30, 30, 30)
-                            .finish())
-                        .addChild(UIComponentFactory.getFactory(new UIComponent_Button("Autopilot") {
-                                @Override
-                                public void onClick() {
-                                    CombatStateReflector.GetInstance().ToggleAutoPilot();
-                                    closeMenu();
-                                }
-                            })
-                            .setWidth(200, 200, 200)
-                            .setHeight(30, 30, 30)
-                            .finish())
-                        .addChild(UIComponentFactory.getFactory(new UIComponent_Button("Broadside") {
-                                @Override
-                                public void onClick() {
-                                    UIComponent_Parent parent = parentComponent();
-                                    while ( parent != null && !UIComponent_Row.class.isAssignableFrom(parent.getClass()) ) {
-                                        parent = parent.parentComponent();
-                                    }
-                                    if ( parent != null ) {
-                                        final UIComponent_Parent rowComponent = parent;
-                                        rowComponent.addChild(UIComponentParentFactory.getFactory(new UIComponent_Column(AlignmentHorizontal.left, AlignmentVertical.top))
-                                            .addChild(UIComponentFactory.getFactory(new UIComponent_Button("Front") {
-                                                    @Override
-                                                    public void onClick() {
-                                                        scope.setOffsetFacingAngle(0);
-                                                        rowComponent.removeChild(this.parentComponent());
-                                                        closeMenu();
-                                                    }
-                                                })
-                                                .setWidth(200, 200, 200)
-                                                .setHeight(30, 30, 30)
-                                                .finish())
-                                            .addChild(UIComponentFactory.getFactory(new UIComponent_Button("Right") {
-                                                    @Override
-                                                    public void onClick() {
-                                                        scope.setOffsetFacingAngle(90f);
-                                                        rowComponent.removeChild(this.parentComponent());
-                                                        closeMenu();
-                                                    }
-                                                })
-                                                .setWidth(200, 200, 200)
-                                                .setHeight(30, 30, 30)
-                                                .finish())
-                                            .addChild(UIComponentFactory.getFactory(new UIComponent_Button("Left") {
-                                                    @Override
-                                                    public void onClick() {
-                                                        scope.setOffsetFacingAngle(-90);
-                                                        rowComponent.removeChild(this.parentComponent());
-                                                        closeMenu();
-                                                    }
-                                                })
-                                                .setWidth(200, 200, 200)
-                                                .setHeight(30, 30, 30)
-                                                .finish())
-                                            .finish());
-                                        selectedBtnIndex = selectNextButton(root, -1);
-                                    }
-                                }
-                            })
-                            .setWidth(200, 200, 200)
-                            .setHeight(30, 30, 30)
-                            .finish())
-                        .addChild(UIComponentFactory.getFactory(new UIComponent_Button("Zoom") {
-                                @Override
-                                public void onClick() {
-                                    UIComponent_Parent parent = parentComponent();
-                                    while ( parent != null && !UIComponent_Row.class.isAssignableFrom(parent.getClass()) ) {
-                                        parent = parent.parentComponent();
-                                    }
-                                    if ( parent != null ) {
-                                        final UIComponent_Parent rowComponent = parent;
-                                        rowComponent.addChild(UIComponentParentFactory.getFactory(new UIComponent_Column(AlignmentHorizontal.left, AlignmentVertical.top))
-                                            .addChild(UIComponentFactory.getFactory(new UIComponent_Button("2x") {
-                                                    @Override
-                                                    public void onClick() {
-                                                        scope.setZoom(2f);
-                                                        rowComponent.removeChild(this.parentComponent());
-                                                        closeMenu();
-                                                    }
-                                                })
-                                                .setWidth(200, 200, 200)
-                                                .setHeight(30, 30, 30)
-                                                .finish())
-                                            .addChild(UIComponentFactory.getFactory(new UIComponent_Button("3x") {
-                                                    @Override
-                                                    public void onClick() {
-                                                        scope.setZoom(3f);
-                                                        rowComponent.removeChild(this.parentComponent());
-                                                        closeMenu();
-                                                    }
-                                                })
-                                                .setWidth(200, 200, 200)
-                                                .setHeight(30, 30, 30)
-                                                .finish())
-                                            .addChild(UIComponentFactory.getFactory(new UIComponent_Button("4x") {
-                                                    @Override
-                                                    public void onClick() {
-                                                        scope.setZoom(4f);
-                                                        rowComponent.removeChild(this.parentComponent());
-                                                        closeMenu();
-                                                    }
-                                                })
-                                                .setWidth(200, 200, 200)
-                                                .setHeight(30, 30, 30)
-                                                .finish())
-                                            .finish());
-                                        selectedBtnIndex = selectNextButton(root, -1);
-                                    }
-                                }
-                            })
-                            .setWidth(200, 200, 200)
-                            .setHeight(30, 30, 30)
-                            .finish())
-                        .addChild(UIComponentFactory.getFactory(new UIComponent_Button("Full Assault") {
-                                @Override
-                                public void onClick() {
-                                    CombatFleetManagerAPI fleetManager = engine.getFleetManager(FleetSide.PLAYER);
-                                    if ( fleetManager != null ) {
-                                        CombatTaskManagerAPI taskManager = fleetManager.getTaskManager(false);
-                                        taskManager.setFullAssault(!taskManager.isFullAssault());
-                                    }
-                                    closeMenu();
-                                }
-                            })
-                            .setWidth(200, 200, 200)
-                            .setHeight(30, 30, 30)
-                            .finish())
-                        .addChild(UIComponentFactory.getFactory(new UIComponent_Button("Full Retreat") {
-                                @Override
-                                public void onClick() {
-                                    CombatFleetManagerAPI fleetManager = engine.getFleetManager(FleetSide.PLAYER);
-                                    if ( fleetManager != null ) {
-                                        CombatTaskManagerAPI taskManager = fleetManager.getTaskManager(false);
-                                        taskManager.orderFullRetreat();
-                                    }
-                                    closeMenu();
-                                }
-                            })
-                            .setWidth(200, 200, 200)
-                            .setHeight(30, 30, 30)
-                            .finish())
-                            .addChild(UIComponentFactory.getFactory(new UIComponent_Button(new Callable<String>() {
-                                @Override
-                                public String call() throws Exception {
-                                    return scope.isControllerSteeringEnabled() ? "Steering Off" : "Steering On";
-                                }
-                            }) {
-                                @Override
-                                public void onClick() {
-                                    scope.setControllerSteeringEnabled(!scope.isControllerSteeringEnabled());
-                                }
-                            })
-                            .setWidth(200, 200, 200)
-                            .setHeight(30, 30, 30)
-                            .finish())
-                        .addChild(UIComponentFactory.getFactory(new UIComponent_Button("Cancel") {
-                                @Override
-                                public void onClick() {
-                                    closeMenu();
-                                }
-                            })
-                            .setWidth(200, 200, 200)
-                            .setHeight(30, 30, 30)
-                            .finish())
-                        .finish())
-                .finish();
-        
-        //container to center the menu on the screen
-        return UIComponentParentFactory.getFactory(new UIComponent_Column(AlignmentHorizontal.middle, AlignmentVertical.middle)
-                .setGrowHorizontal(true).setGrowVertical(true))
-            .addChild(menu).setContext(new UIContext()).finish();
+        };
     }
 
     @Override

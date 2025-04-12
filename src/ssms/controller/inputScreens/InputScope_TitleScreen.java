@@ -61,8 +61,7 @@ public class InputScope_TitleScreen implements InputScope {
                 mainMenuPanel = (UIPanelAPI) MethodReflector.GetInstance().invoke(getMainMenu, mainMenu);
                 doButtonClick = MethodHandles.lookup().findVirtual(mainMenuPanel.getClass(), "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
                 var mainMenuWidgets = UIPanelReflector.getChildItems(mainMenuPanel);
-                if(!mainMenuWidgets.isEmpty())
-                {
+                if(!mainMenuWidgets.isEmpty())  {
                     titleScreenButtons = UIPanelReflector.getChildButtons((UIPanelAPI)mainMenuWidgets.get(0));
                 }
             } catch(Throwable ex) {

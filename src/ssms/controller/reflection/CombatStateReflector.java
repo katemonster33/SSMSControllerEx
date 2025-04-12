@@ -27,6 +27,7 @@ public class CombatStateReflector {
     ZoomTrackerReflector zoomTracker;
     public Object cs;
     static CombatStateReflector instance;
+    Object entityToFollowField;
     private CombatStateReflector()
     {
         cs = AppDriver.getInstance().getState(CombatState.STATE_ID);
@@ -40,6 +41,8 @@ public class CombatStateReflector {
 
             getWidgetPanel = ClassReflector.GetInstance().findDeclaredMethod(cs.getClass(), "getWidgetPanel");
 
+            entityToFollowField = ClassReflector.GetInstance().getDeclaredField(cs.getClass(), "entityToFollow");
+
         } catch(Throwable ex) {
             Global.getLogger(SSMSControllerModPluginEx.class).log(Level.FATAL, "Couldn't find essential methods of CombatState class!");
         }
@@ -50,6 +53,15 @@ public class CombatStateReflector {
         if(instance == null) instance = new CombatStateReflector();
 
         return instance;
+    }
+
+    public void clearEntityToFollow()
+    {
+        try {
+            FieldReflector.GetInstance().SetVariable(entityToFollowField, cs, null);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).warn("Couldn't set the video feed to be the player ship!", ex);
+        }
     }
 
     public UIPanelAPI getWidgetPanel()
@@ -84,7 +96,7 @@ public class CombatStateReflector {
     protected boolean InitZoomTracker() {
         if (zoomTracker == null) {
             try {
-                zoomTracker = new ZoomTrackerReflector();
+                zoomTracker = new ZoomTrackerReflector(cs);
             } catch (Throwable ex) {
                 Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to reflect zoom tracker, ensure SSMSUnlock is installed!", ex);
                 zoomTracker = null;

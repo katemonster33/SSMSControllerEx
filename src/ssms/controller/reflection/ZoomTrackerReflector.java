@@ -7,9 +7,10 @@ public class ZoomTrackerReflector {
     Object zoomBField;
     Object zoomMinField;
     Object zoomMaxField;
-    public ZoomTrackerReflector() throws Throwable {
+    Object zoomTrackerObj;
+    public ZoomTrackerReflector(Object combatStateObj) throws Throwable {
         Object zoomTrackerField = ClassReflector.GetInstance().getDeclaredField(CombatState.class, "zoomTracker");
-
+        zoomTrackerObj = FieldReflector.GetInstance().GetVariable(zoomTrackerField, combatStateObj);
         Class<?> zoomTrackerType = FieldReflector.GetInstance().GetVariableType(zoomTrackerField);
 
         var fields = ClassReflector.GetInstance().getDeclaredFields(zoomTrackerType);
@@ -29,7 +30,7 @@ public class ZoomTrackerReflector {
 
     public void SetZoom(Object combatStateObj, float desiredZoom) throws Throwable
     {
-        FieldReflector.GetInstance().SetVariable(zoomMaxField, combatStateObj, desiredZoom);
-        FieldReflector.GetInstance().SetVariable(zoomMinField, combatStateObj, desiredZoom);
+        FieldReflector.GetInstance().SetVariable(zoomMaxField, zoomTrackerObj, desiredZoom);
+        FieldReflector.GetInstance().SetVariable(zoomMinField, zoomTrackerObj, desiredZoom);
     }
 }

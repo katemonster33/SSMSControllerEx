@@ -271,7 +271,7 @@ public class InputScreenManager {
     private void renderIndicators(ViewportAPI viewport) {
         
         InputScreen screen = getCurrentScreen();
-        if(screen != null) {
+        if(screen != null && screen.getIndicators() != null && !screen.getIndicators().isEmpty()) {
             if(displayPanel == null) {
                 try {
                     UIPanelAPI mainPanel = null;
@@ -282,7 +282,7 @@ public class InputScreenManager {
                             mainPanel = titlescreen.getScreenPanel();
                             break;
                         case CAMPAIGN:
-                            mainPanel = Global.getSector().getCampaignUI().getHintPanel();
+                            //mainPanel = Global.getSector().getCampaignUI().getHintPanel();
                             break;
                         case COMBAT:
                             mainPanel = CombatStateReflector.GetInstance().getWidgetPanel();

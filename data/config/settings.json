@@ -3,7 +3,7 @@
 		"SSMSControllerSupport":"ssms.controller.EveryFrameCombatPlugin_Controller"
 	},
 	"controllerMappings" : {
-		"Controller (XBOX 360 For Windows)(5,10)" : {
+		"Controller (XBOX 360 For Windows)" : {
 			"buttons" : [
 				"A",
 				"B",
@@ -78,7 +78,7 @@
 			},
 			"indicatorProfile" : "xbox360"
 		},
-		"Wireless Controller(6,14)" : {
+		"Wireless Controller" : {
 			"buttons" : [
 				"X",
 				"A",
@@ -105,7 +105,7 @@
 			},
 			"indicatorProfile" : "ps4"
 		},
-		"Sony Computer Entertainment Wireless Controller(7,12)" : {
+		"Sony Computer Entertainment Wireless Controller" : {
 			"buttons" : [
 				"A",
 				"B",

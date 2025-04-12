@@ -153,11 +153,7 @@ public class InputScope_Battle implements InputScope {
     }
     
     public void adjustZoom() {
-        try {
-        FieldReflector.GetInstance().SetVariable("entityToFollow", csr.cs, null);
-        } catch(Throwable ex) {
-            Global.getLogger(getClass()).log(Level.WARN, "Couldn't set the video feed to be the player ship!");
-        }
+        csr.clearEntityToFollow();
         csr.setZoomFactor(desiredZoomFactor);
     }
     
