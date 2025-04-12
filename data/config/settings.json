@@ -28,6 +28,32 @@
 			},
 			"indicatorProfile" : "xbox360"
 		},
+		"Microsoft X-Box 360 pad 0" : {
+			"buttons" : [
+				"A",
+				"B",
+				"X",
+				"Y",
+				"LeftStickButton",
+				"RightStickButton",
+				"Select",
+				"Start",
+				"HomeButton",
+				"BumperLeft",
+				"BumperRight",
+			],
+			"axes" : {
+				"LeftStickX": "XAxis",
+				"LeftStickY": "YAxis",
+				"RightStickX": "XRotation",
+				"RightStickY": "YRotation",
+				"LeftTrigger": "ZAxis",
+				"RightTrigger": "ZRotation",
+				"DPadX" : "POVX",
+				"DPadY" : "POVY"
+			},
+			"indicatorProfile" : "xbox360"
+		},
 		"Nintendo Co., Ltd. Pro Controller (IMU)" : {
 			"buttons" : [
 				"A",
