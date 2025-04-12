@@ -24,25 +24,17 @@ import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
-import com.fs.starfarer.api.ui.ButtonAPI;
-import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.combat.CombatState;
-import com.fs.starfarer.title.TitleScreenState;
-import com.fs.state.AppDriver;
 
-import lunalib.lunaTitle.TitleSpecLoader.TitleScreenSpec;
 import ssms.controller.inputScreens.InputScope_360;
 import ssms.controller.inputScreens.InputScope_Battle;
 import ssms.controller.inputScreens.InputScreenManager;
-import ssms.controller.reflection.ClassReflector;
-import ssms.controller.reflection.MethodReflector;
-import ssms.controller.reflection.UIPanelReflector;
 
 import java.util.List;
 
 import org.apache.log4j.Level;
 import ssms.controller.titlescreen.AutoMapperUI;
-import ssms.controller.titlescreen.TitleScreenScope;
+import ssms.controller.titlescreen.TitleScreenUI;
 //import org.apache.log4j.Level;
 
 /**
@@ -67,7 +59,6 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
         skipFrame = true;
         if(Global.getCurrentState() == GameState.TITLE) {
             if(SSMSControllerModPluginEx.controller != null) {
-                String idToTransitionTo = TitleScreenScope.ID;
                 if(SSMSControllerModPluginEx.controller.mapping == null) {
                     if(!InputScreenManager.getInstance().transitionToScope(InputScope_360.ID, new Object[]{}, AutoMapperUI.ID, new Object[]{})) {
                         Global.getLogger(SSMSControllerModPluginEx.class).fatal("Failed to transition to AutoMapper UI!");
@@ -76,7 +67,7 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
                         initDone = true;
                     }
                 } else {
-                    if(!InputScreenManager.getInstance().transitionToScope(TitleScreenScope.ID, engine)) {
+                    if(!InputScreenManager.getInstance().transitionToScope(InputScope_360.ID, new Object[]{}, TitleScreenUI.ID, new Object[]{})) {
                         Global.getLogger(SSMSControllerModPluginEx.class).fatal("Failed to transition to title screen UI!");
                     } else {
                         skipFrame = false;

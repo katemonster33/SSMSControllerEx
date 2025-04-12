@@ -21,7 +21,6 @@ import net.java.games.input.ControllerEnvironment;
 import ssms.controller.inputScreens.InputScope_360;
 import ssms.controller.inputScreens.InputScope_Battle;
 import ssms.controller.titlescreen.AutoMapperUI;
-import ssms.controller.titlescreen.TitleScreenScope;
 import ssms.controller.inputScreens.InputScreenManager;
 import ssms.controller.inputScreens.InputScreen_BattleMenu;
 import ssms.controller.inputScreens.InputScreen_BattleSteering;
@@ -97,7 +96,6 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         
         man.registerScope(new InputScope_360());
         man.registerScope(new InputScope_Battle());
-        man.registerScope(new TitleScreenScope());
         
         man.registerScreen(new InputScreen_Bluescreen());
         man.registerScreen(new InputScreen_BattleSteering());

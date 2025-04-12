@@ -53,7 +53,7 @@ import ssms.controller.reflection.UIPanelReflector;
  */
 public class TitleScreenUI implements InputScreen {
     public static final String ID = "TitleScreen";
-    public static final String SCOPES = TitleScreenScope.ID;
+    public static final String SCOPES = InputScope_360.ID;
     protected List<Pair<Indicators, String>> indicators;
     Controller controller = null;
     TitleScreenState titleScreen = null;
