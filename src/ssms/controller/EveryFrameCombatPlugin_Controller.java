@@ -140,9 +140,6 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
             }
 
             wasShowingWarroom = battleScope.engine.getCombatUI().isShowingCommandUI();
-            if (battleScope.engine.isPaused()) {
-                man.refreshIndicatorTimeout();
-            }
         }
         
         //TODO inputs for the warroom

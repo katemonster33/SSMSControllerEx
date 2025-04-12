@@ -38,17 +38,11 @@ import ssms.controller.reflection.CombatStateReflector;
  */
 public class InputScreenManager {
     static private volatile InputScreenManager instance;
-    LazyFont defaultFont = null;
-    //protected AlignmentHorizontal horizontalAlignment = AlignmentHorizontal.right;
-    protected TextAlignment horizontaAlignment = TextAlignment.RIGHT;
     private Map<String,InputScreen> screens;//screen can belong to multiple scopes
     private Map<String,InputScope> scopes;
-    //protected Map<Indicators,SpriteAPI> indicatorSprites;
     private InputScreen currentScreen;
     private InputScope currentScope;
     private Transition nextScreen;
-    private long indicatorTimeout;
-    float textLineHeight;
     IndicatorDisplayPanel displayPanel;
     private class Transition {
         protected String id;
@@ -60,38 +54,11 @@ public class InputScreenManager {
         }
     }
     
-    final public boolean updateIndicators() {
-        return true;
-//        HandlerController controller = SSMSControllerModPluginEx.controller;
-//        ControllerMapping mapping = controller != null ? controller.mapping : null;
-//        indicatorSprites.clear();
-//        boolean ok = true;
-//        for ( Indicators ind : Indicators.values() ) {
-//            SpriteAPI img = mapping != null ? mapping.indicators.get(ind): SSMSControllerModPluginEx.defaultIndicators.get(ind);
-//            if ( img != null ) {
-//                img.setBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-//                indicatorSprites.put(ind, img);
-//            } else {
-//                indicatorSprites.put(ind, null);
-//            }
-//        }
-//
-//        return ok;
-    }
-    
     private InputScreenManager() {
         screens = new HashMap<>();
         scopes = new HashMap<>();
         currentScope = new InputScope_360(); currentScope.activate();
         currentScreen = new InputScreen_Bluescreen(); currentScreen.activate();
-        //indicatorSprites = new EnumMap<>(Indicators.class);
-        updateIndicators();
-        try {
-            defaultFont = LazyFont.loadFont("graphics/fonts/insignia21LTaa.fnt");
-            textLineHeight = defaultFont.createText("A").getHeight();
-        } catch(FontException ex) {
-            Global.getLogger(getClass()).log(Level.FATAL, "Failed to load insignia21LTaa.fnt! " + ex);
-        }
     }
     
     static public InputScreenManager getInstance() {
@@ -193,7 +160,6 @@ public class InputScreenManager {
                     //horizontalAlignment = AlignmentHorizontal.right;
                     screen.activate(screenArgs);
                     currentScreen = screen;
-                    refreshIndicatorTimeout();
                 } catch ( Throwable t ) {
                     Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to activate scope skipping transition: "+scopeId, t);
                     currentScope = oldScope;
@@ -227,7 +193,6 @@ public class InputScreenManager {
                     Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Failed to deactivate screen, ignoring: "+currentScreen);
                 }
                 currentScreen = screen;
-                refreshIndicatorTimeout();
             } catch ( Throwable t ) {
                 Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to activate screen, skipping transition: "+nextScreen.id);
             }
@@ -251,10 +216,6 @@ public class InputScreenManager {
         currentScreen.renderUI(viewport);
         //if ( indicatorTimeout > System.currentTimeMillis() ) renderIndicators(viewport);
         renderIndicators(viewport);
-    }
-    
-    public void refreshIndicatorTimeout() {
-        indicatorTimeout = System.currentTimeMillis() + 10000;
     }
     
     private void renderIndicators(ViewportAPI viewport) {

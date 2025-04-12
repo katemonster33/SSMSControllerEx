@@ -9,16 +9,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f93bfbfa-f590-465e-a84d-27f995dd3431" name="Changes" comment="Moved the controller pause menu that shows during combat, away from SSMSQoL, to prevent the crashes that can happen on certain platforms. Fixed tons of exceptions seen during combat">
+    <list default="true" id="f93bfbfa-f590-465e-a84d-27f995dd3431" name="Changes" comment="Added Steam Deck/xbox controller mappings">
       <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_4_3_25,_8_55 PM_[Changes]/SSMSController.jar" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_4_3_25,_8_55 PM_[Changes]/shelved.patch" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_4_3_25__8_55PM__Changes_.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/jars/SSMSControllerEx.jar" beforeDir="false" afterPath="$PROJECT_DIR$/jars/SSMSControllerEx.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mod_info.json" beforeDir="false" afterPath="$PROJECT_DIR$/mod_info.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ssms/controller/EveryFrameCombatPlugin_Controller.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/EveryFrameCombatPlugin_Controller.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ssms/controller/SSMSControllerModPluginEx.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/SSMSControllerModPluginEx.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreenManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreenManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_BattleMenu.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_BattleMenu.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_BattleSteering.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_BattleSteering.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_TitleScreen.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/ssms/controller/inputScreens/InputScreen_TitleScreen.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -159,7 +159,23 @@
       <option name="project" value="LOCAL" />
       <updated>1744425681659</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Finished separating the mod code from SSMSQoL, now only depends on Luna and Lazy">
+      <option name="closed" value="true" />
+      <created>1744426721023</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1744426721023</updated>
+    </task>
+    <task id="LOCAL-00011" summary="Added Steam Deck/xbox controller mappings">
+      <option name="closed" value="true" />
+      <created>1744429063470</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1744429063470</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -183,7 +199,9 @@
     <MESSAGE value="Finished implementing the indicator display panel, now it displays a nice rectangle around the indicator sprites to put emphasis on them" />
     <MESSAGE value="re-enabled controller mappings, added the Switch controller on Linux" />
     <MESSAGE value="Moved the controller pause menu that shows during combat, away from SSMSQoL, to prevent the crashes that can happen on certain platforms. Fixed tons of exceptions seen during combat" />
-    <option name="LAST_COMMIT_MESSAGE" value="Moved the controller pause menu that shows during combat, away from SSMSQoL, to prevent the crashes that can happen on certain platforms. Fixed tons of exceptions seen during combat" />
+    <MESSAGE value="Finished separating the mod code from SSMSQoL, now only depends on Luna and Lazy" />
+    <MESSAGE value="Added Steam Deck/xbox controller mappings" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added Steam Deck/xbox controller mappings" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

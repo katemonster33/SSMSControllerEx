@@ -94,7 +94,6 @@ public class InputScreen_BattleSteering implements InputScreen {
         }
         if ( currentSteeringController != null )
             indicators.addAll(currentSteeringController.getIndicators());
-        InputScreenManager.getInstance().refreshIndicatorTimeout();
         lastSteeringController = currentSteeringController;
     }
 
@@ -189,7 +188,7 @@ public class InputScreen_BattleSteering implements InputScreen {
                                     flags.unsetFlag(ShipwideAIFlags.AIFlags.KEEP_SHIELDS_ON);
                                 }
                             } catch ( Throwable t ) {
-                                Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to get field playerShipShieldAIFlags on CombatState, ensure SSMSUnlock is installed!", t);
+                                Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to get field playerShipShieldAIFlags on CombatState!", t);
                                 ps.giveCommand(ShipCommand.TOGGLE_SHIELD_OR_PHASE_CLOAK, null, -1);
                             }
                         } else {

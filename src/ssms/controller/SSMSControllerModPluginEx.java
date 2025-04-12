@@ -108,8 +108,6 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         man.registerScreen(new InputScreen_BattleTargeting());
         man.registerScreen(new InputScreen_BattleMenu());
         man.registerScreen(new InputScreen_TitleScreen());
-        
-        man.updateIndicators();
     }
 
     // enum ButtonMapping

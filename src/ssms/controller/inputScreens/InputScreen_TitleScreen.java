@@ -126,11 +126,11 @@ public class InputScreen_TitleScreen implements InputScreen {
                         var pos = viewport.getCenter();
                         pos.x = viewport.convertWorldXtoScreenX(pos.x);
                         pos.y = viewport.convertWorldYtoScreenY(pos.y);
-                        var text = InputScreenManager.getInstance().defaultFont.createText("Press this button, or hold any button to skip: ", Color.white);
-                        float totalWidth = text.getWidth() + sprite.getWidth();
+                        ///var text = InputScreenManager.getInstance().defaultFont.createText("Press this button, or hold any button to skip: ", Color.white);
+                        float totalWidth = 200;//text.getWidth() + sprite.getWidth();
                         pos.x -= (totalWidth / 2);
-                        text.draw(pos.x, pos.y + (text.getHeight() / 2) + 50);
-                        sprite.render(pos.x + text.getWidth(), pos.y + (sprite.getHeight() / 2));
+                       // text.draw(pos.x, pos.y + (text.getHeight() / 2) + 50);
+                        sprite.render(pos.x, pos.y + (sprite.getHeight() / 2));
                     }
                 }
             }
