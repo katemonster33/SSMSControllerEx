@@ -22,7 +22,7 @@ LazyLib - https://github.com/LazyWizard/lazylib
 
 Currently, the mod relies on auto-detection of any connected controller via the settings file in data/config/settings.json . Editing this file directly is currently the best way to add support for a controller that the mod doesn't detect out-of-the-box.
 
-Support for a more robust auto-detection strategy is in the works but right now, either the controller works or it doesn't, sorry :(
+There's a controller auto-mapper for the title screen that should allow you to map your controller using the on-screen prompts. it doesnt save the mapping between game loads though, sorry :(
 
 Images can be installed by any mod and are searched in the sub directory "graphics/indicators/" but must be added to data/config/settings.json. They must be PNG files with the ending ".png" and will be displayed in 
 25x25 dimension. The majority of default images come in a resolution of 100x100 and are provided by Nicolae Berbece through his [FREE Keyboard and controllers prompts pack](https://opengameart.org/content/free-keyboard-and-controllers-prompts-pack), the positional stick images are custom derivatives.
