@@ -15,42 +15,77 @@
  * License along with this library;  If not, see 
  * <https://www.gnu.org/licenses/>.
  */
-package ssms.controller.inputScreens;
+package ssms.controller.titlescreen;
 
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.combat.ViewportAPI;
+import com.fs.starfarer.api.graphics.SpriteAPI;
+import com.fs.starfarer.api.ui.ButtonAPI;
+import com.fs.starfarer.api.ui.UIPanelAPI;
+import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.title.TitleScreenState;
 import com.fs.state.AppDriver;
-
-import ssms.controller.reflection.ClassReflector;
-import ssms.controller.reflection.MethodReflector;
-import ssms.controller.reflection.UIPanelReflector;
+import org.apache.log4j.Level;
+import org.lazywizard.lazylib.ui.FontException;
+import org.lazywizard.lazylib.ui.LazyFont;
+import ssms.controller.ControllerMapping;
+import ssms.controller.HandlerController;
+import ssms.controller.Indicators;
+import ssms.controller.SSMSControllerModPluginEx;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.log4j.Level;
-
-import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.ui.ButtonAPI;
-import com.fs.starfarer.api.ui.UIPanelAPI;
+import org.lwjgl.input.Controller;
+import ssms.controller.inputScreens.InputScope;
+import ssms.controller.inputScreens.InputScope_360;
+import ssms.controller.inputScreens.InputScreen;
+import ssms.controller.inputScreens.InputScreenManager;
+import ssms.controller.reflection.ClassReflector;
+import ssms.controller.reflection.MethodReflector;
+import ssms.controller.reflection.UIPanelReflector;
 
 /**
- * The no scope. With an empty input screen as a fallback for the InputScreenManager.
- * 
+ *
  * @author Malte Schulze
  */
-public class InputScope_TitleScreen implements InputScope {
+public class TitleScreenUI implements InputScreen {
     public static final String ID = "TitleScreen";
-    public static final String DEFAULT_SCREEN = "TitleScreen";
+    public static final String SCOPES = TitleScreenScope.ID;
+    protected List<Pair<Indicators, String>> indicators;
+    Controller controller = null;
     TitleScreenState titleScreen = null;
     List<ButtonAPI> titleScreenButtons = null;
     UIPanelAPI mainMenuPanel = null;
     MethodHandle doButtonClick = null;
     int selectedButton = -1;
+
+    public TitleScreenUI() {
+        indicators = new ArrayList<>();
+        indicators.add(new Pair<>(Indicators.LeftStickUp, "Up"));
+        indicators.add(new Pair<>(Indicators.LeftStickDown, "Down"));
+        indicators.add(new Pair<>(Indicators.LeftStickLeft, "Left"));
+        indicators.add(new Pair<>(Indicators.LeftStickRight, "Right"));
+        indicators.add(new Pair<>(Indicators.A, "Confirm"));
+        indicators.add(new Pair<>(Indicators.B, "Cancel"));
+        indicators.add(new Pair<>(Indicators.Select, "Reset keybindings"));
+    }
+
+    @Override
+    public List<Pair<Indicators, String>> getIndicators() {
+        return indicators;
+    }
+
+    @Override
+    public void deactivate() {
+    }
+
     @Override
     public void activate(Object ...args) {
-        TitleScreenState titlescreen  = (TitleScreenState)AppDriver.getInstance().getCurrentState();
+        controller = SSMSControllerModPluginEx.controller.controller;
+        TitleScreenState titlescreen  = (TitleScreenState) AppDriver.getInstance().getCurrentState();
         UIPanelAPI panel = titlescreen.getScreenPanel();
         UIPanelReflector.initialize(panel.getClass());
         var widgets = UIPanelReflector.getChildItems(panel);
@@ -69,17 +104,14 @@ public class InputScope_TitleScreen implements InputScope {
             }
         }
     }
-
+    
     @Override
-    public void deactivate() {
-        
+    public void renderInWorld(ViewportAPI viewport) {
     }
 
     @Override
-    public String getId() { return ID; }
-
-    @Override
-    public String getDefaultScreen() { return DEFAULT_SCREEN; }
+    public void renderUI(ViewportAPI viewport) {
+    }
 
     public void selectNextButton()
     {
@@ -136,4 +168,27 @@ public class InputScope_TitleScreen implements InputScope {
             //titleScreenButtons.get(selectedButton).
         }
     }
+
+    @Override
+    public void preInput(float advance) {
+        var handler = SSMSControllerModPluginEx.controller;
+        if ( handler.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1 ) {
+            selectNextButton();
+        } else if ( handler.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1 ) {
+            selectPrevButton();
+        } else if ( handler.getButtonEvent(HandlerController.Buttons.A) == 1 ) {
+            clickButton();
+        } else if ( handler.getButtonEvent(HandlerController.Buttons.Select) == 1 ) {
+            InputScreenManager.getInstance().transitionToScope(InputScope_360.ID, new Object[]{}, TitleScreenUI.ID, new Object[]{});
+        }
+    }
+
+    @Override
+    public void postInput(float advance) {
+    }
+
+    @Override
+    public String getId() { return ID; }
+
+    public String[] getScopes() { return new String[]{ SCOPES }; }
 }

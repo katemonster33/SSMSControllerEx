@@ -30,9 +30,8 @@ import com.fs.state.AppDriver;
 import org.apache.log4j.Level;
 import ssms.controller.*;
 
-import org.lazywizard.lazylib.ui.*;
-import org.lazywizard.lazylib.ui.LazyFont.TextAlignment;
 import ssms.controller.reflection.CombatStateReflector;
+import ssms.controller.titlescreen.TitleScreenUI;
 
 /**
  *
@@ -242,7 +241,7 @@ public class InputScreenManager {
 
                     }
                     if(mainPanel != null) {
-                        displayPanel = new IndicatorDisplayPanel(mainPanel, screen.getIndicators(), Objects.equals(screen.getId(), InputScreen_TitleScreen.ID) ? Alignment.BL : Alignment.BR);
+                        displayPanel = new IndicatorDisplayPanel(mainPanel, screen.getIndicators(), Objects.equals(screen.getId(), TitleScreenUI.ID) ? Alignment.BL : Alignment.BR);
                     }
                 } catch(IllegalArgumentException ex) {
                     Global.getLogger(getClass()).fatal("Could not create the panel for displaying indicator sprites!", ex);

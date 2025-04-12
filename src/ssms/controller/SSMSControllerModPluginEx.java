@@ -17,19 +17,17 @@
  */
 package ssms.controller;
 
-import lunalib.lunaSettings.LunaSettings;
 import net.java.games.input.ControllerEnvironment;
 import ssms.controller.inputScreens.InputScope_360;
 import ssms.controller.inputScreens.InputScope_Battle;
-import ssms.controller.inputScreens.InputScope_TitleScreen;
+import ssms.controller.titlescreen.AutoMapperUI;
+import ssms.controller.titlescreen.TitleScreenScope;
 import ssms.controller.inputScreens.InputScreenManager;
 import ssms.controller.inputScreens.InputScreen_BattleMenu;
 import ssms.controller.inputScreens.InputScreen_BattleSteering;
 import ssms.controller.inputScreens.InputScreen_BattleTargeting;
 import ssms.controller.inputScreens.InputScreen_Bluescreen;
-import ssms.controller.inputScreens.InputScreen_TitleScreen;
-import ssms.controller.reflection.ClassReflector;
-import ssms.controller.reflection.FieldReflector;
+import ssms.controller.titlescreen.TitleScreenUI;
 import ssms.controller.steering.SteeringController_FreeFlight;
 import ssms.controller.steering.SteeringController_OrbitTarget;
 
@@ -40,8 +38,6 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
-
-import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -101,13 +97,14 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         
         man.registerScope(new InputScope_360());
         man.registerScope(new InputScope_Battle());
-        man.registerScope(new InputScope_TitleScreen());
+        man.registerScope(new TitleScreenScope());
         
         man.registerScreen(new InputScreen_Bluescreen());
         man.registerScreen(new InputScreen_BattleSteering());
         man.registerScreen(new InputScreen_BattleTargeting());
         man.registerScreen(new InputScreen_BattleMenu());
-        man.registerScreen(new InputScreen_TitleScreen());
+        man.registerScreen(new TitleScreenUI());
+        man.registerScreen(new AutoMapperUI());
     }
 
     // enum ButtonMapping
@@ -407,7 +404,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
             for ( int i = 0; i < Controllers.getControllerCount(); i++ ) {
                 Controller con = Controllers.getController(i);
                 //String conName = con.getName(); //new StringBuilder(con.getName()).append("(").append(con.getAxisCount()).append(",").append(con.getButtonCount()).append(")").toString();
-                ControllerMapping conMap = controllerMappings.get(con.getName());
+                ControllerMapping conMap = controllerMappings.get(con.getName() + "()");
                 if ( conMap != null ) {
                     con.poll();
                     controller = new HandlerController(con, conMap);

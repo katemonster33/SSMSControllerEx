@@ -31,6 +31,7 @@ import com.fs.starfarer.title.TitleScreenState;
 import com.fs.state.AppDriver;
 
 import lunalib.lunaTitle.TitleSpecLoader.TitleScreenSpec;
+import ssms.controller.inputScreens.InputScope_360;
 import ssms.controller.inputScreens.InputScope_Battle;
 import ssms.controller.inputScreens.InputScreenManager;
 import ssms.controller.reflection.ClassReflector;
@@ -40,6 +41,8 @@ import ssms.controller.reflection.UIPanelReflector;
 import java.util.List;
 
 import org.apache.log4j.Level;
+import ssms.controller.titlescreen.AutoMapperUI;
+import ssms.controller.titlescreen.TitleScreenScope;
 //import org.apache.log4j.Level;
 
 /**
@@ -62,36 +65,25 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
         this.engine = engine;
         nextLog = 0;
         skipFrame = true;
-//        if(Global.getCurrentState() == GameState.TITLE) {
-//            TitleScreenState titlescreen  = (TitleScreenState)AppDriver.getInstance().getCurrentState();
-//            UIPanelAPI panel = titlescreen.getScreenPanel();
-//            UIPanelReflector.initialize(panel.getClass());
-//            var widgets = UIPanelReflector.getChildItems(panel);
-//            if(!widgets.isEmpty() && UIPanelAPI.class.isAssignableFrom(widgets.get(0).getClass())) {
-//                var mainMenu = (UIPanelAPI)widgets.get(0);
-//                try {
-//                    var getMainMenu = ClassReflector.GetInstance().findDeclaredMethod(mainMenu.getClass(), "getMainMenu");
-//                    UIPanelAPI mainMenuPanel = (UIPanelAPI) MethodReflector.GetInstance().invoke(getMainMenu, mainMenu);
-//                    var mainMenuWidgets = UIPanelReflector.getChildItems(mainMenuPanel);
-//                    if(!mainMenuWidgets.isEmpty())
-//                    {
-//                        var btns = UIPanelReflector.getChildButtons((UIPanelAPI)mainMenuWidgets.get(0));
-//                        if(!btns.isEmpty()) {
-//                            btns.get(0).highlight();
-//                        }
-//                    }
-//                } catch(Throwable ex) {
-//                    Global.getLogger(getClass()).log(Level.FATAL, "Couldn't get the main menu buttons!");
-//                }
-//            }
-//        } else
         if(Global.getCurrentState() == GameState.TITLE) {
-            if ( !InputScreenManager.getInstance().transitionToScope("TitleScreen", engine) ) {
-                Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to transition into title screen scope!");
-            } else {
-                skipFrame = false;
-                initDone = true;
-            }
+            if(SSMSControllerModPluginEx.controller != null) {
+                String idToTransitionTo = TitleScreenScope.ID;
+                if(SSMSControllerModPluginEx.controller.mapping == null) {
+                    if(!InputScreenManager.getInstance().transitionToScope(InputScope_360.ID, new Object[]{}, AutoMapperUI.ID, new Object[]{})) {
+                        Global.getLogger(SSMSControllerModPluginEx.class).fatal("Failed to transition to AutoMapper UI!");
+                    } else {
+                        skipFrame = false;
+                        initDone = true;
+                    }
+                } else {
+                    if(!InputScreenManager.getInstance().transitionToScope(TitleScreenScope.ID, engine)) {
+                        Global.getLogger(SSMSControllerModPluginEx.class).fatal("Failed to transition to title screen UI!");
+                    } else {
+                        skipFrame = false;
+                        initDone = true;
+                    }
+                }
+            } else Global.getLogger(getClass()).warn("No controllers loaded!");
         } else if ( engine != null && engine.getContext() != null && (engine.isSimulation() || (engine.getCombatUI() != null && CombatState.class.isAssignableFrom(engine.getCombatUI().getClass())))
         && SSMSControllerModPluginEx.controller != null && SSMSControllerModPluginEx.controller.mapping != null ) {
             if ( !InputScreenManager.getInstance().transitionToScope("Battle", engine) ) {
