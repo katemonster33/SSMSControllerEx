@@ -19,9 +19,11 @@ package ssms.controller.inputScreens;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
+import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import com.fs.starfarer.title.TitleScreenState;
 import com.fs.state.AppDriver;
@@ -240,7 +242,7 @@ public class InputScreenManager {
 
                     }
                     if(mainPanel != null) {
-                        displayPanel = new IndicatorDisplayPanel(mainPanel, screen.getIndicators());
+                        displayPanel = new IndicatorDisplayPanel(mainPanel, screen.getIndicators(), Objects.equals(screen.getId(), InputScreen_TitleScreen.ID) ? Alignment.BL : Alignment.BR);
                     }
                 } catch(IllegalArgumentException ex) {
                     Global.getLogger(getClass()).fatal("Could not create the panel for displaying indicator sprites!", ex);

@@ -19,7 +19,7 @@ public class IndicatorDisplayPanel extends LunaBaseCustomPanelPlugin  {
     final float lineHeight = 25, spacing = 8f, textWidth = 200f;
     List<Pair<Indicators, String>> indicators;
     UIPanelAPI parentPanel;
-    public IndicatorDisplayPanel(UIPanelAPI parentPanel, List<Pair<Indicators, String>> args) throws IllegalArgumentException {
+    public IndicatorDisplayPanel(UIPanelAPI parentPanel, List<Pair<Indicators, String>> args, Alignment panelAlignment) throws IllegalArgumentException {
         if ( args == null || args.isEmpty() ) {
             throw new IllegalArgumentException("indicators list cannot be empty!");
         }
@@ -36,7 +36,12 @@ public class IndicatorDisplayPanel extends LunaBaseCustomPanelPlugin  {
 
         initFromScript(subpanel);
         parentPanel.addComponent(getPanel());
-        getPanel().getPosition().inBL(spacing, spacing);
+        switch(panelAlignment) {
+            case BL -> getPanel().getPosition().inBL(spacing, spacing);
+            case BR -> getPanel().getPosition().inBR(spacing, spacing);
+
+            default -> getPanel().getPosition().inMid();
+        }
     }
     @Override
     public void init() {

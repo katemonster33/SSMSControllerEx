@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MODS_PATH=~/starsector/mods/SSMSController-1.6
+MODS_PATH=~/starsector/mods/SSMSControllerEx
 SSMSC_PATH=~/SSMSController/
 
 rm -r "${MODS_PATH}"/*

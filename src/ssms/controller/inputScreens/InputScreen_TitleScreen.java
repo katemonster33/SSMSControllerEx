@@ -21,6 +21,8 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.util.Pair;
+import org.lazywizard.lazylib.ui.FontException;
+import org.lazywizard.lazylib.ui.LazyFont;
 import ssms.controller.ControllerMapping;
 import ssms.controller.HandlerController;
 import ssms.controller.Indicators;
@@ -42,6 +44,8 @@ public class InputScreen_TitleScreen implements InputScreen {
     protected List<Pair<Indicators, String>> indicators;
     HandlerController.Buttons[] buttons = HandlerController.Buttons.values();
     Controller controller = null;
+    LazyFont defaultFont;
+    float textLineHeight;
     enum State
     {
         Normal,
@@ -76,9 +80,14 @@ public class InputScreen_TitleScreen implements InputScreen {
 
     @Override
     public void activate(Object ...args) {
-        //InputScreenManager.getInstance().horizontalAlignment = AlignmentHorizontal.left;
         controller = SSMSControllerModPluginEx.controller.controller;
         scope = (InputScope_TitleScreen)InputScreenManager.getInstance().getCurrentScope();
+        try {
+            defaultFont = LazyFont.loadFont("graphics/fonts/insignia21LTaa.fnt");
+            textLineHeight = defaultFont.createText("A").getHeight();
+        } catch(FontException ex) {
+            Global.getLogger(getClass()).fatal("Failed to load insignia21LTaa.fnt! " + ex);
+        }
     }
     
     @Override
