@@ -241,33 +241,32 @@ public class HandlerController {
     }
     
     public int getButtonEvent(Buttons btn) {
-        switch ( btn ) {
-            case A: return getBtnEvent(btnA);
-            case B: return getBtnEvent(btnB);
-            case X: return getBtnEvent(btnX);
-            case Y: return getBtnEvent(btnY);
-            case Start: return getBtnEvent(btnStart);
-            case Select: return getBtnEvent(btnSelect);
-            case BumperLeft: return getBtnEvent(btnBumperLeft);
-            case BumperRight: return getBtnEvent(btnBumperRight);
-            case LeftStickButton: return getBtnEvent(btnLeftStick);
-            case RightStickButton: return getBtnEvent(btnRightStick);
-            case RightStickDown: return getBtnEvent(axisRightStickY,controller.getButtonCount()+1);
-            case RightStickUp: return getBtnEvent(axisRightStickY,controller.getButtonCount());
-            case RightStickLeft: return getBtnEvent(axisRightStickX,controller.getButtonCount());
-            case RightStickRight: return getBtnEvent(axisRightStickX,controller.getButtonCount()+1);
-            case LeftStickDown: return getBtnEvent(axisLeftStickY,controller.getButtonCount()+1);
-            case LeftStickUp: return getBtnEvent(axisLeftStickY,controller.getButtonCount());
-            case LeftStickLeft: return getBtnEvent(axisLeftStickX,controller.getButtonCount());
-            case LeftStickRight: return getBtnEvent(axisLeftStickX,controller.getButtonCount()+1);
-            case LeftTrigger: return getBtnEvent(axisTrigger,controller.getButtonCount());
-            case RightTrigger: return getBtnEvent(axisTrigger,controller.getButtonCount()+1);
-            case DpadUp: return getBtnEvent(axisDpadY, controller.getButtonCount());
-            case DpadDown: return getBtnEvent(axisDpadY, controller.getButtonCount() + 1);
-            case DpadLeft: return getBtnEvent(axisDpadX, controller.getButtonCount());
-            case DpadRight: return getBtnEvent(axisDpadX, controller.getButtonCount() + 1);
-        }
-        return 0;
+        return switch (btn) {
+            case A -> getBtnEvent(btnA);
+            case B -> getBtnEvent(btnB);
+            case X -> getBtnEvent(btnX);
+            case Y -> getBtnEvent(btnY);
+            case Start -> getBtnEvent(btnStart);
+            case Select -> getBtnEvent(btnSelect);
+            case BumperLeft -> getBtnEvent(btnBumperLeft);
+            case BumperRight -> getBtnEvent(btnBumperRight);
+            case LeftStickButton -> getBtnEvent(btnLeftStick);
+            case RightStickButton -> getBtnEvent(btnRightStick);
+            case RightStickDown -> getBtnEvent(axisRightStickY, controller.getButtonCount() + 1);
+            case RightStickUp -> getBtnEvent(axisRightStickY, controller.getButtonCount());
+            case RightStickLeft -> getBtnEvent(axisRightStickX, controller.getButtonCount());
+            case RightStickRight -> getBtnEvent(axisRightStickX, controller.getButtonCount() + 1);
+            case LeftStickDown -> getBtnEvent(axisLeftStickY, controller.getButtonCount() + 1);
+            case LeftStickUp -> getBtnEvent(axisLeftStickY, controller.getButtonCount());
+            case LeftStickLeft -> getBtnEvent(axisLeftStickX, controller.getButtonCount());
+            case LeftStickRight -> getBtnEvent(axisLeftStickX, controller.getButtonCount() + 1);
+            case LeftTrigger -> getBtnEvent(axisTrigger, controller.getButtonCount());
+            case RightTrigger -> getBtnEvent(axisTrigger, controller.getButtonCount() + 1);
+            case DpadUp -> getBtnEvent(axisDpadY, controller.getButtonCount());
+            case DpadDown -> getBtnEvent(axisDpadY, controller.getButtonCount() + 1);
+            case DpadLeft -> getBtnEvent(axisDpadX, controller.getButtonCount());
+            case DpadRight -> getBtnEvent(axisDpadX, controller.getButtonCount() + 1);
+        };
     }
     
     public int getBtnEvent(int i) {
