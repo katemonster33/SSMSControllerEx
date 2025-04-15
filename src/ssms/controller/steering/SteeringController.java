@@ -28,8 +28,7 @@ import ssms.controller.Indicators;
 /**
  * This interface defines the contract for custom steering behaviour. The user can select which behaviours he wants to use in either first or second mode.
  * A behaviour is qualified for the first mode if it supports all possible ship targets including none. This is because the first mode is also the fallback in case
- * the second mode cannot handle the current ship target. An implementation is expected to use the annotations {@link ssms.controller.steering.SteeringControllerOption_Label SteeringControllerOption_Label} 
- * and {@link ssms.controller.steering.SteeringControllerOption_AllowsEveryTarget SteeringControllerOption_AllowsEveryTarget}.<br>
+ * the second mode cannot handle the current ship target. An implementation is expected to implement the methods getAllowsEveryTarget() and getLabel() .<br>
  * <br>
  * The implementation class must be added to the static list {@link ssms.controller.SSMSControllerModPluginEx#registeredSteeringController SSMSControllerModPlugin.registeredSteeringController}
  * during the {@link com.fs.starfarer.api.ModPlugin#onApplicationLoad() ModPlugin.onApplicationLoad()} call.<br>
@@ -109,4 +108,8 @@ public interface SteeringController {
      * @return A list of all indicators and their purpose that are used by this steering controller.
      */
     List<Pair<Indicators, String>> getIndicators();
+
+    boolean getAllowsEveryTarget();
+
+    String getLabel();
 }

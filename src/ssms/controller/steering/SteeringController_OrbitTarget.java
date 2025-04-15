@@ -38,8 +38,6 @@ import ssms.controller.reflection.ShipEngineControllerReflection;
  *
  * @author Malte Schulze
  */
-@SteeringControllerOption_Label("[SSMS] Orbital")
-@SteeringControllerOption_AllowsEveryTarget(false)
 public class SteeringController_OrbitTarget extends SteeringController_Base {
     protected ShipAPI ps;
     protected HandlerController handler;
@@ -258,5 +256,15 @@ public class SteeringController_OrbitTarget extends SteeringController_Base {
         
         result.set(accelerationToReachDesiredLocation, strafingToReachDesiredLocation);
         return result;
+    }
+
+    @Override
+    public boolean getAllowsEveryTarget() {
+        return false;
+    }
+
+    @Override
+    public String getLabel() {
+        return "[SSMS] Orbital";
     }
 }

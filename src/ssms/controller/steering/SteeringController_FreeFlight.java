@@ -38,8 +38,6 @@ import ssms.controller.Indicators;
  *
  * @author Malte Schulze
  */
-@SteeringControllerOption_Label("[SSMS] Directional")
-@SteeringControllerOption_AllowsEveryTarget(true)
 public class SteeringController_FreeFlight extends SteeringController_Base {
     protected ShipAPI ps;
     protected HandlerController handler;
@@ -160,5 +158,14 @@ public class SteeringController_FreeFlight extends SteeringController_Base {
         }
         GL11.glEnd();
     }
-    
+
+    @Override
+    public boolean getAllowsEveryTarget() {
+        return true;
+    }
+
+    @Override
+    public String getLabel() {
+        return "[SSMS] Directional";
+    }
 }
