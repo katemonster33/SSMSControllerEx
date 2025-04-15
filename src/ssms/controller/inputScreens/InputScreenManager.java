@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import com.fs.starfarer.campaign.CampaignState;
 import com.fs.starfarer.title.TitleScreenState;
 import com.fs.state.AppDriver;
 import org.apache.log4j.Level;
@@ -233,7 +234,8 @@ public class InputScreenManager {
                             mainPanel = titlescreen.getScreenPanel();
                             break;
                         case CAMPAIGN:
-                            //mainPanel = Global.getSector().getCampaignUI().getHintPanel();
+                            CampaignState campaignState = (CampaignState) AppDriver.getInstance().getCurrentState();
+                            mainPanel = campaignState.getScreenPanel();
                             break;
                         case COMBAT:
                             mainPanel = CombatStateReflector.GetInstance().getWidgetPanel();

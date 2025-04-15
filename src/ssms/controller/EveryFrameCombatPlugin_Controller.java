@@ -17,15 +17,20 @@
  */
 package ssms.controller;
 
+import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
+import com.fs.starfarer.api.impl.campaign.CoreScript;
 import com.fs.starfarer.api.input.InputEventAPI;
+import com.fs.starfarer.campaign.BaseScript;
 import com.fs.starfarer.combat.CombatState;
 
+import ssms.controller.campaign.CampaignControllerListener;
 import ssms.controller.inputScreens.InputScope_360;
 import ssms.controller.inputScreens.InputScope_Battle;
 import ssms.controller.inputScreens.InputScreenManager;
@@ -55,6 +60,7 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
     public void init(CombatEngineAPI engine) {
         //Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "initialized every frame");
         this.engine = engine;
+        CampaignControllerListener.pluginActive = false;
         nextLog = 0;
         skipFrame = true;
         if(Global.getCurrentState() == GameState.TITLE) {

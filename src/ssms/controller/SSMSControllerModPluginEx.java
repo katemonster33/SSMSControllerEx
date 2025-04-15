@@ -17,7 +17,10 @@
  */
 package ssms.controller;
 
+import com.fs.starfarer.api.EveryFrameScript;
 import net.java.games.input.ControllerEnvironment;
+import ssms.controller.campaign.CampaignControllerListener;
+import ssms.controller.campaign.MainCampaignUI;
 import ssms.controller.inputScreens.InputScope_360;
 import ssms.controller.inputScreens.InputScope_Battle;
 import ssms.controller.titlescreen.AutoMapperUI;
@@ -60,7 +63,6 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
     
     @Override
     public void onApplicationLoad() throws Exception {
-
         JSONObject obj = Global.getSettings().loadJSON("data/config/settings.json", "SSMSControllerEx");
         if(obj == null) {
             Global.getLogger(this.getClass()).log(Level.DEBUG, "no settings!!!");
@@ -103,6 +105,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         man.registerScreen(new InputScreen_BattleMenu());
         man.registerScreen(new TitleScreenUI());
         man.registerScreen(new AutoMapperUI());
+        man.registerScreen(new MainCampaignUI());
     }
 
     // enum ButtonMapping
@@ -244,6 +247,12 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
     //     }
     //     return output;
     // }
+
+    @Override
+    public void onGameLoad(boolean newGame) {
+
+        Global.getSector().addTransientScript(new CampaignControllerListener());
+    }
 
     protected HashMap<String, ControllerMapping> configureControllerMappings(JSONObject controllerMappingsObj) {
         HashMap<String, ControllerMapping> output = new HashMap<>();
@@ -402,7 +411,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
             for ( int i = 0; i < Controllers.getControllerCount(); i++ ) {
                 Controller con = Controllers.getController(i);
                 //String conName = con.getName(); //new StringBuilder(con.getName()).append("(").append(con.getAxisCount()).append(",").append(con.getButtonCount()).append(")").toString();
-                ControllerMapping conMap = controllerMappings.get(con.getName() + "()");
+                ControllerMapping conMap = controllerMappings.get(con.getName());
                 if ( conMap != null ) {
                     con.poll();
                     controller = new HandlerController(con, conMap);
