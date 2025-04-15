@@ -174,7 +174,7 @@ public class InputScreen_BattleSteering implements InputScreen {
                 //shield/cloak on/off
                 if ( handler.getButtonEvent(HandlerController.Buttons.B) == 1 ) {
                     if ( ps.getShield() != null ) {
-                        if ( ((Ship)ps).getShield().isOmni() ) {
+                        if ( ps.getShield().getType() == ShieldAPI.ShieldType.OMNI) {
                             CombatStateReflector.GetInstance().setAutoOmniShield();
                             //we only want auto shields if they are turned on otherwise the AI decides when to turn on the shields as well
                             try {
@@ -306,10 +306,10 @@ public class InputScreen_BattleSteering implements InputScreen {
         t1 = (-b + sqrt)/(2*a);
         t2 = (-b - sqrt)/(2*a);
         
-        if ( t1 != Float.NaN && t1 > 0 ) {
+        if (!Float.isNaN(t1) && t1 > 0 ) {
             result.set(vTargetPos.x+t1*vTargetVelocity.x,vTargetPos.y+t1*vTargetVelocity.y);
             return result;
-        } else if ( t2 != Float.NaN && t2 > 0 ) {
+        } else if (!Float.isNaN(t2) && t2 > 0 ) {
             result.set(vTargetPos.x+t2*vTargetVelocity.x,vTargetPos.y+t2*vTargetVelocity.y);
             return result;
         }
