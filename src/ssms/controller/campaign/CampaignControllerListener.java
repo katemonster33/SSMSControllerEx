@@ -9,6 +9,8 @@ import ssms.controller.SSMSControllerModPluginEx;
 import ssms.controller.inputScreens.InputScope_360;
 import ssms.controller.inputScreens.InputScreenManager;
 
+import java.util.Objects;
+
 public class CampaignControllerListener implements EveryFrameScript {
     public static boolean pluginActive = false;
 
@@ -19,7 +21,7 @@ public class CampaignControllerListener implements EveryFrameScript {
 
     @Override
     public boolean runWhilePaused() {
-        return false;
+        return true;
     }
 
     @Override
@@ -29,6 +31,12 @@ public class CampaignControllerListener implements EveryFrameScript {
             InputScreenManager.getInstance().transitionToScope(InputScope_360.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
         }
         if(pluginActive) {
+            SSMSControllerModPluginEx.controller.poll();
+            if(Global.getSector().getCampaignUI().isShowingDialog() && !Objects.equals(InputScreenManager.getInstance().getCurrentScreen().getId(), DialogUI.ID)) {
+                InputScreenManager.getInstance().transitionToScope(InputScope_360.ID, new Object[]{}, DialogUI.ID, new Object[]{});
+            } else if(!Global.getSector().getCampaignUI().isShowingDialog() && Objects.equals(InputScreenManager.getInstance().getCurrentScreen().getId(), DialogUI.ID)) {
+                InputScreenManager.getInstance().transitionToScope(InputScope_360.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
+            }
             InputScreenManager.getInstance().preInput(amount);
             InputScreenManager.getInstance().renderUI(Global.getSector().getViewport());
         }

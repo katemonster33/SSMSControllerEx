@@ -20,6 +20,7 @@ package ssms.controller;
 import com.fs.starfarer.api.EveryFrameScript;
 import net.java.games.input.ControllerEnvironment;
 import ssms.controller.campaign.CampaignControllerListener;
+import ssms.controller.campaign.DialogUI;
 import ssms.controller.campaign.MainCampaignUI;
 import ssms.controller.inputScreens.InputScope_360;
 import ssms.controller.inputScreens.InputScope_Battle;
@@ -106,6 +107,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         man.registerScreen(new TitleScreenUI());
         man.registerScreen(new AutoMapperUI());
         man.registerScreen(new MainCampaignUI());
+        man.registerScreen(new DialogUI());
     }
 
     // enum ButtonMapping
