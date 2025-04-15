@@ -39,6 +39,7 @@ public class IndicatorDisplayPanel extends LunaBaseCustomPanelPlugin  {
         switch(panelAlignment) {
             case BL -> getPanel().getPosition().inBL(spacing, spacing);
             case BR -> getPanel().getPosition().inBR(spacing, spacing);
+            case RMID -> getPanel().getPosition().inRMid(spacing);
 
             default -> getPanel().getPosition().inMid();
         }
@@ -70,5 +71,9 @@ public class IndicatorDisplayPanel extends LunaBaseCustomPanelPlugin  {
             if(tmpWidth > minSize) minSize = tmpWidth;
             //subpanel.getPosition().setSize()
         }
+    }
+
+    public void cleanup() {
+        parentPanel.removeComponent(getPanel());
     }
 }

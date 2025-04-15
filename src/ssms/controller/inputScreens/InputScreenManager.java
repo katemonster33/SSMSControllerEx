@@ -126,7 +126,10 @@ public class InputScreenManager {
         //moving to scope sets the screen id for the input screen that has the initial annoation and a matching scope
         //scope can hold variables like the engine for combat
         //transitions into the same scope are legal, they happen if no other scope is active between two seperate scope entries
-        displayPanel = null;
+        if(displayPanel != null) {
+            displayPanel.cleanup();
+            displayPanel = null;
+        }
         if ( scopes.containsKey(scopeId) ) {
             InputScope scope = scopes.get(scopeId);
             return transitionToScope(scopeId, args, scope.getDefaultScreen(), null);
@@ -137,6 +140,10 @@ public class InputScreenManager {
     }
     
     public boolean transitionToScope(String scopeId, Object[] scopeArgs, String screenId, Object[] screenArgs) {
+        if(displayPanel != null) {
+            displayPanel.cleanup();
+            displayPanel = null;
+        }
         if ( scopes.containsKey(scopeId) && screens.containsKey(screenId) ) {
             InputScreen screen = screens.get(screenId);
             if ( screenAllowsScope(screen, scopeId) ) {
@@ -227,23 +234,27 @@ public class InputScreenManager {
             if(displayPanel == null) {
                 try {
                     UIPanelAPI mainPanel = null;
+                    Alignment displayPanelAlignment = Alignment.BL;
                     switch(Global.getCurrentState())
                     {
                         case TITLE:
                             TitleScreenState titlescreen  = (TitleScreenState) AppDriver.getInstance().getCurrentState();
                             mainPanel = titlescreen.getScreenPanel();
+                            displayPanelAlignment = Alignment.BL;
                             break;
                         case CAMPAIGN:
                             CampaignState campaignState = (CampaignState) AppDriver.getInstance().getCurrentState();
                             mainPanel = campaignState.getScreenPanel();
+                            displayPanelAlignment = Alignment.RMID;
                             break;
                         case COMBAT:
                             mainPanel = CombatStateReflector.GetInstance().getWidgetPanel();
+                            displayPanelAlignment = Alignment.BR;
                             break;
 
                     }
                     if(mainPanel != null) {
-                        displayPanel = new IndicatorDisplayPanel(mainPanel, screen.getIndicators(), Objects.equals(screen.getId(), TitleScreenUI.ID) ? Alignment.BL : Alignment.BR);
+                        displayPanel = new IndicatorDisplayPanel(mainPanel, screen.getIndicators(), displayPanelAlignment);
                     }
                 } catch(IllegalArgumentException ex) {
                     Global.getLogger(getClass()).fatal("Could not create the panel for displaying indicator sprites!", ex);

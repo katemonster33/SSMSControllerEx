@@ -13,6 +13,7 @@ import com.fs.starfarer.campaign.fleet.CampaignFleetView;
 import com.fs.starfarer.combat.CombatState;
 import com.fs.state.AppDriver;
 import lunalib.lunaUtil.campaign.SectorUtils;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.XRandR;
@@ -35,17 +36,18 @@ public class MainCampaignUI  implements InputScreen {
     Robot inputSender;
     HandlerController handler;
 
-    ArrayList<Pair<Indicators, String>> indicators = new ArrayList<>(){{
-        new Pair<>(Indicators.LeftStickUp, "Up");
-        new Pair<>(Indicators.LeftStickDown, "Down");
-        new Pair<>(Indicators.LeftStickLeft, "Left");
-        new Pair<>(Indicators.LeftStickRight, "Right");
-        new Pair<>(Indicators.A, "Confirm");
-        new Pair<>(Indicators.B, "Cancel");
-        new Pair<>(Indicators.Select, "Reset keybindings");
-    }};
+    ArrayList<Pair<Indicators, String>> indicators;
+
 
     public MainCampaignUI() {
+        indicators = new ArrayList<>();
+        indicators.add(new Pair<>(Indicators.LeftStickUp, "Up"));
+        indicators.add(new Pair<>(Indicators.LeftStickDown, "Down"));
+        indicators.add(new Pair<>(Indicators.LeftStickLeft, "Left"));
+        indicators.add(new Pair<>(Indicators.LeftStickRight, "Right"));
+        indicators.add(new Pair<>(Indicators.A, "Confirm"));
+        indicators.add(new Pair<>(Indicators.B, "Cancel"));
+        indicators.add(new Pair<>(Indicators.Select, "Reset keybindings"));
     }
     @Override
     public void deactivate() {
@@ -110,7 +112,6 @@ public class MainCampaignUI  implements InputScreen {
 
         //int innerX = Display.getParent().getX();
         int windowPosX = Display.getX(), windowPosY = Display.getY();
-        float wllx = viewport.convertWorldXtoScreenX(viewport.getLLX()), wlly = viewport.convertWorldYtoScreenY(viewport.getLLY());
         mousePos.x = viewport.convertWorldXtoScreenX(pentagonCenter.x) + windowPosX;
         mousePos.y = viewport.convertWorldYtoScreenY(pentagonCenter.y) + windowPosY;
         inputSender.mouseMove((int)mousePos.x, (int)mousePos.y);
@@ -128,6 +129,7 @@ public class MainCampaignUI  implements InputScreen {
 
     boolean isMouseDown = false;
     boolean isMoving = false;
+    boolean startButtonHandled = false;
     @Override
     public void preInput(float advance) {
 
@@ -154,8 +156,11 @@ public class MainCampaignUI  implements InputScreen {
             CampaignFleetAPI playerFleet = Global.getSector().getPlayerFleet();
             playerFleet.goSlowOneFrame();
         }
-        if(handler.isButtonStartPressed()) {
+        if(!startButtonHandled && handler.isButtonStartPressed()) {
             Global.getSector().setPaused(!Global.getSector().isPaused());
+            startButtonHandled = true;
+        } else if(!handler.isButtonStartPressed()) {
+            startButtonHandled = false;
         }
         if(handler.isButtonSelectPressed()) {
             if(Global.getSector().getCampaignUI().isHideUI()) {
