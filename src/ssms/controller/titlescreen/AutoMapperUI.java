@@ -2,33 +2,27 @@ package ssms.controller.titlescreen;
 
 import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.combat.ViewportAPI;
-import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.CustomPanelAPI;
 import com.fs.starfarer.api.ui.TooltipMakerAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.title.C.A;
 import com.fs.starfarer.title.TitleScreenState;
 import com.fs.state.AppDriver;
 import lunalib.lunaUI.panel.LunaBaseCustomPanelPlugin;
-import org.lwjgl.input.Controller;
 import ssms.controller.ControllerMapping;
 import ssms.controller.HandlerController;
 import ssms.controller.Indicators;
 import ssms.controller.SSMSControllerModPluginEx;
-import ssms.controller.inputScreens.InputScope_360;
-import ssms.controller.inputScreens.InputScreen;
-import ssms.controller.inputScreens.InputScreenManager;
+import ssms.controller.InputScopeBase;
+import ssms.controller.InputScreenBase;
+import ssms.controller.InputScreenManager;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
 
-public class AutoMapperUI implements InputScreen {
+public class AutoMapperUI extends InputScreenBase {
     public static final String ID = "AutoMapper";
-    public static final String SCOPES = InputScope_360.ID;
     HandlerController.Buttons[] buttons = HandlerController.Buttons.values();
     int calibrationIndex = -1;
     int btnCount = -1;
@@ -151,15 +145,6 @@ public class AutoMapperUI implements InputScreen {
     }
 
     @Override
-    public void renderUI(ViewportAPI viewport) {
-    }
-
-    @Override
-    public void renderInWorld(ViewportAPI viewport) {
-
-    }
-
-    @Override
     public List<Pair<Indicators, String>> getIndicators() {
         return List.of();
     }
@@ -244,7 +229,7 @@ public class AutoMapperUI implements InputScreen {
             if(tempMapping != null) {
                 SSMSControllerModPluginEx.controller = new HandlerController(SSMSControllerModPluginEx.controller.controller, tempMapping);
             }
-            InputScreenManager.getInstance().transitionToScope(InputScope_360.ID, new Object[]{}, TitleScreenUI.ID, new Object[]{});
+            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TitleScreenUI.ID, new Object[]{});
         } else {
             var indicatorEnum = getIndicatorForButton(buttons[calibrationIndex]);
             if (indicatorEnum != null) {
@@ -278,17 +263,12 @@ public class AutoMapperUI implements InputScreen {
     }
 
     @Override
-    public void postInput(float advance) {
-
-    }
-
-    @Override
     public String getId() {
         return ID;
     }
 
     @Override
     public String[] getScopes() {
-        return new String[]{ SCOPES };
+        return new String[]{ InputScopeBase.ID };
     }
 }

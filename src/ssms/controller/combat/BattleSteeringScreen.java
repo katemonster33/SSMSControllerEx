@@ -15,7 +15,7 @@
  * License along with this library;  If not, see 
  * <https://www.gnu.org/licenses/>.
  */
-package ssms.controller.inputScreens;
+package ssms.controller.combat;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
@@ -26,21 +26,15 @@ import com.fs.starfarer.api.combat.ShipwideAIFlags;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.combat.WeaponAPI;
 import com.fs.starfarer.api.combat.WeaponGroupAPI;
-import com.fs.starfarer.api.impl.combat.MineStrikeStats;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.combat.entities.Ship;
-import com.fs.starfarer.prototype.Utils;
-import com.fs.state.AppDriver;
-import java.lang.reflect.Field;
+
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
 import org.apache.log4j.Level;
-import org.lwjgl.util.vector.Vector;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
-import ssms.controller.reflection.ClassReflector;
 import ssms.controller.reflection.CombatStateReflector;
 import ssms.controller.reflection.WeaponReflection;
 import ssms.controller.steering.SteeringController;
@@ -51,21 +45,21 @@ import ssms.controller.steering.SteeringController_OrbitTarget;
  *
  * @author Malte Schulze
  */
-public class InputScreen_BattleSteering implements InputScreen {
+public class BattleSteeringScreen extends InputScreenBase {
     public static final String ID = "BattleSteering";
     public static final String SCOPES = "Battle";
     protected HandlerController handler;
-    protected InputScope_Battle scope;
+    protected BattleScope scope;
     protected CombatEngineAPI engine;
     protected CombatStateReflector csr;
-    protected InputScope_Battle.PlayerShipCache psCache;
+    protected BattleScope.PlayerShipCache psCache;
     protected boolean isAlternateSteering = false;
     private boolean adjustOmniShieldFacing = false;
     private Vector2f v1 = new Vector2f();
     protected List<Pair<Indicators, String>> screenIndicators, indicators;
     protected SteeringController lastSteeringController;
 
-    public InputScreen_BattleSteering() {
+    public BattleSteeringScreen() {
         screenIndicators = new ArrayList<>();
         screenIndicators.add(new Pair<>(Indicators.LeftStickButton, "Switch Mode"));
         screenIndicators.add(new Pair<>(Indicators.A, "Fire"));
@@ -95,6 +89,7 @@ public class InputScreen_BattleSteering implements InputScreen {
         if ( currentSteeringController != null )
             indicators.addAll(currentSteeringController.getIndicators());
         lastSteeringController = currentSteeringController;
+        InputScreenManager.getInstance().refreshIndicators();
     }
 
     @Override
@@ -109,7 +104,7 @@ public class InputScreen_BattleSteering implements InputScreen {
     @Override
     public void activate(Object... args) {
         handler = SSMSControllerModPluginEx.controller;
-        scope = (InputScope_Battle)InputScreenManager.getInstance().getCurrentScope();
+        scope = (BattleScope)InputScreenManager.getInstance().getCurrentScope();
         csr = CombatStateReflector.GetInstance();
         engine = scope.engine;
         psCache = scope.psCache;
@@ -134,15 +129,15 @@ public class InputScreen_BattleSteering implements InputScreen {
                 if ( handler.getButtonEvent(HandlerController.Buttons.LeftStickButton) == 1 ) {
                     isAlternateSteering = !isAlternateSteering;
                     if ( isAlternateSteering ) {
-                        psCache.setSteeringController(SteeringController_OrbitTarget.class, handler, engine);
+                        psCache.setSteeringController(new SteeringController_OrbitTarget(), handler, engine);
                     } else {
-                        psCache.setSteeringController(SteeringController_FreeFlight.class, handler, engine);
+                        psCache.setSteeringController(new SteeringController_FreeFlight(), handler, engine);
                     }
                 }
 
                 if ( isAlternateSteering && ( !scope.isValidTarget(ps.getShipTarget()) || !psCache.steeringController.isTargetValid() ) ) {
                     isAlternateSteering = false;
-                    psCache.setSteeringController(SteeringController_FreeFlight.class, handler, engine);
+                    psCache.setSteeringController(new SteeringController_FreeFlight(), handler, engine);
                 }
                 updateIndicators(psCache.steeringController);
                 psCache.steeringController.steer(amount, scope.getOffsetFacingAngle());

@@ -5,10 +5,8 @@ import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.CustomPanelAPI;
 import com.fs.starfarer.api.ui.TooltipMakerAPI;
-import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.util.Pair;
 
-import lunalib.lunaUI.elements.LunaElement;
 import lunalib.lunaUI.panel.LunaBaseCustomPanelPlugin;
 
 import java.awt.Color;

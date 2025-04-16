@@ -15,19 +15,45 @@
  * License along with this library;  If not, see 
  * <https://www.gnu.org/licenses/>.
  */
-package ssms.controller.inputScreens;
+package ssms.controller;
+
+import com.fs.starfarer.api.combat.ViewportAPI;
+import com.fs.starfarer.api.util.Pair;
+
+import java.util.List;
 
 /**
  *
  * @author Malte Schulze
  */
-public interface InputScope {
-    
-    public void activate(Object ...args);
+public class InputScreenBase {
 
-    public void deactivate();
+    public static final String ID = "NoScreen";
+    public static final String SCOPES = "";
 
-    public String getId();
+    public List<Pair<Indicators, String>> getIndicators() {
+        return null;
+    }
 
-    public String getDefaultScreen();
+    public void deactivate() {
+    }
+
+    public void activate(Object ...args) {
+    }
+
+    public void renderInWorld(ViewportAPI viewport) {
+    }
+
+    public void renderUI(ViewportAPI viewport) {
+    }
+
+    public void preInput(float advance) {
+    }
+
+    public void postInput(float advance) {
+    }
+
+    public String getId() { return ID; }
+
+    public String[] getScopes() { return new String[]{ SCOPES }; }
 }

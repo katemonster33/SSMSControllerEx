@@ -15,7 +15,7 @@
  * License along with this library;  If not, see 
  * <https://www.gnu.org/licenses/>.
  */
-package ssms.controller.inputScreens;
+package ssms.controller.combat;
 
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.FogOfWarAPI;
@@ -28,26 +28,24 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import org.lwjgl.util.vector.Vector2f;
-import ssms.controller.HandlerController;
-import ssms.controller.Indicators;
-import ssms.controller.SSMSControllerModPluginEx;
+import ssms.controller.*;
 import ssms.controller.reflection.CombatStateReflector;
 
 /**
  *
  * @author Malte Schulze
  */
-public class InputScreen_BattleTargeting implements InputScreen {
+public class BattleTargetingScreen extends InputScreenBase {
     public static final String ID = "BattleTargeting";
     public static final String SCOPES = "Battle";
     protected HandlerController handler;
-    protected InputScope_Battle scope;
+    protected BattleScope scope;
     protected Targeting targeting;
     protected ShipAPI ps;
-    protected InputScope_Battle.PlayerShipCache psCache;
+    protected BattleScope.PlayerShipCache psCache;
     protected List<Pair<Indicators, String>> indicators;
 
-    public InputScreen_BattleTargeting() {
+    public BattleTargetingScreen() {
         indicators = new ArrayList<>();
         indicators.add(new Pair<>(Indicators.BumperRight, "Next"));
         indicators.add(new Pair<>(Indicators.BumperLeft, "Previous"));
@@ -77,7 +75,7 @@ public class InputScreen_BattleTargeting implements InputScreen {
         }
         
         public boolean hasTargets() {
-            return targets.size() > 0;
+            return !targets.isEmpty();
         }
         
         public ShipAPI next() {
@@ -111,7 +109,7 @@ public class InputScreen_BattleTargeting implements InputScreen {
     @Override
     public void activate(Object... args) {
         handler = SSMSControllerModPluginEx.controller;
-        scope = (InputScope_Battle)InputScreenManager.getInstance().getCurrentScope();
+        scope = (BattleScope) InputScreenManager.getInstance().getCurrentScope();
         CombatEngineAPI engine = scope.engine;
         psCache = scope.psCache;
         ps = psCache.ps;
@@ -122,15 +120,7 @@ public class InputScreen_BattleTargeting implements InputScreen {
             scope.timeDilation(true,"TARGETING");
         }
     }
-    
-    @Override
-    public void renderInWorld(ViewportAPI viewport) {
-    }
 
-    @Override
-    public void renderUI(ViewportAPI viewport) {
-    }
-    
     protected void closeTargeting() {
         InputScreenManager.getInstance().transitionDelayed("BattleSteering");
     }
@@ -166,10 +156,6 @@ public class InputScreen_BattleTargeting implements InputScreen {
         CombatStateReflector.GetInstance().SetVideoFeedToShipTarget(ps.getShipTarget());
     }
 
-    @Override
-    public void postInput(float advance) {
-    }
-    
     protected List<ShipAPI> targetsByDistance(List<ShipAPI> ships, Vector2f measureFromPoint, FogOfWarAPI fogOfWar) {
         List<Pair<Float,ShipAPI>> shipsByDistance = new ArrayList<>();
         for (ShipAPI ship : ships) {

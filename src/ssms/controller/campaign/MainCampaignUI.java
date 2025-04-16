@@ -3,34 +3,25 @@ package ssms.controller.campaign;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CoreUITabId;
-import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.campaign.CampaignEngine;
 import com.fs.starfarer.campaign.CampaignState;
-import com.fs.starfarer.campaign.fleet.CampaignFleet;
-import com.fs.starfarer.campaign.fleet.CampaignFleetView;
-import com.fs.starfarer.combat.CombatState;
 import com.fs.state.AppDriver;
-import lunalib.lunaUtil.campaign.SectorUtils;
-import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.XRandR;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
-import ssms.controller.inputScreens.InputScope_360;
-import ssms.controller.inputScreens.InputScreen;
+import ssms.controller.InputScopeBase;
+import ssms.controller.InputScreenBase;
 
 import java.awt.*;
 import java.awt.event.InputEvent;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import ssms.controller.Indicators;
 
-public class MainCampaignUI  implements InputScreen {
+public class MainCampaignUI  extends InputScreenBase {
     public static final String ID = "MainCampaign";
     Vector2f mousePos = new Vector2f(-1.f, -1.f);
     Robot inputSender;
@@ -41,17 +32,10 @@ public class MainCampaignUI  implements InputScreen {
 
     public MainCampaignUI() {
         indicators = new ArrayList<>();
-        indicators.add(new Pair<>(Indicators.LeftStickUp, "Up"));
-        indicators.add(new Pair<>(Indicators.LeftStickDown, "Down"));
-        indicators.add(new Pair<>(Indicators.LeftStickLeft, "Left"));
-        indicators.add(new Pair<>(Indicators.LeftStickRight, "Right"));
-        indicators.add(new Pair<>(Indicators.A, "Confirm"));
-        indicators.add(new Pair<>(Indicators.B, "Cancel"));
-        indicators.add(new Pair<>(Indicators.Select, "Reset keybindings"));
-    }
-    @Override
-    public void deactivate() {
-
+        indicators.add(new Pair<>(Indicators.LeftStick, "Set ship heading"));
+        indicators.add(new Pair<>(Indicators.A, "Navigate"));
+        indicators.add(new Pair<>(Indicators.Start, "Pause"));
+        //indicators.add(new Pair<>(Indicators.Select, "Reset keybindings"));
     }
 
     @Override
@@ -108,7 +92,17 @@ public class MainCampaignUI  implements InputScreen {
 
         float angleIncrement = (float) Math.toRadians(360.0f / 5f);
         //rotating the pentagon so that it points in the right direction and the missing slice is opposite to that point.
-        float angle = (float) Math.toRadians(Util_Steering.getFacingFromHeading(new Vector2f(desiredHeading))) + 3f * angleIncrement;
+        float angle = (float) Math.toRadians(Util_Steering.getFacingFromHeading(new Vector2f(heading))) + 3f * angleIncrement;
+
+        GL11.glBegin(GL11.GL_TRIANGLE_FAN);
+        GL11.glVertex2f(pentagonCenter.x, pentagonCenter.y);
+        //alpha on the edges avoids sharp contours for large ships.
+        GL11.glColor4f(cr, cg, cb, 0.2f);
+        for (int k = 0; k < 5; ++k) {
+            GL11.glVertex2f(pentagonCenter.x + radius * (float)Math.cos(angle), pentagonCenter.y + radius * (float)Math.sin(angle));
+            angle += angleIncrement;
+        }
+        GL11.glEnd();
 
         //int innerX = Display.getParent().getX();
         int windowPosX = Display.getX(), windowPosY = Display.getY();
@@ -116,10 +110,6 @@ public class MainCampaignUI  implements InputScreen {
         mousePos.y = viewport.convertWorldYtoScreenY(pentagonCenter.y) + windowPosY;
         inputSender.mouseMove((int)mousePos.x, (int)mousePos.y);
         //viewport.getLLX()
-    }
-
-    @Override
-    public void renderInWorld(ViewportAPI viewport) {
     }
 
     @Override
@@ -175,17 +165,12 @@ public class MainCampaignUI  implements InputScreen {
     }
 
     @Override
-    public void postInput(float advance) {
-
-    }
-
-    @Override
     public String getId() {
         return ID;
     }
 
     @Override
     public String[] getScopes() {
-        return new String[] { InputScope_360.ID };
+        return new String[] { InputScopeBase.ID };
     }
 }

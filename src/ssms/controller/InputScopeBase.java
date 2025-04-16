@@ -15,29 +15,29 @@
  * License along with this library;  If not, see 
  * <https://www.gnu.org/licenses/>.
  */
-package ssms.controller.inputScreens;
+package ssms.controller;
 
 /**
- * The no scope. With an empty input screen as a fallback for the InputScreenManager.
- * 
+ *
  * @author Malte Schulze
  */
-public class InputScope_360 implements InputScope {
+public class InputScopeBase {
+
     public static final String ID = "NoScope";
     public static final String DEFAULT_SCREEN = "NoScreen";
-    @Override
+    //@Override
     public void activate(Object ...args) {
-        
+
     }
 
-    @Override
+    //@Override
     public void deactivate() {
-        
+
     }
 
-    @Override
+    //@Override
     public String getId() { return ID; }
 
-    @Override
+    //@Override
     public String getDefaultScreen() { return DEFAULT_SCREEN; }
 }

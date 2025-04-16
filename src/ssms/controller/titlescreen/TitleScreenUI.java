@@ -19,16 +19,12 @@ package ssms.controller.titlescreen;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
-import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.title.TitleScreenState;
 import com.fs.state.AppDriver;
 import org.apache.log4j.Level;
-import org.lazywizard.lazylib.ui.FontException;
-import org.lazywizard.lazylib.ui.LazyFont;
-import ssms.controller.ControllerMapping;
 import ssms.controller.HandlerController;
 import ssms.controller.Indicators;
 import ssms.controller.SSMSControllerModPluginEx;
@@ -39,10 +35,9 @@ import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
 import org.lwjgl.input.Controller;
-import ssms.controller.inputScreens.InputScope;
-import ssms.controller.inputScreens.InputScope_360;
-import ssms.controller.inputScreens.InputScreen;
-import ssms.controller.inputScreens.InputScreenManager;
+import ssms.controller.InputScopeBase;
+import ssms.controller.InputScreenBase;
+import ssms.controller.InputScreenManager;
 import ssms.controller.reflection.ClassReflector;
 import ssms.controller.reflection.MethodReflector;
 import ssms.controller.reflection.UIPanelReflector;
@@ -51,9 +46,8 @@ import ssms.controller.reflection.UIPanelReflector;
  *
  * @author Malte Schulze
  */
-public class TitleScreenUI implements InputScreen {
+public class TitleScreenUI extends InputScreenBase {
     public static final String ID = "TitleScreen";
-    public static final String SCOPES = InputScope_360.ID;
     protected List<Pair<Indicators, String>> indicators;
     Controller controller = null;
     TitleScreenState titleScreen = null;
@@ -64,10 +58,7 @@ public class TitleScreenUI implements InputScreen {
 
     public TitleScreenUI() {
         indicators = new ArrayList<>();
-        indicators.add(new Pair<>(Indicators.LeftStickUp, "Up"));
-        indicators.add(new Pair<>(Indicators.LeftStickDown, "Down"));
-        indicators.add(new Pair<>(Indicators.LeftStickLeft, "Left"));
-        indicators.add(new Pair<>(Indicators.LeftStickRight, "Right"));
+        indicators.add(new Pair<>(Indicators.LeftStick, "Navigate Menu"));
         indicators.add(new Pair<>(Indicators.A, "Confirm"));
         indicators.add(new Pair<>(Indicators.B, "Cancel"));
         indicators.add(new Pair<>(Indicators.Select, "Reset keybindings"));
@@ -76,10 +67,6 @@ public class TitleScreenUI implements InputScreen {
     @Override
     public List<Pair<Indicators, String>> getIndicators() {
         return indicators;
-    }
-
-    @Override
-    public void deactivate() {
     }
 
     @Override
@@ -103,14 +90,6 @@ public class TitleScreenUI implements InputScreen {
                 Global.getLogger(getClass()).log(Level.FATAL, "Couldn't get the main menu buttons!");
             }
         }
-    }
-    
-    @Override
-    public void renderInWorld(ViewportAPI viewport) {
-    }
-
-    @Override
-    public void renderUI(ViewportAPI viewport) {
     }
 
     public void selectNextButton()
@@ -179,16 +158,12 @@ public class TitleScreenUI implements InputScreen {
         } else if ( handler.getButtonEvent(HandlerController.Buttons.A) == 1 ) {
             clickButton();
         } else if ( handler.getButtonEvent(HandlerController.Buttons.Select) == 1 ) {
-            InputScreenManager.getInstance().transitionToScope(InputScope_360.ID, new Object[]{}, TitleScreenUI.ID, new Object[]{});
+            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TitleScreenUI.ID, new Object[]{});
         }
-    }
-
-    @Override
-    public void postInput(float advance) {
     }
 
     @Override
     public String getId() { return ID; }
 
-    public String[] getScopes() { return new String[]{ SCOPES }; }
+    public String[] getScopes() { return new String[]{ InputScopeBase.ID }; }
 }

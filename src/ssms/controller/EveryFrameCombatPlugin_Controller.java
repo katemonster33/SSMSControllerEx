@@ -17,23 +17,17 @@
  */
 package ssms.controller;
 
-import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.combat.BaseEveryFrameCombatPlugin;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
-import com.fs.starfarer.api.impl.campaign.CoreScript;
 import com.fs.starfarer.api.input.InputEventAPI;
-import com.fs.starfarer.campaign.BaseScript;
 import com.fs.starfarer.combat.CombatState;
 
 import ssms.controller.campaign.CampaignControllerListener;
-import ssms.controller.inputScreens.InputScope_360;
-import ssms.controller.inputScreens.InputScope_Battle;
-import ssms.controller.inputScreens.InputScreenManager;
+import ssms.controller.combat.BattleScope;
 
 import java.util.List;
 
@@ -66,14 +60,14 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
         if(Global.getCurrentState() == GameState.TITLE) {
             if(SSMSControllerModPluginEx.controller != null) {
                 if(SSMSControllerModPluginEx.controller.mapping == null) {
-                    if(!InputScreenManager.getInstance().transitionToScope(InputScope_360.ID, new Object[]{}, AutoMapperUI.ID, new Object[]{})) {
+                    if(!InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, AutoMapperUI.ID, new Object[]{})) {
                         Global.getLogger(SSMSControllerModPluginEx.class).fatal("Failed to transition to AutoMapper UI!");
                     } else {
                         skipFrame = false;
                         initDone = true;
                     }
                 } else {
-                    if(!InputScreenManager.getInstance().transitionToScope(InputScope_360.ID, new Object[]{}, TitleScreenUI.ID, new Object[]{})) {
+                    if(!InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TitleScreenUI.ID, new Object[]{})) {
                         Global.getLogger(SSMSControllerModPluginEx.class).fatal("Failed to transition to title screen UI!");
                     } else {
                         skipFrame = false;
@@ -112,8 +106,8 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
         InputScreenManager man = InputScreenManager.getInstance();
         HandlerController handler = SSMSControllerModPluginEx.controller;
         handler.poll();
-        if(InputScope_Battle.class.isAssignableFrom(man.getCurrentScope().getClass())) {
-            InputScope_Battle battleScope = (InputScope_Battle) man.getCurrentScope();
+        if(BattleScope.class.isAssignableFrom(man.getCurrentScope().getClass())) {
+            BattleScope battleScope = (BattleScope) man.getCurrentScope();
 
             if (!battleScope.engine.getCombatUI().isShowingCommandUI()) {
                 if (wasShowingWarroom) {

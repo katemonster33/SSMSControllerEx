@@ -5,15 +5,12 @@ import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.combat.systems.H;
 import org.apache.log4j.Level;
 import ssms.controller.HandlerController;
 import ssms.controller.Indicators;
 import ssms.controller.SSMSControllerModPluginEx;
-import ssms.controller.inputScreens.InputScope_360;
-import ssms.controller.inputScreens.InputScreen;
-import ssms.controller.reflection.ClassReflector;
-import ssms.controller.reflection.MethodReflector;
+import ssms.controller.InputScopeBase;
+import ssms.controller.InputScreenBase;
 import ssms.controller.reflection.UIPanelReflector;
 
 import java.lang.invoke.MethodHandle;
@@ -22,7 +19,7 @@ import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DialogUI implements InputScreen {
+public class DialogUI extends InputScreenBase {
     UIPanelAPI optionsPanel;
     List<ButtonAPI> dialogOptions;
     MethodHandle doButtonClick;
@@ -33,16 +30,8 @@ public class DialogUI implements InputScreen {
 
     public DialogUI() {
         indicators = new ArrayList<>();
-        indicators.add(new Pair<>(Indicators.LeftStickUp, "Menu Up"));
-        indicators.add(new Pair<>(Indicators.LeftStickDown, "Menu Down"));
-        indicators.add(new Pair<>(Indicators.LeftStickRight, "Menu Left"));
-        indicators.add(new Pair<>(Indicators.LeftStickLeft, "Menu Right"));
+        indicators.add(new Pair<>(Indicators.LeftStick, "Navigate Menu"));
         indicators.add(new Pair<>(Indicators.A, "Confirm"));
-    }
-
-    @Override
-    public void deactivate() {
-
     }
 
     @Override
@@ -58,15 +47,6 @@ public class DialogUI implements InputScreen {
             }
         }
         controller = SSMSControllerModPluginEx.controller;
-    }
-
-    @Override
-    public void renderUI(ViewportAPI viewport) {
-    }
-
-    @Override
-    public void renderInWorld(ViewportAPI viewport) {
-
     }
 
     @Override
@@ -151,16 +131,12 @@ public class DialogUI implements InputScreen {
     }
 
     @Override
-    public void postInput(float advance) {
-    }
-
-    @Override
     public String getId() {
         return ID;
     }
 
     @Override
     public String[] getScopes() {
-        return new String[] { InputScope_360.ID };
+        return new String[] { InputScopeBase.ID };
     }
 }

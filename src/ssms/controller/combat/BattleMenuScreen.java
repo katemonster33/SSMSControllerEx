@@ -15,7 +15,7 @@
  * License along with this library;  If not, see 
  * <https://www.gnu.org/licenses/>.
  */
-package ssms.controller.inputScreens;
+package ssms.controller.combat;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
@@ -29,20 +29,18 @@ import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import java.util.*;
 import lunalib.lunaUI.panel.LunaBaseCustomPanelPlugin;
-import ssms.controller.HandlerController;
-import ssms.controller.Indicators;
-import ssms.controller.SSMSControllerModPluginEx;
+import ssms.controller.*;
 import ssms.controller.reflection.CombatStateReflector;
 
 /**
  *f5
  * @author Malte Schulze
  */
-public class InputScreen_BattleMenu implements InputScreen {
+public class BattleMenuScreen extends InputScreenBase {
     public static final String ID = "BattleMenu";
     public static final String SCOPES = "Battle";
     protected HandlerController handler;
-    protected InputScope_Battle scope;
+    protected BattleScope scope;
     protected CombatEngineAPI engine;
     protected List<Pair<Indicators, String>> indicators;
     BattleMenuUI currentMenu;
@@ -131,7 +129,7 @@ public class InputScreen_BattleMenu implements InputScreen {
         }
     };
 
-    public InputScreen_BattleMenu() {
+    public BattleMenuScreen() {
         indicators = new ArrayList<>();
         indicators.add(new Pair<>(Indicators.BumperRight, "Next"));
         indicators.add(new Pair<>(Indicators.BumperLeft, "Previous"));
@@ -159,7 +157,7 @@ public class InputScreen_BattleMenu implements InputScreen {
     @Override
     public void activate(Object ... args) {
         handler = SSMSControllerModPluginEx.controller;
-        scope = (InputScope_Battle)InputScreenManager.getInstance().getCurrentScope();
+        scope = (BattleScope) InputScreenManager.getInstance().getCurrentScope();
         engine = scope.engine;
         
         scope.timeDilation(true,"MENU");

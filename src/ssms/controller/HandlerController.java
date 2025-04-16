@@ -21,7 +21,6 @@ import com.fs.starfarer.api.Global;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.log4j.Level;
 import org.lwjgl.input.Controller;
 import org.lwjgl.util.input.ControllerAdapter;
 import org.lwjgl.util.vector.ReadableVector2f;

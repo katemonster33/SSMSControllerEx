@@ -15,7 +15,7 @@
  * License along with this library;  If not, see 
  * <https://www.gnu.org/licenses/>.
  */
-package ssms.controller.inputScreens;
+package ssms.controller;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
@@ -23,16 +23,13 @@ import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 import com.fs.starfarer.campaign.CampaignState;
 import com.fs.starfarer.title.TitleScreenState;
 import com.fs.state.AppDriver;
 import org.apache.log4j.Level;
-import ssms.controller.*;
 
 import ssms.controller.reflection.CombatStateReflector;
-import ssms.controller.titlescreen.TitleScreenUI;
 
 /**
  *
@@ -40,10 +37,10 @@ import ssms.controller.titlescreen.TitleScreenUI;
  */
 public class InputScreenManager {
     static private volatile InputScreenManager instance;
-    private Map<String,InputScreen> screens;//screen can belong to multiple scopes
-    private Map<String,InputScope> scopes;
-    private InputScreen currentScreen;
-    private InputScope currentScope;
+    private Map<String, InputScreenBase> screens;//screen can belong to multiple scopes
+    private Map<String, InputScopeBase> scopes;
+    private InputScreenBase currentScreen;
+    private InputScopeBase currentScope;
     private Transition nextScreen;
     IndicatorDisplayPanel displayPanel;
     private class Transition {
@@ -59,8 +56,8 @@ public class InputScreenManager {
     private InputScreenManager() {
         screens = new HashMap<>();
         scopes = new HashMap<>();
-        currentScope = new InputScope_360(); currentScope.activate();
-        currentScreen = new InputScreen_Bluescreen(); currentScreen.activate();
+        currentScope = new InputScopeBase(); currentScope.activate();
+        currentScreen = new InputScreenBase(); currentScreen.activate();
     }
     
     static public InputScreenManager getInstance() {
@@ -76,19 +73,19 @@ public class InputScreenManager {
         return localInstance;
     }
     
-    public InputScreen registerScreen(InputScreen screen) {
+    public InputScreenBase registerScreen(InputScreenBase screen) {
         return screens.put(screen.getId(), screen);
     }
     
-    public InputScope registerScope(InputScope scope) {
+    public InputScopeBase registerScope(InputScopeBase scope) {
         return scopes.put(scope.getId(), scope);
     }
     
-    public InputScreen getCurrentScreen() {
+    public InputScreenBase getCurrentScreen() {
         return currentScreen;
     }
     
-    public InputScope getCurrentScope() {
+    public InputScopeBase getCurrentScope() {
         return currentScope;
     }
     
@@ -103,7 +100,7 @@ public class InputScreenManager {
         return false;
     }
     
-    private boolean screenAllowsScope(InputScreen screen, String scopeId) {
+    private boolean screenAllowsScope(InputScreenBase screen, String scopeId) {
         String[] scopeIds = screen.getScopes();
         if ( scopeIds == null ) return true;
         for ( String scopeIdAllowed : scopeIds ) {
@@ -114,11 +111,11 @@ public class InputScreenManager {
         return false;
     }
     
-    public InputScope getScope(String scopeId) {
+    public InputScopeBase getScope(String scopeId) {
         return scopes.get(scopeId);
     }
     
-    public InputScreen getScreen(String screenId) {
+    public InputScreenBase getScreen(String screenId) {
         return screens.get(screenId);
     }
     
@@ -131,7 +128,7 @@ public class InputScreenManager {
             displayPanel = null;
         }
         if ( scopes.containsKey(scopeId) ) {
-            InputScope scope = scopes.get(scopeId);
+            InputScopeBase scope = scopes.get(scopeId);
             return transitionToScope(scopeId, args, scope.getDefaultScreen(), null);
         } else {
             Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Scope \""+scopeId+"\" is not registered!");
@@ -145,10 +142,10 @@ public class InputScreenManager {
             displayPanel = null;
         }
         if ( scopes.containsKey(scopeId) && screens.containsKey(screenId) ) {
-            InputScreen screen = screens.get(screenId);
+            InputScreenBase screen = screens.get(screenId);
             if ( screenAllowsScope(screen, scopeId) ) {
-                InputScope oldScope = currentScope;
-                InputScope scope = scopes.get(scopeId);
+                InputScopeBase oldScope = currentScope;
+                InputScopeBase scope = scopes.get(scopeId);
                 try {
                     try {
                         if ( currentScope != null ) {
@@ -183,6 +180,13 @@ public class InputScreenManager {
         }
         return false;
     }
+
+    public void refreshIndicators() {
+        if(displayPanel != null) {
+            displayPanel.cleanup();
+            displayPanel = null;
+        }
+    }
     
     public boolean isInScope(String scopeId) {
         return currentScope.getId().equals(scopeId);
@@ -190,7 +194,7 @@ public class InputScreenManager {
     
     public void startFrame() {
         if ( nextScreen != null ) {
-            InputScreen screen = screens.get(nextScreen.id);
+            InputScreenBase screen = screens.get(nextScreen.id);
             try {
                 //horizontalAlignment = AlignmentHorizontal.right;
                 screen.activate(nextScreen.args);
@@ -229,7 +233,7 @@ public class InputScreenManager {
     
     private void renderIndicators(ViewportAPI viewport) {
         
-        InputScreen screen = getCurrentScreen();
+        InputScreenBase screen = getCurrentScreen();
         if(screen != null && screen.getIndicators() != null && !screen.getIndicators().isEmpty()) {
             if(displayPanel == null) {
                 try {

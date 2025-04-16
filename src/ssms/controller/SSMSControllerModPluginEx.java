@@ -17,22 +17,13 @@
  */
 package ssms.controller;
 
-import com.fs.starfarer.api.EveryFrameScript;
 import net.java.games.input.ControllerEnvironment;
 import ssms.controller.campaign.CampaignControllerListener;
 import ssms.controller.campaign.DialogUI;
 import ssms.controller.campaign.MainCampaignUI;
-import ssms.controller.inputScreens.InputScope_360;
-import ssms.controller.inputScreens.InputScope_Battle;
+import ssms.controller.combat.*;
 import ssms.controller.titlescreen.AutoMapperUI;
-import ssms.controller.inputScreens.InputScreenManager;
-import ssms.controller.inputScreens.InputScreen_BattleMenu;
-import ssms.controller.inputScreens.InputScreen_BattleSteering;
-import ssms.controller.inputScreens.InputScreen_BattleTargeting;
-import ssms.controller.inputScreens.InputScreen_Bluescreen;
 import ssms.controller.titlescreen.TitleScreenUI;
-import ssms.controller.steering.SteeringController_FreeFlight;
-import ssms.controller.steering.SteeringController_OrbitTarget;
 
 import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
@@ -40,7 +31,6 @@ import com.fs.starfarer.api.Global;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.List;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -58,7 +48,6 @@ import org.lwjgl.input.Controllers;
 public final class SSMSControllerModPluginEx extends BaseModPlugin {
     public static final String modId = "SSMSControllerEx";
     static public HandlerController controller = new HandlerController();
-    static public List<Class<?>> registeredSteeringController = new ArrayList<>();
     static public HashMap<String, ControllerMapping> controllerMappings;
     static public EnumMap<Indicators,String> defaultIndicators;
     
@@ -91,19 +80,15 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         // controllerMappings.add(xbox360);
         reconnectController();
         
-        
-        registeredSteeringController.add(SteeringController_FreeFlight.class);
-        registeredSteeringController.add(SteeringController_OrbitTarget.class);
-        
         InputScreenManager man = InputScreenManager.getInstance();
         
-        man.registerScope(new InputScope_360());
-        man.registerScope(new InputScope_Battle());
+        man.registerScope(new InputScopeBase());
+        man.registerScope(new BattleScope());
         
-        man.registerScreen(new InputScreen_Bluescreen());
-        man.registerScreen(new InputScreen_BattleSteering());
-        man.registerScreen(new InputScreen_BattleTargeting());
-        man.registerScreen(new InputScreen_BattleMenu());
+        man.registerScreen(new InputScreenBase());
+        man.registerScreen(new BattleSteeringScreen());
+        man.registerScreen(new BattleTargetingScreen());
+        man.registerScreen(new BattleMenuScreen());
         man.registerScreen(new TitleScreenUI());
         man.registerScreen(new AutoMapperUI());
         man.registerScreen(new MainCampaignUI());

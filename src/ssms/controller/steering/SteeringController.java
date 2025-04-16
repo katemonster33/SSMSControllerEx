@@ -30,9 +30,6 @@ import ssms.controller.Indicators;
  * A behaviour is qualified for the first mode if it supports all possible ship targets including none. This is because the first mode is also the fallback in case
  * the second mode cannot handle the current ship target. An implementation is expected to implement the methods getAllowsEveryTarget() and getLabel() .<br>
  * <br>
- * The implementation class must be added to the static list {@link ssms.controller.SSMSControllerModPluginEx#registeredSteeringController SSMSControllerModPlugin.registeredSteeringController}
- * during the {@link com.fs.starfarer.api.ModPlugin#onApplicationLoad() ModPlugin.onApplicationLoad()} call.<br>
- * <br>
  * If the steering controller has custom options they can be configured on the already existing controller mapping. During the {@link com.fs.starfarer.api.ModPlugin#onApplicationLoad() ModPlugin.onApplicationLoad()}
  * call grab the default mapping and add the desired properties storing them in the mappings {@link ssms.controller.ControllerMapping#customProperties ControllerMapping.customProperties} map.<br>
  * <br>
