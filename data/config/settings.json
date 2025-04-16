@@ -40,7 +40,7 @@
 				"Start",
 				"HomeButton",
 				"BumperLeft",
-				"BumperRight",
+				"BumperRight"
 			],
 			"axes" : {
 				"LeftStickX": "XAxis",
