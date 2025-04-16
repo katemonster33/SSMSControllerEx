@@ -6,11 +6,7 @@ import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.apache.log4j.Level;
-import ssms.controller.HandlerController;
-import ssms.controller.Indicators;
-import ssms.controller.SSMSControllerModPluginEx;
-import ssms.controller.InputScopeBase;
-import ssms.controller.InputScreenBase;
+import ssms.controller.*;
 import ssms.controller.reflection.UIPanelReflector;
 
 import java.lang.invoke.MethodHandle;
@@ -113,6 +109,9 @@ public class DialogUI extends InputScreenBase {
 
     @Override
     public void preInput(float advance) {
+        if(!Global.getSector().getCampaignUI().isShowingDialog()) {
+            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{})
+        }
         if(dialogOptions == null) {
             selectedButton = -1;
             dialogOptions = new ArrayList<>(UIPanelReflector.getChildButtons(optionsPanel));

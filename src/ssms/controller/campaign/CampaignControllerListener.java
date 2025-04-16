@@ -32,8 +32,6 @@ public class CampaignControllerListener implements EveryFrameScript {
             SSMSControllerModPluginEx.controller.poll();
             if(Global.getSector().getCampaignUI().isShowingDialog() && !Objects.equals(InputScreenManager.getInstance().getCurrentScreen().getId(), DialogUI.ID)) {
                 InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, DialogUI.ID, new Object[]{});
-            } else if(!Global.getSector().getCampaignUI().isShowingDialog() && Objects.equals(InputScreenManager.getInstance().getCurrentScreen().getId(), DialogUI.ID)) {
-                InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
             }
             InputScreenManager.getInstance().preInput(amount);
             InputScreenManager.getInstance().renderUI(Global.getSector().getViewport());

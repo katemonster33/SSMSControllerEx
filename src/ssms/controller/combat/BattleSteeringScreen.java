@@ -276,11 +276,6 @@ public class BattleSteeringScreen extends InputScreenBase {
         }
     }
 
-    @Override
-    public void renderUI(ViewportAPI viewport) {
-        
-    }
-    
     protected Vector2f targetFrontal(Vector2f vPosition, float range, float facing, Vector2f result) {
         float rad = (float) Math.toRadians(facing);
         result.set(vPosition.x + range * (float)Math.cos(rad), vPosition.y + range * (float)Math.sin(rad));
