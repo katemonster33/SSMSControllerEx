@@ -121,10 +121,10 @@ public class BattleSteeringScreen extends InputScreenBase {
             //autopilot flag is inverted!
             if ( engine.isUIAutopilotOn() && !engine.isPaused() && amount > 0f ) {
                 if ( handler.getButtonEvent(HandlerController.Buttons.Select) == 1 ) {
-                    InputScreenManager.getInstance().transitionDelayed("BattleTargeting");
+                    InputScreenManager.getInstance().transitionDelayed(BattleTargetingScreen.ID);
                 }
                 if ( handler.getButtonEvent(HandlerController.Buttons.Start) == 1 ) {
-                    InputScreenManager.getInstance().transitionDelayed("BattleMenu");
+                    InputScreenManager.getInstance().transitionDelayed(BattleMenuScreen.ID);
                 }
                 if ( handler.getButtonEvent(HandlerController.Buttons.LeftStickButton) == 1 ) {
                     isAlternateSteering = !isAlternateSteering;

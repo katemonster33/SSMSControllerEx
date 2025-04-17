@@ -139,7 +139,7 @@ public class BattleScope extends InputScopeBase {
     
     public void timeDilation(boolean active, String id) {
         if ( engine == null ) return;
-        id = "SSMSQoLTimeDilationController_"+id;
+        id = "SSMSQoLTimeDilationController_" + id;
         MutableStat.StatMod timeDilationModifier = engine.getTimeMult().getMultStatMod(id);
         if ( active ) {
             if ( timeDilationModifier == null ) {

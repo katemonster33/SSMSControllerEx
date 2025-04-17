@@ -158,7 +158,7 @@ public class TitleScreenUI extends InputScreenBase {
         } else if ( handler.getButtonEvent(HandlerController.Buttons.A) == 1 ) {
             clickButton();
         } else if ( handler.getButtonEvent(HandlerController.Buttons.Select) == 1 ) {
-            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TitleScreenUI.ID, new Object[]{});
+            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, AutoMapperUI.ID, new Object[]{});
         }
     }
 

@@ -1,5 +1,5 @@
 set MODS_PATH=C:\Users\pn1711\starsector\mods\SSMSControllerEx
-set SSMSC_PATH=C:\Users\pn1711\source\repos\SSMSController
+set SSMSC_PATH=.\
 
 del /S /Q "%MODS_PATH%\*"
 xcopy /E /Y "%SSMSC_PATH%\jars\" "%MODS_PATH%\jars\"

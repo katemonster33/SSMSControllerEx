@@ -110,7 +110,7 @@ public class DialogUI extends InputScreenBase {
     @Override
     public void preInput(float advance) {
         if(!Global.getSector().getCampaignUI().isShowingDialog()) {
-            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{})
+            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
         }
         if(dialogOptions == null) {
             selectedButton = -1;

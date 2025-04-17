@@ -55,7 +55,6 @@ public class MainCampaignUI  extends InputScreenBase {
         if(pf == null) {
             return;
         }
-        Vector2f shipLocation = new Vector2f(pf.getLocation().x, pf.getLocation().y);
         ReadableVector2f desiredHeading = handler.getLeftStick();
         if ( desiredHeading.getX() == 0 && desiredHeading.getY() == 0 ) {
             mousePos.x = mousePos.y = -1.f;
@@ -88,11 +87,12 @@ public class MainCampaignUI  extends InputScreenBase {
         if ( radius < 5f ) radius = 5f;
         else if ( radius > 20f ) radius = 20f;
         radius *= zoom;
+        Vector2f shipLocation = new Vector2f(viewport.convertWorldXtoScreenX(pf.getLocation().x), viewport.convertWorldYtoScreenY(pf.getLocation().y));
         Vector2f pentagonCenter = new Vector2f(shipLocation.x + vHeadingNormalised.x * shipRadius * (4f + 2f * radius / shipRadius), shipLocation.y - vHeadingNormalised.y * shipRadius * (4f + 2f * radius / shipRadius));
 
         float angleIncrement = (float) Math.toRadians(360.0f / 5f);
         //rotating the pentagon so that it points in the right direction and the missing slice is opposite to that point.
-        float angle = (float) Math.toRadians(Util_Steering.getFacingFromHeading(new Vector2f(heading))) + 3f * angleIncrement;
+        float angle = (float) Math.toRadians(Util_Steering.getFacingFromHeading(new Vector2f(desiredHeading))) + 3f * angleIncrement;
 
         GL11.glBegin(GL11.GL_TRIANGLE_FAN);
         GL11.glVertex2f(pentagonCenter.x, pentagonCenter.y);
@@ -106,8 +106,8 @@ public class MainCampaignUI  extends InputScreenBase {
 
         //int innerX = Display.getParent().getX();
         int windowPosX = Display.getX(), windowPosY = Display.getY();
-        mousePos.x = viewport.convertWorldXtoScreenX(pentagonCenter.x) + windowPosX;
-        mousePos.y = viewport.convertWorldYtoScreenY(pentagonCenter.y) + windowPosY;
+        mousePos.x = pentagonCenter.x + windowPosX;
+        mousePos.y = pentagonCenter.y + windowPosY;
         inputSender.mouseMove((int)mousePos.x, (int)mousePos.y);
         //viewport.getLLX()
     }

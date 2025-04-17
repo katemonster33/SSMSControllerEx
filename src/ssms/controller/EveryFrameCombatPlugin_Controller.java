@@ -77,9 +77,9 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
             } else Global.getLogger(getClass()).warn("No controllers loaded!");
         } else if ( engine != null && engine.getContext() != null && (engine.isSimulation() || (engine.getCombatUI() != null && CombatState.class.isAssignableFrom(engine.getCombatUI().getClass())))
         && SSMSControllerModPluginEx.controller != null && SSMSControllerModPluginEx.controller.mapping != null ) {
-            if ( !InputScreenManager.getInstance().transitionToScope("Battle", engine) ) {
+            if ( !InputScreenManager.getInstance().transitionToScope(BattleScope.ID, engine) ) {
                 Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to transition into battle scope!");
-                InputScreenManager.getInstance().transitionToScope("NoScope");
+                InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID);
             } else {
                 initDone = true;
                 skipFrame = false;
