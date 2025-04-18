@@ -36,6 +36,7 @@ import org.apache.log4j.Level;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.reflection.CombatStateReflector;
+import ssms.controller.reflection.UIPanelReflector;
 import ssms.controller.reflection.WeaponReflection;
 import ssms.controller.steering.SteeringController;
 import ssms.controller.steering.SteeringController_FreeFlight;
@@ -116,6 +117,16 @@ public class BattleSteeringScreen extends InputScreenBase {
     
     @Override
     public void preInput(float amount) {
+        var panel = csr.getWidgetPanel();
+        if(panel != null) {
+            var items = UIPanelReflector.getChildItems(panel);
+            if(!items.isEmpty()) {
+                var lastChild = items.get(items.size() - 1);
+                if(lastChild.getClass().getName() == "Dialog") {
+
+                }
+            }
+        }
         ShipAPI ps = psCache.ps;
         if ( processShipInputs(ps) ) {
             //autopilot flag is inverted!
