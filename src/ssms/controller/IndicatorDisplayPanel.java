@@ -17,13 +17,14 @@ public class IndicatorDisplayPanel extends LunaBaseCustomPanelPlugin  {
     final float lineHeight = 25, spacing = 8f, textWidth = 200f;
     List<Pair<Indicators, String>> indicators;
     UIPanelAPI parentPanel;
+    CustomPanelAPI subpanel;
     public IndicatorDisplayPanel(UIPanelAPI parentPanel, List<Pair<Indicators, String>> args, Alignment panelAlignment) throws IllegalArgumentException {
         if ( args == null || args.isEmpty() ) {
             throw new IllegalArgumentException("indicators list cannot be empty!");
         }
         indicators = new ArrayList<>(args);
         this.parentPanel = parentPanel;
-        CustomPanelAPI subpanel =  Global.getSettings().createCustom(400, 25 * args.size(), this);
+        subpanel =  Global.getSettings().createCustom(400, 25 * args.size(), this);
         var tmpElem = subpanel.createUIElement(50.f, lineHeight, false).addPara("TEST ELEMENT", 0.f);
         float maxWidth = 0.f;
         for(var indPair : args) {
@@ -41,6 +42,10 @@ public class IndicatorDisplayPanel extends LunaBaseCustomPanelPlugin  {
 
             default -> getPanel().getPosition().inMid();
         }
+    }
+
+    public CustomPanelAPI getSubpanel() {
+        return subpanel;
     }
     @Override
     public void init() {

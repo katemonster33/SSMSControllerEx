@@ -29,7 +29,7 @@ import java.util.List;
 public class InputScreenBase {
 
     public static final String ID = "NoScreen";
-    public static final String SCOPES = "";
+    public static final String SCOPES = InputScopeBase.ID;
 
     public List<Pair<Indicators, String>> getIndicators() {
         return null;

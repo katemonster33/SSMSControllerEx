@@ -1,54 +1,47 @@
-package ssms.controller.campaign;
+package ssms.controller;
 
+import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
-import org.apache.log4j.Level;
-import ssms.controller.*;
+import ssms.controller.combat.BattleScope;
+import ssms.controller.reflection.ClassReflector;
+import ssms.controller.reflection.MessageBoxReflector;
+import ssms.controller.reflection.MethodReflector;
 import ssms.controller.reflection.UIPanelReflector;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DialogUI extends InputScreenBase {
-    UIPanelAPI optionsPanel;
-    List<ButtonAPI> dialogOptions;
-    MethodHandle doButtonClick;
-    int selectedButton = -1;
+public class MessageBoxScreen extends InputScreenBase {
+    public static final String ID = "MessageBox";
+    List<Pair<Indicators, String>> indicators;
     HandlerController controller;
-    public static final String ID = "Dialog";
-    public List<Pair<Indicators, String>> indicators;
+    MessageBoxReflector dialogReflector;
+    List<ButtonAPI> dialogOptions;
+    int selectedButton = -1;
+    Object getButtonCheckboxRenderer;
 
-    public DialogUI() {
-        indicators = new ArrayList<>();
-        indicators.add(new Pair<>(Indicators.LeftStick, "Navigate Menu"));
-        indicators.add(new Pair<>(Indicators.A, "Confirm"));
+    public MessageBoxScreen() {
     }
-
     @Override
-    public void activate(Object... args) {
-        var dialog = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
-        dialogOptions = null;
-        if(dialog != null) {
-            optionsPanel = (UIPanelAPI) dialog.getOptionPanel();
-            try {
-                doButtonClick = MethodHandles.lookup().findVirtual(optionsPanel.getClass(), "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
-            } catch(Throwable ex) {
-                Global.getLogger(getClass()).log(Level.FATAL, "Couldn't get the main menu buttons!");
-            }
-        }
+    public void activate(Object ...args) {
+        selectedButton = -1;
         controller = SSMSControllerModPluginEx.controller;
+        dialogReflector = (MessageBoxReflector) args[0];
+        dialogOptions = dialogReflector.getDialogButtons();
+
+        indicators = new ArrayList<>();
+        if(!dialogOptions.isEmpty()) {
+            selectedButton = 0;
+            dialogOptions.get(0).highlight();
+            indicators.add(new Pair<>(Indicators.LeftStick, "Navigate items"));
+            indicators.add(new Pair<>(Indicators.A, "Confirm option"));
+        }
+        indicators.add(new Pair<>(Indicators.B, "Dismiss"));
     }
 
-    @Override
-    public List<Pair<Indicators, String>> getIndicators() {
-        return indicators;
-    }
 
     public void selectNextButton()
     {
@@ -97,39 +90,56 @@ public class DialogUI extends InputScreenBase {
     public void clickButton()
     {
         if(selectedButton != -1 && dialogOptions != null && selectedButton < dialogOptions.size()) {
-            try {
-                doButtonClick.invoke(optionsPanel, null, dialogOptions.get(selectedButton));
-            } catch(Throwable ex) {
-                Global.getLogger(getClass()).log(Level.ERROR, "couldn't fire button event!");
+            var btn = dialogOptions.get(selectedButton);
+            if(getButtonCheckboxRenderer == null) {
+                try {
+                    getButtonCheckboxRenderer = ClassReflector.GetInstance().findDeclaredMethod(btn.getClass(), "getRendererCheckbox");
+                } catch(Throwable ex) {
+                    Global.getLogger(getClass()).warn("Couldn't infer checkbox rendering method from button class!", ex);
+                }
             }
-            //titleScreenButtons.get(selectedButton).
+            boolean isCheckbox = false;
+            try {
+                isCheckbox = MethodReflector.GetInstance().invoke(getButtonCheckboxRenderer, btn) != null;
+            } catch(Throwable ex) {
+                Global.getLogger(getClass()).warn("Couldn't tell if button is a check box! :(", ex);
+            }
+            if(isCheckbox) {
+                btn.setChecked(!btn.isChecked());
+            } else {
+                dialogReflector.doActionPerformed(null, dialogOptions.get(selectedButton));
+            }
         }
     }
 
+
     @Override
     public void preInput(float advance) {
-        if(!Global.getSector().getCampaignUI().isShowingDialog()) {
-            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
-        }
-        if(dialogOptions == null) {
-            selectedButton = -1;
-            dialogOptions = new ArrayList<>(UIPanelReflector.getChildButtons(optionsPanel));
-            if(!dialogOptions.isEmpty()) {
-                selectNextButton();
-            }
-        }
         if(controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1) {
             selectNextButton();
         } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1) {
             selectPrevButton();
         } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
             clickButton();
+        } else if(controller.getButtonEvent(HandlerController.Buttons.B) == 1) {
+            dialogReflector.doDismiss();
+            if(Global.getCurrentState() == GameState.COMBAT) {
+                InputScreenManager.getInstance().transitionToScope(BattleScope.ID, Global.getCombatEngine());
+            }
+        }
+        if(dialogReflector.isBeingDismissed()) {
             dialogOptions = null;
+            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID);
         }
     }
 
     @Override
     public String getId() {
         return ID;
+    }
+
+    @Override
+    public List<Pair<Indicators, String>> getIndicators() {
+        return indicators;
     }
 }

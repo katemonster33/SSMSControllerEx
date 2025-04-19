@@ -53,6 +53,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
     
     @Override
     public void onApplicationLoad() throws Exception {
+
         JSONObject obj = Global.getSettings().loadJSON("data/config/settings.json", "SSMSControllerEx");
         if(obj == null) {
             Global.getLogger(this.getClass()).log(Level.DEBUG, "no settings!!!");
@@ -93,6 +94,8 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         man.registerScreen(new AutoMapperUI());
         man.registerScreen(new MainCampaignUI());
         man.registerScreen(new DialogUI());
+        man.registerScreen(new MessageBoxScreen());
+        man.registerScreen(new BattleDeploymentScreen());
     }
 
     // enum ButtonMapping

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 MODS_PATH=~/starsector/mods/SSMSControllerEx
-SSMSC_PATH=~/SSMSController/
+SSMSC_PATH=.
 
 rm -r "${MODS_PATH}"/*
 cp -r "${SSMSC_PATH}/jars" "${MODS_PATH}"

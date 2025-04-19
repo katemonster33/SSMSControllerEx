@@ -87,7 +87,7 @@ public class TitleScreenUI extends InputScreenBase {
                     titleScreenButtons = UIPanelReflector.getChildButtons((UIPanelAPI)mainMenuWidgets.get(0));
                 }
             } catch(Throwable ex) {
-                Global.getLogger(getClass()).log(Level.FATAL, "Couldn't get the main menu buttons!");
+                Global.getLogger(getClass()).fatal("Couldn't get the main menu buttons!");
             }
         }
     }

@@ -62,7 +62,7 @@ public class BattleScope extends InputScopeBase {
                 createSteeringController(new SteeringController_FreeFlight(), ps, gameController, engine);
             } catch (Throwable ex) {
                 if ( !"Activation failed!".equals(ex.getMessage()) )
-                    Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Primary Steering Mode contains a controller without a puclic no argument constructor! Using fallback controller.", ex);
+                    Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Primary Steering Mode contains a controller without a public, no-argument constructor! Using fallback controller.", ex);
                 if ( this.steeringController != null ) this.steeringController.discard();
                 this.steeringController = new SteeringController_FreeFlight();
                 this.steeringController.activate(ps, gameController, engine);

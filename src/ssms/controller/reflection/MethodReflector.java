@@ -11,6 +11,7 @@ public class MethodReflector {
     MethodHandle getName;
     MethodHandle invoke;
     MethodHandle getReturnType;
+    MethodHandle setAccessible;
     private MethodReflector() throws Throwable
     {
         var lookup = MethodHandles.lookup();
@@ -23,6 +24,8 @@ public class MethodReflector {
         getName = lookup.findVirtual(methodClass, "getName", MethodType.methodType(String.class));
 
         invoke = lookup.findVirtual(methodClass, "invoke", MethodType.methodType(Object.class, Object.class, Object[].class));
+
+        setAccessible = lookup.findVirtual(methodClass, "setAccessible", MethodType.methodType(void.class, boolean.class));
     }
 
     public static MethodReflector GetInstance() throws Throwable
@@ -50,5 +53,10 @@ public class MethodReflector {
     public Object invoke(Object method, Object obj, Object ... arguments) throws Throwable
     {
         return invoke.invoke(method, obj, arguments);
+    }
+
+    public void setAccessible(Object method, boolean val) throws Throwable
+    {
+        setAccessible.invoke(method, val);
     }
 }

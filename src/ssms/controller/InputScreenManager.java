@@ -59,6 +59,10 @@ public class InputScreenManager {
         currentScope = new InputScopeBase(); currentScope.activate();
         currentScreen = new InputScreenBase(); currentScreen.activate();
     }
+
+    public IndicatorDisplayPanel getDisplayPanel() {
+        return displayPanel;
+    }
     
     static public InputScreenManager getInstance() {
         InputScreenManager localInstance = InputScreenManager.instance;

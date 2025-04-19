@@ -27,11 +27,14 @@ import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.combat.CombatState;
 
 import ssms.controller.campaign.CampaignControllerListener;
+import ssms.controller.combat.BattleDeploymentScreen;
 import ssms.controller.combat.BattleScope;
 
 import java.util.List;
 
-import org.apache.log4j.Level;
+import ssms.controller.reflection.CombatStateReflector;
+import ssms.controller.reflection.MessageBoxReflector;
+import ssms.controller.reflection.UIPanelReflector;
 import ssms.controller.titlescreen.AutoMapperUI;
 import ssms.controller.titlescreen.TitleScreenUI;
 //import org.apache.log4j.Level;
@@ -43,6 +46,7 @@ import ssms.controller.titlescreen.TitleScreenUI;
  */
 public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugin {
     protected CombatEngineAPI engine;
+    CombatStateReflector csr;
     protected float nextLog;
     protected boolean wasShowingWarroom = false, skipFrame = true;
     boolean initDone = false;
@@ -77,8 +81,9 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
             } else Global.getLogger(getClass()).warn("No controllers loaded!");
         } else if ( engine != null && engine.getContext() != null && (engine.isSimulation() || (engine.getCombatUI() != null && CombatState.class.isAssignableFrom(engine.getCombatUI().getClass())))
         && SSMSControllerModPluginEx.controller != null && SSMSControllerModPluginEx.controller.mapping != null ) {
+            csr = CombatStateReflector.GetInstance();
             if ( !InputScreenManager.getInstance().transitionToScope(BattleScope.ID, engine) ) {
-                Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to transition into battle scope!");
+                Global.getLogger(SSMSControllerModPluginEx.class).error("Failed to transition into battle scope!");
                 InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID);
             } else {
                 initDone = true;
@@ -94,6 +99,8 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
     protected boolean isControllerConfigured(HandlerController handler) {
         return handler != null && handler.mapping != null;
     }
+
+    Object lastUIOnTop = null;
 
     @Override
     public void processInputPreCoreControls(float amount, List<InputEventAPI> events) {
@@ -128,7 +135,31 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
         //TODO inputs for the warroom
         //TODO menu entries for switching ships(camera jumps to the targeted eligeble ship like targeting next and previous then selecting to pick a ship)
         //TODO menu entry for ending combat/simulation
-            
+        if(Global.getCurrentState() == GameState.COMBAT) {
+            if(Global.getCombatEngine().getCombatUI().isShowingDeploymentDialog()) {
+                var panel = csr.getWidgetPanel();
+                if (panel != null) {
+                    var items = UIPanelReflector.getChildItems(panel);
+                    if (!items.isEmpty()) {
+                        var lastChild = items.get(items.size() - 1);
+                        if (lastChild != null && lastChild != lastUIOnTop) {
+                            lastUIOnTop = lastChild;
+                            if (InputScreenManager.getInstance().displayPanel == null || lastUIOnTop != InputScreenManager.getInstance().displayPanel.getSubpanel()) {
+                                // this nonsense tries to tell if the topmost UI element is the message box that shows up the first time we enter combat
+                                MessageBoxReflector dr = MessageBoxReflector.TryGet(lastUIOnTop);
+                                if (dr != null) {
+                                    InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MessageBoxScreen.ID, new Object[]{dr});
+                                } else {
+                                    // if it ain't, then we hope that we're looking at the actual deployment dialog
+
+                                    InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, BattleDeploymentScreen.ID, new Object[]{lastUIOnTop});
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         man.startFrame();
         man.preInput(amount);
 
@@ -163,15 +194,11 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
         }
         switch(Global.getCurrentState())
         {
-            case COMBAT:
+            case COMBAT, TITLE:
                 break;
-            case TITLE:
-
-                // TitleScreenState titleScreen = (TitleScreenState) AppDriver.getInstance().getCurrentState();
+            // TitleScreenState titleScreen = (TitleScreenState) AppDriver.getInstance().getCurrentState();
                 // Object panel = titleScreen.getScreenPanel();
                 // ClassReflector.GetInstance().getDeclaredMethod(panel.getClass(), "" null, null)
-            case CAMPAIGN:
-                break;
         }
         super.advance(amount, events);
         InputScreenManager.getInstance().postIntput(amount);
