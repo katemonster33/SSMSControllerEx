@@ -40,7 +40,7 @@
 				"Start",
 				"HomeButton",
 				"LeftStickButton",
-				"RightStickButton",
+				"RightStickButton"
 			],
 			"axes" : {
 				"LeftStickX": "XAxis",
