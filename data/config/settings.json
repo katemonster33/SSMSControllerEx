@@ -124,8 +124,10 @@
 			"axes" : {
 				"LeftStickX": "XAxis",
 				"LeftStickY": "YAxis",
-				"RightStickX": "XRotation",
-				"RightStickY": "YRotation",
+				"LeftTrigger": "XRotation",
+				"RightTrigger": "YRotation",
+				"RightStickX": "ZAxis",
+				"RightStickY": "ZRotation",
 				"DPadX" : "POVX",
 				"DPadY" : "POVY"
 			},
