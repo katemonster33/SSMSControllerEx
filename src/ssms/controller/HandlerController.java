@@ -45,7 +45,7 @@ public class HandlerController {
         LeftStickUp,LeftStickDown,LeftStickLeft,LeftStickRight,LeftTrigger,RightTrigger,DpadLeft,DpadRight,DpadUp,DpadDown
     }
     
-    protected int axisLeftStickX, axisLeftStickY, axisRightStickX, axisRightStickY, axisTrigger, axisDpadX, axisDpadY,
+    protected int axisLeftStickX, axisLeftStickY, axisRightStickX, axisRightStickY, axisTrigger, axisRTrigger, axisDpadX, axisDpadY,
             btnA, btnB, btnX, btnY, btnBumperLeft, btnBumperRight, btnStart, btnSelect, btnLeftStick, btnRightStick;
 
     public HandlerController() {
@@ -126,6 +126,7 @@ public class HandlerController {
             axisDpadX = getAxisIndex(mapping.axisIdDpadX, mapping.axisIndexDpadX, axisIndices, controller.getAxisCount());
             axisDpadY = getAxisIndex(mapping.axisIdDpadY, mapping.axisIndexDpadY, axisIndices, controller.getAxisCount());
             axisTrigger = getAxisIndex(mapping.axisIdLT, mapping.axisIndexLT, axisIndices, controller.getAxisCount());
+            axisRTrigger = getAxisIndex(mapping.axisIdRT, mapping.axisIndexRT, axisIndices, controller.getAxisCount());
             
             btnA = getIndexCoercingNull(mapping.btnA,controller.getButtonCount());
             btnB = getIndexCoercingNull(mapping.btnB,controller.getButtonCount());
@@ -141,7 +142,7 @@ public class HandlerController {
             this.axisBtnConversionDeadzone = mapping.axisBtnConversionDeadzone;
             this.joystickDeadzone = mapping.joystickDeadzone * mapping.joystickDeadzone;
         } else {
-            axisLeftStickX = axisLeftStickY = axisRightStickX = axisRightStickY = axisTrigger = axisDpadX = axisDpadY =
+            axisLeftStickX = axisLeftStickY = axisRightStickX = axisRightStickY = axisTrigger = axisRTrigger = axisDpadX = axisDpadY =
                 btnA = btnB = btnX = btnY = btnBumperLeft = btnBumperRight = btnStart = btnSelect = btnLeftStick = btnRightStick = -1;
 
             this.axisBtnConversionDeadzone = 0.85f;
@@ -387,7 +388,11 @@ public class HandlerController {
     }
     
     public boolean isTriggerRight() {
-        return axisTrigger >= 0 ? controller.getAxisValue(axisTrigger) <= -axisBtnConversionDeadzone : false;
+        if(axisRTrigger >= 0) {
+            return controller.getAxisValue(axisRTrigger) >= axisBtnConversionDeadzone;
+        } else {
+            return axisTrigger >= 0 ? controller.getAxisValue(axisTrigger) <= -axisBtnConversionDeadzone : false;
+        }
     }
     
     public boolean isButtonAPressed() {
