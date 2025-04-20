@@ -34,13 +34,13 @@
 				"B",
 				"X",
 				"Y",
-				"LeftStickButton",
-				"RightStickButton",
+				"BumperLeft",
+				"BumperRight",
 				"Select",
 				"Start",
 				"HomeButton",
-				"BumperLeft",
-				"BumperRight"
+				"LeftStickButton",
+				"RightStickButton",
 			],
 			"axes" : {
 				"LeftStickX": "XAxis",
