@@ -17,6 +17,7 @@ import java.util.List;
 public class MessageBoxScreen extends InputScreenBase {
     public static final String ID = "MessageBox";
     List<Pair<Indicators, String>> indicators;
+    String uiToReturnTo;
     HandlerController controller;
     MessageBoxReflector dialogReflector;
     List<ButtonAPI> dialogOptions;
@@ -25,11 +26,13 @@ public class MessageBoxScreen extends InputScreenBase {
 
     public MessageBoxScreen() {
     }
+
     @Override
     public void activate(Object ...args) {
         selectedButton = -1;
         controller = SSMSControllerModPluginEx.controller;
         dialogReflector = (MessageBoxReflector) args[0];
+        uiToReturnTo = (String) args[1];
         dialogOptions = dialogReflector.getDialogButtons();
 
         indicators = new ArrayList<>();
@@ -129,7 +132,7 @@ public class MessageBoxScreen extends InputScreenBase {
         }
         if(dialogReflector.isBeingDismissed()) {
             dialogOptions = null;
-            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID);
+            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, uiToReturnTo, new Object[]{});
         }
     }
 

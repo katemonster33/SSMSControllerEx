@@ -117,6 +117,10 @@ public class BattleSteeringScreen extends InputScreenBase {
     
     @Override
     public void preInput(float amount) {
+        if(Global.getCombatEngine().getCombatUI().isShowingDeploymentDialog()) {
+            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, BattleDeploymentScreen.ID, new Object[]{});
+            return;
+        }
         ShipAPI ps = psCache.ps;
         if ( processShipInputs(ps) ) {
             //autopilot flag is inverted!
