@@ -43,7 +43,7 @@ public class InputScreenManager {
     private InputScopeBase currentScope;
     private Transition nextScreen;
     IndicatorDisplayPanel displayPanel;
-    private class Transition {
+    static class Transition {
         protected String id;
         protected Object[] args;
 
