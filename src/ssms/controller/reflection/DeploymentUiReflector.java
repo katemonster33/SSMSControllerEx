@@ -22,18 +22,6 @@ public class DeploymentUiReflector {
         var lookup = MethodHandles.lookup();
         dismiss = lookup.findVirtual(deploymentUiObj.getClass(), "dismiss", MethodType.methodType(void.class, int.class));
         actionPerformed = lookup.findVirtual(deploymentUiObj.getClass(), "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
-        isBeingDismissed = ClassReflector.GetInstance().getDeclaredMethod(deploymentUiObj.getClass().getSuperclass().getSuperclass(), "isBeingDismissed");
-    }
-
-    public boolean isBeingDismissed(){
-        try {
-            MethodReflector.GetInstance().setAccessible(isBeingDismissed, true);
-
-            return (boolean) MethodReflector.GetInstance().invoke(isBeingDismissed, deploymentUiObj);
-        } catch(Throwable ex) {
-            Global.getLogger(getClass()).warn("Couldn't tell if deployment UI is being dismissed!");
-        }
-        return false;
     }
 
     public List<ButtonAPI> getShips() {

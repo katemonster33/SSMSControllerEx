@@ -94,6 +94,10 @@ public class InputScreenManager {
     }
     
     public boolean transitionDelayed(String id, Object ...args) {
+        if(displayPanel != null) {
+            displayPanel.cleanup();
+            displayPanel = null;
+        }
         if ( screens.containsKey(id) ) {
             var screen = screens.get(id);
             if ( screenAllowsScope(screen, currentScope.getId()) ) {

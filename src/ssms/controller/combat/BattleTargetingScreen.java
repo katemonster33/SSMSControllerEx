@@ -17,6 +17,7 @@
  */
 package ssms.controller.combat;
 
+import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.FogOfWarAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
@@ -122,11 +123,14 @@ public class BattleTargetingScreen extends InputScreenBase {
     }
 
     protected void closeTargeting() {
-        InputScreenManager.getInstance().transitionDelayed("BattleSteering");
+        InputScreenManager.getInstance().transitionDelayed(BattleSteeringScreen.ID);
     }
     
     @Override
     public void preInput(float advance) {
+        if(Global.getCombatEngine().getCombatUI().isShowingCommandUI()) {
+            InputScreenManager.getInstance().transitionDelayed(WarroomScreen.ID);
+        }
         if ( !targeting.hasTargets() ) {
             closeTargeting();
             return;

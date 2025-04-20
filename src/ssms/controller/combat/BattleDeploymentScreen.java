@@ -167,7 +167,6 @@ public class BattleDeploymentScreen extends InputScreenBase {
                                         ships = dui.getShips();
 
                                         // hopefully it's safe to add the indicators now
-
                                         indicators = new ArrayList<>();
                                         indicators.add(new Pair<>(Indicators.LeftStickUp, "Select ships"));
                                         indicators.add(new Pair<>(Indicators.LeftStickDown, "Select buttons"));

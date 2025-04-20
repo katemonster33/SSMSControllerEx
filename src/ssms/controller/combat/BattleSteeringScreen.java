@@ -120,6 +120,8 @@ public class BattleSteeringScreen extends InputScreenBase {
         if(Global.getCombatEngine().getCombatUI().isShowingDeploymentDialog()) {
             InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, BattleDeploymentScreen.ID, new Object[]{});
             return;
+        } else if(Global.getCombatEngine().getCombatUI().isShowingCommandUI()) {
+            InputScreenManager.getInstance().transitionDelayed(WarroomScreen.ID);
         }
         ShipAPI ps = psCache.ps;
         if ( processShipInputs(ps) ) {

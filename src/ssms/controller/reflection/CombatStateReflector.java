@@ -21,6 +21,7 @@ public class CombatStateReflector {
     Object mCombatStateSetVideoFeedSource = null;
     Object getZoomFactorMethod = null;
     MethodHandle showWarRoom = null;
+    MethodHandle hideWarroom = null;
     MethodHandle isAutoPilotOn = null;
     MethodHandle setAutoPilot = null;
     Object getWidgetPanel = null;
@@ -28,6 +29,8 @@ public class CombatStateReflector {
     public Object cs;
     static CombatStateReflector instance;
     Object entityToFollowField;
+    Object warroom;
+    Object autoOmniShield = null;
     private CombatStateReflector()
     {
         cs = AppDriver.getInstance().getState(CombatState.STATE_ID);
@@ -43,6 +46,15 @@ public class CombatStateReflector {
 
             entityToFollowField = ClassReflector.GetInstance().getDeclaredField(cs.getClass(), "entityToFollow");
 
+            warroom = ClassReflector.GetInstance().getDeclaredField(cs.getClass(), "warroom");
+
+            hideWarroom = MethodHandles.lookup().findVirtual(cs.getClass(), "hideWarroom", MethodType.methodType(void.class));
+
+            mCombatStateSetVideoFeedSource = ClassReflector.GetInstance().findDeclaredMethod(cs.getClass(), "setVideoFeedSource");
+
+            getZoomFactorMethod = ClassReflector.GetInstance().getDeclaredMethod(cs.getClass(), "getZoomFactor");
+
+            autoOmniShield = ClassReflector.GetInstance().getDeclaredField(cs.getClass(), "AUTO_OMNI_SHIELDS");
         } catch(Throwable ex) {
             Global.getLogger(SSMSControllerModPluginEx.class).log(Level.FATAL, "Couldn't find essential methods of CombatState class!");
         }
@@ -64,6 +76,15 @@ public class CombatStateReflector {
         }
     }
 
+    public UIPanelAPI getWarroom() {
+        try {
+            return (UIPanelAPI) FieldReflector.GetInstance().GetVariable(warroom, cs);
+        } catch(Throwable ex) {
+            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Couldn't get warroom! " + ex.getMessage());
+        }
+        return null;
+    }
+
     public UIPanelAPI getWidgetPanel()
     {
         try {
@@ -76,20 +97,17 @@ public class CombatStateReflector {
 
     public void setAutoOmniShield() {
         try {
-            Object field = ClassReflector.GetInstance().getDeclaredField(cs.getClass(), "AUTO_OMNI_SHIELDS");
-
-            FieldReflector.GetInstance().SetVariable(field, cs, true);
+            FieldReflector.GetInstance().SetVariable(autoOmniShield, cs, true);
         } catch(Throwable ex) {
-            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Couldn't set auto-omni shielding! " + ex.getMessage());
+            Global.getLogger(getClass()).warn("Couldn't set auto-omni shielding!", ex);
         }
     }
     
     public void SetVideoFeedToShipTarget(ShipAPI shipTarget) {
-        if ( !InitCombatState() ) return;
         try {
             MethodReflector.GetInstance().invoke(mCombatStateSetVideoFeedSource, cs, shipTarget);
         } catch (Throwable ex) {
-            
+            Global.getLogger(getClass()).warn("Couldn't set video feed source!! ", ex);
         }
     }
 
@@ -98,28 +116,8 @@ public class CombatStateReflector {
             try {
                 zoomTracker = new ZoomTrackerReflector(cs);
             } catch (Throwable ex) {
-                Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to reflect zoom tracker, ensure SSMSUnlock is installed!", ex);
+                Global.getLogger(getClass()).warn("Failed to reflect zoom tracker!", ex);
                 zoomTracker = null;
-                return false;
-            }
-        }
-        return true;
-    }
-    
-    protected boolean InitCombatState() {
-        if ( mCombatStateSetVideoFeedSource == null ) {
-            try {
-                for(var m : ClassReflector.GetInstance().getDeclaredMethods(cs.getClass())) {
-                    if ( MethodReflector.GetInstance().getName(m).equals("setVideoFeedSource") ) {
-                        mCombatStateSetVideoFeedSource = m;
-                        break;
-                    }
-                }
-                getZoomFactorMethod = ClassReflector.GetInstance().getDeclaredMethod(cs.getClass(), "getZoomFactor");
-                if ( mCombatStateSetVideoFeedSource == null ) return false;
-            } catch (Throwable ex) {
-                Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to reflect combat state, ensure SSMSUnlock is installed!", ex);
-                mCombatStateSetVideoFeedSource = null;
                 return false;
             }
         }
@@ -130,7 +128,16 @@ public class CombatStateReflector {
         try {
             showWarRoom.invoke(cs);
         } catch(Throwable ex) {
-            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Couldnt show the war room!");
+            Global.getLogger(getClass()).warn("Couldnt show the war room!", ex);
+        }
+    }
+
+    public void HideWarroom()
+    {
+        try {
+            hideWarroom.invoke(cs);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).warn("Failed to hide warroom!", ex);
         }
     }
 
@@ -154,7 +161,6 @@ public class CombatStateReflector {
 
     public void setZoomFactor(float desiredZoomFactor)
     {
-        if ( !InitCombatState() ) return;
         if ( !InitZoomTracker() ) return;
 
         if ( getZoomFactor() == desiredZoomFactor ) {
@@ -191,6 +197,12 @@ public class CombatStateReflector {
     
     public void SetVideoFeedToPlayerShip() {
         //TODO IMPLEMENT THIS
+        SetVideoFeedToShipTarget(null);
+//        try {
+//            MethodReflector.GetInstance().invoke(mCombatStateSetVideoFeedSource, null);
+//        } catch(Throwable ex) {
+//            Global.getLogger(getClass()).warn("Couldn't set video feed!");
+//        }
         //cs.setVideoFeedSource(null);
         // var methods = ClassReflector.GetInstance().getDeclaredMethods(cs.getViewMouseOffset().getClass());
         // ArrayList<Object> matchingMethods = new ArrayList<>();

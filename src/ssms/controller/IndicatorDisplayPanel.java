@@ -50,29 +50,28 @@ public class IndicatorDisplayPanel extends LunaBaseCustomPanelPlugin  {
     @Override
     public void init() {
         TooltipMakerAPI prevImgElem = null;
-        float minSize = 0.f;
         for ( Pair<Indicators,String> e : indicators ) {
-            var txtElem = getPanel().createUIElement(400, lineHeight, false);
+            var txtElem = getPanel().createUIElement(getPanel().getPosition().getWidth(), lineHeight, false);
             var para = txtElem.addPara(e.two, Color.white, 0.f);
             para.getPosition().inTL(spacing, 4.f);
+            var imgElem = getPanel().createUIElement(lineHeight, lineHeight, false);
             if ( e.one != null ) {
-                var imgElem = getPanel().createUIElement(lineHeight, lineHeight, false);
                 imgElem.addImage(SSMSControllerModPluginEx.defaultIndicators.get(e.one), lineHeight, 0.f);
-                getPanel().addUIElement(imgElem);
                 txtElem.getPosition().rightOfMid(imgElem, 0.f);
-                if(prevImgElem != null) {
-                    imgElem.getPosition().belowMid(prevImgElem, 0.f);
-                } else {
-                    imgElem.getPosition().inTL(0.f, 0.f);
-                }
-                prevImgElem = imgElem;
+                para.setAlignment(Alignment.LMID);
+            } else {
+                txtElem.getPosition().rightOfMid(imgElem, -25.f);
+                para.setAlignment(Alignment.MID);
             }
-            para.autoSizeToWidth(para.computeTextWidth(para.getText()));
-            para.setAlignment(Alignment.LMID);
+
+            if(prevImgElem != null) {
+                imgElem.getPosition().belowMid(prevImgElem, 0.f);
+            } else {
+                imgElem.getPosition().inTL(0.f, 0.f);
+            }
+            getPanel().addUIElement(imgElem);
             getPanel().addUIElement(txtElem);
-            float tmpWidth = para.getPosition().getX() + para.getPosition().getWidth() - getPanel().getPosition().getX();
-            if(tmpWidth > minSize) minSize = tmpWidth;
-            //subpanel.getPosition().setSize()
+            prevImgElem = imgElem;
         }
     }
 
