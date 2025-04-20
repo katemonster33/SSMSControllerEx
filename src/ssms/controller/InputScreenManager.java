@@ -94,10 +94,6 @@ public class InputScreenManager {
     }
     
     public boolean transitionDelayed(String id, Object ...args) {
-        if(displayPanel != null) {
-            displayPanel.cleanup();
-            displayPanel = null;
-        }
         if ( screens.containsKey(id) ) {
             var screen = screens.get(id);
             if ( screenAllowsScope(screen, currentScope.getId()) ) {
@@ -131,10 +127,7 @@ public class InputScreenManager {
         //moving to scope sets the screen id for the input screen that has the initial annoation and a matching scope
         //scope can hold variables like the engine for combat
         //transitions into the same scope are legal, they happen if no other scope is active between two seperate scope entries
-        if(displayPanel != null) {
-            displayPanel.cleanup();
-            displayPanel = null;
-        }
+        refreshIndicators();
         if ( scopes.containsKey(scopeId) ) {
             InputScopeBase scope = scopes.get(scopeId);
             return transitionToScope(scopeId, args, scope.getDefaultScreen(), null);
@@ -145,10 +138,7 @@ public class InputScreenManager {
     }
     
     public boolean transitionToScope(String scopeId, Object[] scopeArgs, String screenId, Object[] screenArgs) {
-        if(displayPanel != null) {
-            displayPanel.cleanup();
-            displayPanel = null;
-        }
+        refreshIndicators();
         if ( scopes.containsKey(scopeId) && screens.containsKey(screenId) ) {
             InputScreenBase screen = screens.get(screenId);
             if ( screenAllowsScope(screen, scopeId) ) {
@@ -217,6 +207,7 @@ public class InputScreenManager {
             } catch ( Throwable t ) {
                 Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to activate screen, skipping transition: "+nextScreen.id);
             }
+            refreshIndicators();
             nextScreen = null;
         }
     }
