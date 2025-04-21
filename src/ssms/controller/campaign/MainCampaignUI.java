@@ -5,14 +5,11 @@ import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.campaign.CampaignState;
-import com.fs.state.AppDriver;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
-import ssms.controller.InputScopeBase;
 import ssms.controller.InputScreenBase;
 
 import java.awt.*;
@@ -20,6 +17,7 @@ import java.awt.event.InputEvent;
 import java.util.ArrayList;
 import java.util.List;
 import ssms.controller.Indicators;
+import ssms.controller.reflection.CampaignStateReflector;
 
 public class MainCampaignUI  extends InputScreenBase {
     public static final String ID = "MainCampaign";
@@ -51,7 +49,6 @@ public class MainCampaignUI  extends InputScreenBase {
     @Override
     public void renderUI(ViewportAPI viewport) {
         var pf = Global.getSector().getPlayerFleet();
-        var ps = Global.getCombatEngine().getPlayerShip();
         if(pf == null) {
             return;
         }
@@ -65,8 +62,7 @@ public class MainCampaignUI  extends InputScreenBase {
 //        CombatState cs = (CombatState) AppDriver.getInstance().getState(CombatState.STATE_ID);
 //        if ( cs.getWidgetPanel() == null ) return;
 //        float zoom = cs.getZoomFactor();
-        CampaignState cs = (CampaignState) AppDriver.getInstance().getCurrentState();
-        float zoom = cs.getZoomFactor();
+        float zoom = CampaignStateReflector.GetInstance().getZoomFactor();
 
         //a pentagon that points in the direction the ship ship wants to head into, useful since the ship turns slowly
         //and this way the user immediately has feedback on where he is steering.

@@ -24,12 +24,12 @@ import com.fs.starfarer.api.ui.UIPanelAPI;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fs.starfarer.campaign.CampaignState;
-import com.fs.starfarer.title.TitleScreenState;
 import com.fs.state.AppDriver;
 import org.apache.log4j.Level;
 
+import ssms.controller.reflection.CampaignStateReflector;
 import ssms.controller.reflection.CombatStateReflector;
+import ssms.controller.reflection.TitleScreenStateReflector;
 
 /**
  *
@@ -241,13 +241,11 @@ public class InputScreenManager {
                     switch(Global.getCurrentState())
                     {
                         case TITLE:
-                            TitleScreenState titlescreen  = (TitleScreenState) AppDriver.getInstance().getCurrentState();
-                            mainPanel = titlescreen.getScreenPanel();
+                            mainPanel = TitleScreenStateReflector.GetInstance().getScreenPanel();
                             displayPanelAlignment = Alignment.BL;
                             break;
                         case CAMPAIGN:
-                            CampaignState campaignState = (CampaignState) AppDriver.getInstance().getCurrentState();
-                            mainPanel = campaignState.getScreenPanel();
+                            mainPanel = CampaignStateReflector.GetInstance().getScreenPanel();
                             displayPanelAlignment = Alignment.RMID;
                             break;
                         case COMBAT:

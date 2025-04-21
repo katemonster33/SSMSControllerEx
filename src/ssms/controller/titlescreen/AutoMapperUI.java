@@ -7,7 +7,6 @@ import com.fs.starfarer.api.ui.CustomPanelAPI;
 import com.fs.starfarer.api.ui.TooltipMakerAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.title.TitleScreenState;
 import com.fs.state.AppDriver;
 import lunalib.lunaUI.panel.LunaBaseCustomPanelPlugin;
 import ssms.controller.ControllerMapping;
@@ -17,6 +16,7 @@ import ssms.controller.SSMSControllerModPluginEx;
 import ssms.controller.InputScopeBase;
 import ssms.controller.InputScreenBase;
 import ssms.controller.InputScreenManager;
+import ssms.controller.reflection.TitleScreenStateReflector;
 
 import java.awt.*;
 import java.util.List;
@@ -131,7 +131,7 @@ public class AutoMapperUI extends InputScreenBase {
             axisRestingState[i] = SSMSControllerModPluginEx.controller.controller.getAxisValue(i);
         }
         if(Global.getCurrentState() == GameState.TITLE) {
-            var panel = ((TitleScreenState)AppDriver.getInstance().getCurrentState()).getScreenPanel();
+            var panel = TitleScreenStateReflector.GetInstance().getScreenPanel();
             autoMapperPanel = new AutoMapperPanel(panel);
 
             var indicatorEnum = getIndicatorForButton(buttons[calibrationIndex]);
