@@ -106,13 +106,6 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
 
     @Override
     public void processInputPreCoreControls(float amount, List<InputEventAPI> events) {
-        if(inputEventReflector == null && !events.isEmpty()) {
-            try {
-                inputEventReflector = new InputEventReflector(events.get(0));
-            } catch(Throwable ex) {
-                Global.getLogger(getClass()).fatal("Couldn't reflect input event class, can't generate inputs!", ex);
-            }
-        }
         if ( skipFrame ) return;
         if(!initDone) {
             init(Global.getCombatEngine());
@@ -146,10 +139,6 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
         //TODO menu entry for ending combat/simulation
         man.startFrame();
         man.preInput(amount);
-        if(inputEventReflector != null) {
-            List<InputEventAPI> inputsToAdd = inputEventReflector.getAndClearEvents();
-            events.addAll(inputsToAdd);
-        }
 
     }
     // UIPanelAPI getScreenPanel()

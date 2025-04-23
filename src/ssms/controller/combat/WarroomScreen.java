@@ -1,6 +1,11 @@
 package ssms.controller.combat;
 
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.combat.CombatFleetManagerAPI;
+import com.fs.starfarer.api.combat.CombatTaskManagerAPI;
+import com.fs.starfarer.api.combat.DeployedFleetMemberAPI;
+import com.fs.starfarer.api.combat.ViewportAPI;
+import com.fs.starfarer.api.mission.FleetSide;
 import com.fs.starfarer.api.util.Pair;
 import ssms.controller.*;
 import ssms.controller.reflection.*;
@@ -16,12 +21,11 @@ public class WarroomScreen extends InputScreenBase {
     BattleScope scope;
     WarroomReflector warroomReflector;
     List<Pair<Indicators, String>> indicators;
+    DeployedFleetMemberAPI deployedFleetMember = null;
+    CombatFleetManagerAPI playerFleetManager;
+    CombatTaskManagerAPI playerTaskManager;
+    List<DeployedFleetMemberAPI> deployedPlayerShips;
 
-    public WarroomScreen() {
-        indicators = new ArrayList<>();
-        indicators.add(new Pair<>(Indicators.Start, "Pause"));
-        indicators.add(new Pair<>(Indicators.Select, "Show video feed"));
-    }
     @Override
     public List<Pair<Indicators, String>> getIndicators() {
         return indicators;
@@ -32,6 +36,19 @@ public class WarroomScreen extends InputScreenBase {
         csr = CombatStateReflector.GetInstance();
         warroomReflector = new WarroomReflector(csr.getWarroom());
         controller = SSMSControllerModPluginEx.controller;
+
+        playerFleetManager = Global.getCombatEngine().getFleetManager(FleetSide.PLAYER);
+        playerTaskManager = playerFleetManager.getTaskManager(false);
+        deployedPlayerShips = playerFleetManager.getAllEverDeployedCopy();
+        deployedFleetMember = null;
+
+        indicators = new ArrayList<>();
+        indicators.add(new Pair<>(Indicators.Start, "Pause"));
+        indicators.add(new Pair<>(Indicators.Select, "Show video feed"));
+        if(!deployedPlayerShips.isEmpty()) {
+            indicators.add((new Pair<>(Indicators.BumperLeft, "Select prev ship")));
+            indicators.add((new Pair<>(Indicators.BumperRight, "Select next ship")));
+        }
     }
 
     @Override
@@ -50,6 +67,10 @@ public class WarroomScreen extends InputScreenBase {
             InputScreenManager.getInstance().transitionDelayed(BattleSteeringScreen.ID);
             return;
         }
+        if(Global.getCombatEngine().getCombatUI().isShowingDeploymentDialog()) {
+            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MessageBoxScreen.ID, new Object[]{});
+            return;
+        }
 
         if(controller.getButtonEvent(HandlerController.Buttons.Start) == 1) {
             Global.getCombatEngine().setPaused(!Global.getCombatEngine().isPaused());
@@ -57,7 +78,17 @@ public class WarroomScreen extends InputScreenBase {
             csr.HideWarroom();
             csr.SetVideoFeedToPlayerShip();
             //Global.getCombatEngine().sho
+        } else if(controller.getButtonEvent(HandlerController.Buttons.BumperLeft) == 1) {
+
+            int selectedShipIdx = -1;
+            if(deployedFleetMember != null) {
+                selectedShipIdx = deployedPlayerShips.indexOf(deployedFleetMember);
+            }
         }
 
+    }
+
+    @Override
+    public void renderInWorld(ViewportAPI viewport) {
     }
 }
