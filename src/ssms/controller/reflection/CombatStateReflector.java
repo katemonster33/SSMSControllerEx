@@ -197,7 +197,7 @@ public class CombatStateReflector {
     
     public void SetVideoFeedToPlayerShip() {
         //TODO IMPLEMENT THIS
-        SetVideoFeedToShipTarget(null);
+        SetVideoFeedToShipTarget(Global.getCombatEngine().getPlayerShip());
 //        try {
 //            MethodReflector.GetInstance().invoke(mCombatStateSetVideoFeedSource, null);
 //        } catch(Throwable ex) {

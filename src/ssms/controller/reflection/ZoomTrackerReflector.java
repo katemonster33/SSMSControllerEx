@@ -8,6 +8,7 @@ public class ZoomTrackerReflector {
     Object zoomMinField;
     Object zoomMaxField;
     Object zoomTrackerObj;
+    // we're basically crossing our fingers here and hoping the order of the fields never changes. it probably will eventually. can't do much about it.
     public ZoomTrackerReflector(Object combatStateObj) throws Throwable {
         Object zoomTrackerField = ClassReflector.GetInstance().getDeclaredField(CombatState.class, "zoomTracker");
         zoomTrackerObj = FieldReflector.GetInstance().GetVariable(zoomTrackerField, combatStateObj);

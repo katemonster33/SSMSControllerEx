@@ -6,6 +6,7 @@ import com.fs.starfarer.api.Global;
 import ssms.controller.SSMSControllerModPluginEx;
 import ssms.controller.InputScopeBase;
 import ssms.controller.InputScreenManager;
+import ssms.controller.reflection.InteractionDialogReflector;
 
 import java.util.Objects;
 
@@ -35,6 +36,10 @@ public class CampaignControllerListener implements EveryFrameScript {
             }
             InputScreenManager.getInstance().preInput(amount);
             InputScreenManager.getInstance().renderUI(Global.getSector().getViewport());
+            if(Global.getSector().getCampaignUI().isShowingDialog()) {
+                var interactReflector = InteractionDialogReflector.GetInstance();
+                Global.getLogger(interactReflector.getClass()).info("Got interaction dialog!");
+            }
         }
     }
 }

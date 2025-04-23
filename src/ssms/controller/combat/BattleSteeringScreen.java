@@ -252,7 +252,9 @@ public class BattleSteeringScreen extends InputScreenBase {
         }// else wasShieldOn = false;
         
         //center on player ship
-        CombatStateReflector.GetInstance().SetVideoFeedToPlayerShip();
+        //CombatStateReflector.GetInstance().SetVideoFeedToPlayerShip();
+        Global.getCombatEngine().getViewport().setExternalControl(true);
+        Global.getCombatEngine().getViewport().setCenter(ps.getLocation());
     }
     
     @Override
