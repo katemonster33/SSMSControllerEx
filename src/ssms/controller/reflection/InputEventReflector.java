@@ -22,18 +22,23 @@ public class InputEventReflector {
     MethodHandle setX;
     MethodHandle setY;
 
+    MethodHandle addToList;
+
     public InputEventReflector(Class<?> listType, Class<?> evtType) throws Throwable{
-        arrCtor = MethodHandles.lookup().findConstructor(listType, MethodType.methodType(void.class));
+        var lookup = MethodHandles.lookup();
+        arrCtor = lookup.findConstructor(listType, MethodType.methodType(void.class));
 
-        ctor = MethodHandles.lookup().findConstructor(evtType, MethodType.methodType(void.class, InputEventClass.class, InputEventType.class, int.class, int.class, int.class, char.class));
+        addToList = lookup.findVirtual(listType, "add", MethodType.methodType(boolean.class, Object.class));
 
-        setDX = MethodHandles.lookup().findVirtual(evtType, "setDX", MethodType.methodType(void.class, int.class));
+        ctor = lookup.findConstructor(evtType, MethodType.methodType(void.class, InputEventClass.class, InputEventType.class, int.class, int.class, int.class, char.class));
 
-        setDY = MethodHandles.lookup().findVirtual(evtType, "setDY", MethodType.methodType(void.class, int.class));
+        setDX = lookup.findVirtual(evtType, "setDX", MethodType.methodType(void.class, int.class));
 
-        setX = MethodHandles.lookup().findVirtual(evtType, "setX", MethodType.methodType(void.class, int.class));
+        setDY = lookup.findVirtual(evtType, "setDY", MethodType.methodType(void.class, int.class));
 
-        setY = MethodHandles.lookup().findVirtual(evtType, "setY", MethodType.methodType(void.class, int.class));
+        setX = lookup.findVirtual(evtType, "setX", MethodType.methodType(void.class, int.class));
+
+        setY = lookup.findVirtual(evtType, "setY", MethodType.methodType(void.class, int.class));
     }
 
     public static void initializeFromListType(Class<?> cls) {
@@ -43,7 +48,7 @@ public class InputEventReflector {
         try {
             instance = new InputEventReflector(cls, inputEventClass);
         } catch(Throwable ex) {
-            Global.getLogger(InputEventReflector.class).warn("Couldn't derive the class of the input events!");
+            Global.getLogger(InputEventReflector.class).warn("Couldn't derive the class of the input events!", ex);
         }
     }
 
@@ -57,6 +62,14 @@ public class InputEventReflector {
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't create a new input event array!", ex);
             return null;
+        }
+    }
+
+    public void addToList(List<?> lst, InputEventAPI evt) {
+        try {
+            addToList.invoke(lst, evt);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).fatal("Couldn't add event to list!", ex);
         }
     }
 

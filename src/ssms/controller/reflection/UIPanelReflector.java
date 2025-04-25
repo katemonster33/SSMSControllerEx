@@ -10,20 +10,20 @@ import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 
 public class UIPanelReflector {
-    static Class<?> panelType;
+    static Class<? extends  UIPanelAPI> panelType;
     static Object getChildItemsHandle;
-    public static void initialize(Class<?> panelType)
+    public static void initialize(Class<? extends UIPanelAPI> panelType)
     {
         try {
-            Object[] methods = ClassReflector.GetInstance().getDeclaredMethods(panelType);
-            for(var method : methods) {
-                if(MethodReflector.GetInstance().getName(method) == "getChildrenCopy") {
-                    getChildItemsHandle = method;
-                    break;
+            if(UIPanelAPI.class.isAssignableFrom(panelType)) {
+                var meth = ClassReflector.GetInstance().findDeclaredMethod(panelType, "getChildrenCopy");
+                if(meth != null) {
+                    getChildItemsHandle = meth;
+                    UIPanelReflector.panelType = panelType;
                 }
             }
         } catch(Throwable ex) {
-            Global.getLogger(UIPanelReflector.class).log(Level.WARN, "Can't reflect panel type: " + panelType + ", " + ex.getMessage() );
+            Global.getLogger(UIPanelReflector.class).warn("Can't reflect panel type", ex );
         }
     }
 
@@ -31,7 +31,7 @@ public class UIPanelReflector {
         try {
             return (List<?>) MethodReflector.GetInstance().invoke(getChildItemsHandle, panel);
         } catch(Throwable ex) {
-            Global.getLogger(UIPanelReflector.class).log(Level.FATAL, "Could not get child items of UIPanel! " + ex);
+            Global.getLogger(UIPanelReflector.class).fatal("Could not get child items of UIPanel! ", ex);
             return new ArrayList<>();
         }
     }

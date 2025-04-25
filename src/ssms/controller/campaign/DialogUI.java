@@ -1,12 +1,14 @@
 package ssms.controller.campaign;
 
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.combat.ViewportAPI;
+import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.apache.log4j.Level;
 import ssms.controller.*;
+import ssms.controller.reflection.InteractionDialogReflector;
+import ssms.controller.reflection.TradeUiReflector;
 import ssms.controller.reflection.UIPanelReflector;
 
 import java.lang.invoke.MethodHandle;
@@ -21,6 +23,8 @@ public class DialogUI extends InputScreenBase {
     MethodHandle doButtonClick;
     int selectedButton = -1;
     HandlerController controller;
+    InteractionDialogReflector  interactReflector;
+    InteractionDialogAPI interactionDialogAPI;
     public static final String ID = "Dialog";
     public List<Pair<Indicators, String>> indicators;
 
@@ -32,10 +36,11 @@ public class DialogUI extends InputScreenBase {
 
     @Override
     public void activate(Object... args) {
-        var dialog = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
+        interactionDialogAPI = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
+        interactReflector = InteractionDialogReflector.GetInstance();
         dialogOptions = null;
-        if(dialog != null) {
-            optionsPanel = (UIPanelAPI) dialog.getOptionPanel();
+        if(interactionDialogAPI != null) {
+            optionsPanel = (UIPanelAPI) interactionDialogAPI.getOptionPanel();
             try {
                 doButtonClick = MethodHandles.lookup().findVirtual(optionsPanel.getClass(), "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
             } catch(Throwable ex) {
@@ -110,6 +115,15 @@ public class DialogUI extends InputScreenBase {
     public void preInput(float advance) {
         if(!Global.getSector().getCampaignUI().isShowingDialog()) {
             InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
+            return;
+        }
+        var interactionCoreUi = interactReflector.getCoreUI(interactionDialogAPI);
+        if(interactionCoreUi != null && interactionCoreUi.getTradeMode() != null) {
+            var tradeUi = TradeUiReflector.TryGet(interactionCoreUi);
+            if(tradeUi != null) {
+                InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{ tradeUi });
+                return;
+            }
         }
         if(dialogOptions == null) {
             selectedButton = -1;

@@ -16,6 +16,8 @@ import java.awt.*;
 import java.awt.event.InputEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
 import ssms.controller.Indicators;
 import ssms.controller.reflection.CampaignStateReflector;
 
@@ -118,7 +120,9 @@ public class MainCampaignUI  extends InputScreenBase {
     boolean startButtonHandled = false;
     @Override
     public void preInput(float advance) {
-
+        if(Global.getSector().getCampaignUI().isShowingDialog()) {
+            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, DialogUI.ID, new Object[]{});
+        }
         ReadableVector2f vDesiredHeading = handler.getLeftStick();
         if (vDesiredHeading.getX() != 0 || vDesiredHeading.getY() != 0) {
 //            CampaignFleetAPI playerFleet = Global.getSector().getPlayerFleet();

@@ -17,11 +17,15 @@
  */
 package ssms.controller;
 
+import com.fs.starfarer.api.ui.UIPanelAPI;
 import net.java.games.input.ControllerEnvironment;
 import ssms.controller.campaign.CampaignControllerListener;
 import ssms.controller.campaign.DialogUI;
 import ssms.controller.campaign.MainCampaignUI;
 import ssms.controller.combat.*;
+import ssms.controller.campaign.TradeScreen;
+import ssms.controller.generic.MessageBoxScreen;
+import ssms.controller.reflection.UIPanelReflector;
 import ssms.controller.titlescreen.AutoMapperUI;
 import ssms.controller.titlescreen.TitleScreenUI;
 
@@ -68,6 +72,8 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                 mapping.indicators = indicatorsByController.get(mapping.indicatorProfile);
             }
         }
+        var testPnl = Global.getSettings().createCustom(1.f, 1.f, null);
+        UIPanelReflector.initialize((Class<? extends UIPanelAPI>) testPnl.getClass().getSuperclass());
         // var csvObj = Global.getSettings().loadCSV("data/config/gamecontrollerdb.txt");
         // for(int i =0; i < csvObj.length(); i++) {
         //     String guid = csvObj.getJSONObject(i).getString("guid");
@@ -97,6 +103,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         man.registerScreen(new MessageBoxScreen());
         man.registerScreen(new BattleDeploymentScreen());
         man.registerScreen(new WarroomScreen());
+        man.registerScreen(new TradeScreen());
     }
 
     // enum ButtonMapping

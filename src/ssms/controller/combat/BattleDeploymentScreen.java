@@ -2,11 +2,10 @@ package ssms.controller.combat;
 
 import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.input.InputEventClass;
-import com.fs.starfarer.api.input.InputEventType;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.util.Pair;
 import ssms.controller.*;
+import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.reflection.*;
 
 import java.util.ArrayList;

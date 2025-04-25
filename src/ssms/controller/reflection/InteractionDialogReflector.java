@@ -1,6 +1,7 @@
 package ssms.controller.reflection;
 
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CoreUIAPI;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.campaign.InteractionDialogPlugin;
 
@@ -8,10 +9,11 @@ import java.util.Objects;
 
 public class InteractionDialogReflector {
     static InteractionDialogReflector instance;
-    InteractionDialogAPI interactionDialogAPI;
+    Object getCoreUI;
     Object getPlugin;
     private InteractionDialogReflector() throws Throwable{
-        interactionDialogAPI = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
+
+        var interactionDialogAPI = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
         Object getCargoPicker = null;
         var methods = ClassReflector.GetInstance().getDeclaredMethods(interactionDialogAPI.getClass());
         for(var meth : methods) {
@@ -21,10 +23,20 @@ public class InteractionDialogReflector {
             }
         }
 
+        getCoreUI = ClassReflector.GetInstance().findDeclaredMethod(interactionDialogAPI.getClass(), "getCoreUI");
         getPlugin = ClassReflector.GetInstance().findDeclaredMethod(interactionDialogAPI.getClass(), "getPlugin");
     }
 
-    public InteractionDialogPlugin getPlugin() {
+    public CoreUIAPI getCoreUI(InteractionDialogAPI interactionDialogAPI) {
+        try {
+            return (CoreUIAPI) MethodReflector.GetInstance().invoke(getCoreUI, interactionDialogAPI);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).warn("Couldn't get CoreUI from InteractionDialogAPI!", ex);
+            return null;
+        }
+    }
+
+    public InteractionDialogPlugin getPlugin(InteractionDialogAPI interactionDialogAPI) {
         try {
             return (InteractionDialogPlugin) MethodReflector.GetInstance().invoke(getPlugin, interactionDialogAPI);
         } catch(Throwable ex) {

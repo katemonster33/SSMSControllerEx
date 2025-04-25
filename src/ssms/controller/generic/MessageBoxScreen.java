@@ -1,15 +1,14 @@
-package ssms.controller;
+package ssms.controller.generic;
 
 import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.ui.ButtonAPI;
-import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
+import ssms.controller.*;
 import ssms.controller.combat.BattleScope;
 import ssms.controller.reflection.ClassReflector;
 import ssms.controller.reflection.MessageBoxReflector;
 import ssms.controller.reflection.MethodReflector;
-import ssms.controller.reflection.UIPanelReflector;
 
 import java.util.ArrayList;
 import java.util.List;
