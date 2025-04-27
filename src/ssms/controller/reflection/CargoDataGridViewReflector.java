@@ -15,9 +15,6 @@ public class CargoDataGridViewReflector {
 
         try {
             processInputImpl = ClassReflector.GetInstance().findDeclaredMethod(cargoGridView.getClass(), "processInputImpl");
-
-            var processInputTypes = MethodReflector.GetInstance().getParameterTypes(processInputImpl);
-            InputEventReflector.initializeFromListType(processInputTypes[0]);
         } catch(Throwable ex) {
             Global.getLogger(getClass()).fatal("Couldn't reflect input handler of CargoDataGridView!", ex);
         }

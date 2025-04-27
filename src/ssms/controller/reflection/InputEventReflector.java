@@ -4,6 +4,9 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.input.InputEventClass;
 import com.fs.starfarer.api.input.InputEventType;
+import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.InputImplementation;
+import ssms.controller.InputShim;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -22,8 +25,10 @@ public class InputEventReflector {
     MethodHandle setX;
     MethodHandle setY;
 
-    MethodHandle addToList;
+    Object inputImplField;
 
+    MethodHandle addToList;
+    InputShim inputShim;
     public InputEventReflector(Class<?> listType, Class<?> evtType) throws Throwable{
         var lookup = MethodHandles.lookup();
         arrCtor = lookup.findConstructor(listType, MethodType.methodType(void.class));
@@ -39,6 +44,31 @@ public class InputEventReflector {
         setX = lookup.findVirtual(evtType, "setX", MethodType.methodType(void.class, int.class));
 
         setY = lookup.findVirtual(evtType, "setY", MethodType.methodType(void.class, int.class));
+
+        inputImplField = ClassReflector.GetInstance().getDeclaredField(Mouse.class, "implementation");
+    }
+
+    public void InstallShim() {
+        if(inputShim != null) {
+            Global.getLogger(getClass()).info("Input shim already installed!");
+        } else {
+            try {
+                InputImplementation originalImpl = (InputImplementation) FieldReflector.GetInstance().GetVariable(inputImplField, null);
+                if (originalImpl.getClass() == InputShim.class) {
+                    // we probably won't ever hit this, this is only if we recreate the InputEventReflector and then reinstall the existing shim
+                    inputShim = (InputShim) originalImpl;
+                } else {
+                    inputShim = new InputShim(originalImpl);
+                    FieldReflector.GetInstance().SetVariable(inputImplField, null, inputShim);
+                }
+            } catch (Throwable ex) {
+                Global.getLogger(getClass()).fatal("Couldn't install input shim!", ex);
+            }
+        }
+    }
+
+    public InputShim GetShim() {
+        return inputShim;
     }
 
     public static void initializeFromListType(Class<?> cls) {
@@ -79,6 +109,15 @@ public class InputEventReflector {
 
     public InputEventAPI createMouseMoveEvent(int x, int y) throws Throwable {
         var newEvent = createInputEvent(InputEventClass.MOUSE_EVENT, InputEventType.MOUSE_MOVE, 0, 0, 0, '\0');
+        setDX.invoke(newEvent, 0);
+        setDY.invoke(newEvent, 0);
+        setX.invoke(newEvent, x);
+        setY.invoke(newEvent, y);
+        return newEvent;
+    }
+
+    public InputEventAPI createMouseLeftClickEvent(int x, int y) throws Throwable {
+        var newEvent = createInputEvent(InputEventClass.MOUSE_EVENT, InputEventType.MOUSE_DOWN, 0, 0, 0, '\0');
         setDX.invoke(newEvent, 0);
         setDY.invoke(newEvent, 0);
         setX.invoke(newEvent, x);

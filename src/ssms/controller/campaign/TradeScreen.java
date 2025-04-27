@@ -45,15 +45,43 @@ public class TradeScreen extends InputScreenBase {
         otherDataGrid = tradeUiReflector.getOtherCargoView();
     }
 
+    @Override
+    public void deactivate() {
+        InputEventReflector.GetInstance().GetShim().stopOverrideMousePos();
+    }
+
     void mouseOverStack(CargoDataGridViewReflector gridView, CargoStackView cargoStackView) {
 
         List<InputEventAPI> eventList = new ArrayList<>();
         try {
             Object getPosition = ClassReflector.GetInstance().findDeclaredMethod(cargoStackView.getClass(), "getPosition");
+            PositionAPI positionAPI = (PositionAPI) MethodReflector.GetInstance().invoke(getPosition, cargoStackView);
+//            eventList.add(InputEventReflector.GetInstance().createMouseMoveEvent((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY()));
+//            //Mouse.setCursorPosition((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY());
+//            cargoStackView.setHighlightOnMouseOver(false);
+//            cargoStackView.processInput(eventList);
+//            var eventLstPriv = InputEventReflector.GetInstance().createList();
+//            InputEventReflector.GetInstance().addToList(eventLstPriv, eventList.get(0));
+//            gridView.processInputImpl(eventLstPriv);
+//            cargoStackView.getHighlightFader().forceIn();
+            InputEventReflector.GetInstance().GetShim().overrideMousePos((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY());
+        }catch(Throwable ex) {
+            Global.getLogger(getClass()).fatal("Failed to get stack's position!", ex);
+        }
+    }
+
+    void clickStack(CargoDataGridViewReflector gridView, CargoStackView cargoStackView) {
+
+        try {
+            Object getPosition = ClassReflector.GetInstance().findDeclaredMethod(cargoStackView.getClass(), "getPosition");
 
             PositionAPI positionAPI = (PositionAPI) MethodReflector.GetInstance().invoke(getPosition, cargoStackView);
-            eventList.add(InputEventReflector.GetInstance().createMouseMoveEvent((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY()));
-            Mouse.setCursorPosition((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY());
+            var eventList = InputEventReflector.GetInstance().createList();
+            var newEvt = InputEventReflector.GetInstance().createMouseLeftClickEvent((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY());
+            InputEventReflector.GetInstance().addToList(eventList, newEvt);
+            //Mouse.setCursorPosition((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY());
+            cargoStackView.setHighlightOnMouseOver(false);
+            gridView.processInputImpl(eventList);
         }catch(Throwable ex) {
             Global.getLogger(getClass()).fatal("Failed to get stack's position!", ex);
         }
@@ -61,6 +89,43 @@ public class TradeScreen extends InputScreenBase {
 
     @Override
     public void preInput(float advance) {
+        //if(gridStackIndexSelected == -1) {
+            if(playerGridSelected) {
+                if(playerGridItems == null) {
+                    playerGridItems = playerDataGrid.getStacks();
+                }
+                if(playerGridItems != null && !playerGridItems.isEmpty()) {
+                    gridStackIndexSelected = 0;
+                    mouseOverStack(playerDataGrid, playerGridItems.get(gridStackIndexSelected));
+                }
+            } else {
+                if(otherGridItems == null) {
+                    otherGridItems = otherDataGrid.getStacks();
+                }
+                if(otherGridItems != null && !otherGridItems.isEmpty()) {
+                    gridStackIndexSelected = 0;
+                    mouseOverStack(otherDataGrid, otherGridItems.get(gridStackIndexSelected));
+                }
+            }
+        //}
+        if(controller.isLeftStickUp()) {
+
+        } else if(controller.isLeftStickDown()) {
+
+        } else if(controller.isButtonAPressed()) {
+            if(gridStackIndexSelected != -1) {
+                if(playerGridSelected) {
+                    clickStack(playerDataGrid, playerGridItems.get(gridStackIndexSelected));
+                } else {
+                    clickStack(otherDataGrid, otherGridItems.get(gridStackIndexSelected));
+                }
+            }
+        }
+    }
+
+    @Override
+    public void postInput(float advance) {
+
         if(gridStackIndexSelected == -1) {
             if(playerGridSelected) {
                 if(playerGridItems == null) {
@@ -81,11 +146,6 @@ public class TradeScreen extends InputScreenBase {
                     mouseOverStack(otherDataGrid, otherGridItems.get(0));
                 }
             }
-        }
-        if(controller.isLeftStickUp()) {
-
-        } else if(controller.isLeftStickDown()) {
-
         }
     }
 

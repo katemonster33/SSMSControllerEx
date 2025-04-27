@@ -18,13 +18,14 @@
 package ssms.controller;
 
 import com.fs.starfarer.api.ui.UIPanelAPI;
+import com.fs.starfarer.campaign.ui.trade.CargoDataGridView;
 import net.java.games.input.ControllerEnvironment;
-import ssms.controller.campaign.CampaignControllerListener;
-import ssms.controller.campaign.DialogUI;
-import ssms.controller.campaign.MainCampaignUI;
+import ssms.controller.campaign.*;
 import ssms.controller.combat.*;
-import ssms.controller.campaign.TradeScreen;
 import ssms.controller.generic.MessageBoxScreen;
+import ssms.controller.reflection.ClassReflector;
+import ssms.controller.reflection.InputEventReflector;
+import ssms.controller.reflection.MethodReflector;
 import ssms.controller.reflection.UIPanelReflector;
 import ssms.controller.titlescreen.AutoMapperUI;
 import ssms.controller.titlescreen.TitleScreenUI;
@@ -74,6 +75,17 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         }
         var testPnl = Global.getSettings().createCustom(1.f, 1.f, null);
         UIPanelReflector.initialize((Class<? extends UIPanelAPI>) testPnl.getClass().getSuperclass());
+
+        try {
+            var processInputImplMethod = ClassReflector.GetInstance().findDeclaredMethod(CargoDataGridView.class, "processInputImpl");
+
+            var processInputTypes = MethodReflector.GetInstance().getParameterTypes(processInputImplMethod);
+            InputEventReflector.initializeFromListType(processInputTypes[0]);
+
+            InputEventReflector.GetInstance().InstallShim();
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).fatal("Couldn't reflect input handler of CargoDataGridView!", ex);
+        }
         // var csvObj = Global.getSettings().loadCSV("data/config/gamecontrollerdb.txt");
         // for(int i =0; i < csvObj.length(); i++) {
         //     String guid = csvObj.getJSONObject(i).getString("guid");
