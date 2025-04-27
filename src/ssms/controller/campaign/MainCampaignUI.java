@@ -120,7 +120,7 @@ public class MainCampaignUI  extends InputScreenBase {
     boolean startButtonHandled = false;
     @Override
     public void preInput(float advance) {
-        if(Global.getSector().getCampaignUI().isShowingDialog()) {
+        if(Global.getSector().getCampaignUI().isShowingDialog() && Global.getSector().getCampaignUI().getCurrentInteractionDialog() != null) {
             InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, DialogUI.ID, new Object[]{});
         }
         ReadableVector2f vDesiredHeading = handler.getLeftStick();

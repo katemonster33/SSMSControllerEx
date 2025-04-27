@@ -1,6 +1,7 @@
 package ssms.controller;
 
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.CustomPanelAPI;
@@ -8,6 +9,7 @@ import com.fs.starfarer.api.ui.TooltipMakerAPI;
 import com.fs.starfarer.api.util.Pair;
 
 import lunalib.lunaUI.panel.LunaBaseCustomPanelPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -42,6 +44,11 @@ public class IndicatorDisplayPanel extends LunaBaseCustomPanelPlugin  {
 
             default -> getPanel().getPosition().inMid();
         }
+    }
+
+    @Override
+    public void processInput(@NotNull List<InputEventAPI> inputs) {
+        // do nothing, we don't handle inputs
     }
 
     public CustomPanelAPI getSubpanel() {
