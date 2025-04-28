@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InputEventReflector {
+    Class<?> inputEventListType;
+    Class<?> inputEventType;
     private static InputEventReflector instance;
     MethodHandle arrCtor;
     MethodHandle ctor;
@@ -49,6 +51,10 @@ public class InputEventReflector {
         setShiftDown = lookup.findVirtual(evtType, "setShiftDown", MethodType.methodType(void.class, boolean.class));
 
         inputImplField = ClassReflector.GetInstance().getDeclaredField(Mouse.class, "implementation");
+
+        inputEventListType = listType;
+
+        inputEventType = evtType;
     }
 
     public void InstallShim() {
@@ -72,6 +78,14 @@ public class InputEventReflector {
 
     public InputShim GetShim() {
         return inputShim;
+    }
+
+    public Class<?> getInputEventListType() {
+        return inputEventListType;
+    }
+
+    public Class<?> getInputEventType() {
+        return inputEventType;
     }
 
     public static void initializeFromListType(Class<?> cls) {

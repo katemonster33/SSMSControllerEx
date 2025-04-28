@@ -32,12 +32,14 @@ public class CargoStackPickerScreen  extends InputScreenBase {
     Object scrollbarField;
     UIPanelAPI scrollbar;
     MethodHandle getScrollbarValue;
+    int mouseX = -1, mouseY = -1;
 
     public CargoStackPickerScreen() {
         indicators = new ArrayList<>();
         indicators.add(new Pair<>(Indicators.LeftStickLeft, "Select less"));
         indicators.add(new Pair<>(Indicators.LeftStickRight, "Select more"));
-        indicators.add(new Pair<>(Indicators.Y, "Take all"));
+        indicators.add(new Pair<>(Indicators.LeftStickUp, "Select all"));
+        indicators.add(new Pair<>(Indicators.LeftStickDown, "Select none"));
         indicators.add(new Pair<>(Indicators.B, "Cancel"));
         indicators.add(new Pair<>(Indicators.A, "Confirm"));
         controller = SSMSControllerModPluginEx.controller;
@@ -45,16 +47,19 @@ public class CargoStackPickerScreen  extends InputScreenBase {
 
     @Override
     public void activate(Object ... args) {
-
         tradeUiReflector = (TradeUiReflector) args[0];
         curGrid = (CargoDataGridViewReflector) args[1];
         curStack = (CargoStackView) args[2];
         scrollbar = null;
+        mouseX = mouseY = -1;
     }
 
+    @Override
+    public void deactivate() {
+        InputEventReflector.GetInstance().GetShim().stopOverrideMousePos();
+    }
 
     void confirm() {
-
         try {
             List<InputEventAPI> events = new ArrayList<>();
             events.add(InputEventReflector.GetInstance().createMouseUpEvent(mouseX, mouseY, 0));
@@ -63,27 +68,13 @@ public class CargoStackPickerScreen  extends InputScreenBase {
             Global.getLogger(getClass()).fatal("Failed send left-click mouse event!", ex);
         }
     }
-
-    void takeAll() {
-
-        try {
-            mouseX = (int)(scrollbar.getPosition().getX() + scrollbar.getPosition().getWidth());
-            InputEventReflector.GetInstance().GetShim().overrideMousePos(mouseX, mouseY);
-            List<InputEventAPI> events = new ArrayList<>();
-            events.add(InputEventReflector.GetInstance().createMouseUpEvent(mouseX, mouseY, 0));
-            tradeUiReflector.getParent().processInput(events);
-        }catch(Throwable ex) {
-            Global.getLogger(getClass()).fatal("Failed send left-click mouse event!", ex);
-        }
-    }
-
 
     void cancel() {
-
         try {
             List<InputEventAPI> events = new ArrayList<>();
             events.add(InputEventReflector.GetInstance().createMouseDownEvent(mouseX, mouseY, 1));
             events.add(InputEventReflector.GetInstance().createMouseUpEvent(mouseX, mouseY, 1));
+            // send the left-click up event after the right click - this ensures the UI doesn't get confused seeing multiple left-click events in a row
             events.add(InputEventReflector.GetInstance().createMouseUpEvent(mouseX, mouseY, 0));
             tradeUiReflector.getParent().processInput(events);
         } catch(Throwable ex) {
@@ -127,14 +118,13 @@ public class CargoStackPickerScreen  extends InputScreenBase {
         return false;
     }
 
-    int mouseX = -1, mouseY = -1;
-
     @Override
     public void preInput(float advance) {
         if(scrollbar == null && !tryGetComponents()) {
             return;
         } else {
             try {
+                // sometimes when trade UI calls us, the trade UI is not actually transferring cargo so we need to pass control back to TradeScreen
                 if (scrollbar == null || FieldReflector.GetInstance().GetVariable(scrollbarField, cargoTransferHandler) == null) {
                     // scrollbar UI has been nullified without our intervention, assume the transfer is cancelled
                     InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{ tradeUiReflector });
@@ -152,6 +142,12 @@ public class CargoStackPickerScreen  extends InputScreenBase {
         } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickRight) == 1 && controller.isLeftStickRight()) {
             mouseX += 10;
             mouseX = Math.min((int)(scrollbar.getPosition().getX() + scrollbar.getPosition().getWidth()), mouseX);
+            updateMousePos();
+        } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1 && controller.isLeftStickUp()) {
+            mouseX = (int)scrollbar.getPosition().getX();
+            updateMousePos();
+        } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1 && controller.isLeftStickDown()) {
+            mouseX = (int)(scrollbar.getPosition().getX() + scrollbar.getPosition().getWidth());
             updateMousePos();
         } else if(controller.getButtonEvent(HandlerController.Buttons.B) == 1 && controller.isButtonBPressed()) {
             cancel();

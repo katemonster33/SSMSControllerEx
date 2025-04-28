@@ -53,14 +53,8 @@ public class TradeScreen extends InputScreenBase {
     }
 
     void mouseOverStack(CargoStackView cargoStackView) {
-
-        List<InputEventAPI> eventList = new ArrayList<>();
-        try {
-            PositionAPI positionAPI = ((UIComponentAPI)cargoStackView).getPosition();
-            InputEventReflector.GetInstance().GetShim().overrideMousePos((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY());
-        }catch(Throwable ex) {
-            Global.getLogger(getClass()).fatal("Failed to get stack's position!", ex);
-        }
+        PositionAPI positionAPI = ((UIComponentAPI)cargoStackView).getPosition();
+        InputEventReflector.GetInstance().GetShim().overrideMousePos((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY());
     }
 
     void clickStack(CargoDataGridViewReflector gridView) {
@@ -86,7 +80,7 @@ public class TradeScreen extends InputScreenBase {
             throw new IllegalArgumentException("Can't currently move more than 1 row in any direction!");
         }
         int numRows = curGrid.getPrivateObject().getRows(), numCols = curGrid.getPrivateObject().getCols();
-        int curRow = gridStackIndexSelected / numRows, curCol = gridStackIndexSelected & numRows;
+        int curRow = gridStackIndexSelected / numRows, curCol = gridStackIndexSelected % numRows;
         if(colDelta != 0) {
             curCol = clamp(colDelta + curCol, numCols);
         }
@@ -123,8 +117,11 @@ public class TradeScreen extends InputScreenBase {
             selectStack(curGrid, 0, 1);
         } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1 && controller.isButtonAPressed()) {
             if(gridStackIndexSelected != -1) {
+                var stacks = curGrid.getStacks();
                 clickStack(curGrid);
-                InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, CargoStackPickerScreen.ID, new Object[]{tradeUiReflector, curGrid, curGrid.getStacks().get(gridStackIndexSelected)});
+                if(gridStackIndexSelected < stacks.size()) {
+                    InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, CargoStackPickerScreen.ID, new Object[]{tradeUiReflector, curGrid, stacks.get(gridStackIndexSelected)});
+                }
             }
         } else if(controller.getButtonEvent(HandlerController.Buttons.Select) == 1 && controller.isButtonSelectPressed()) {
             playerGridSelected = !playerGridSelected;

@@ -1,5 +1,6 @@
 package ssms.controller;
 
+import com.fs.graphics.util.Fader;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
@@ -20,10 +21,14 @@ public class IndicatorDisplayPanel extends LunaBaseCustomPanelPlugin  {
     List<Pair<Indicators, String>> indicators;
     UIPanelAPI parentPanel;
     CustomPanelAPI subpanel;
+    Fader fader;
+    float elapsed = 0;
+    static final float FADE_DELAY = 2;
     public IndicatorDisplayPanel(UIPanelAPI parentPanel, List<Pair<Indicators, String>> args, Alignment panelAlignment) throws IllegalArgumentException {
         if ( args == null || args.isEmpty() ) {
             throw new IllegalArgumentException("indicators list cannot be empty!");
         }
+        fader = new Fader(1.f, 2.f);
         indicators = new ArrayList<>(args);
         this.parentPanel = parentPanel;
         subpanel =  Global.getSettings().createCustom(400, 25 * args.size(), this);
@@ -47,6 +52,24 @@ public class IndicatorDisplayPanel extends LunaBaseCustomPanelPlugin  {
     }
 
     @Override
+    public void advance(float amount) {
+        super.advance(amount);
+        elapsed += amount;
+        if(elapsed > FADE_DELAY) {
+            fader.fadeOut();
+            fader.advance(amount);
+            if(fader.isFadedOut()) {
+                cleanup();
+            }
+        }
+    }
+
+    @Override
+    public void render(float alphaMult) {
+        super.render(fader.getBrightness() * alphaMult);
+    }
+
+    @Override
     public void processInput(@NotNull List<InputEventAPI> inputs) {
         // do nothing, we don't handle inputs
     }
@@ -54,6 +77,7 @@ public class IndicatorDisplayPanel extends LunaBaseCustomPanelPlugin  {
     public CustomPanelAPI getSubpanel() {
         return subpanel;
     }
+
     @Override
     public void init() {
         TooltipMakerAPI prevImgElem = null;

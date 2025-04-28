@@ -106,7 +106,6 @@ public class DialogUI extends InputScreenBase {
             } catch(Throwable ex) {
                 Global.getLogger(getClass()).log(Level.ERROR, "couldn't fire button event!");
             }
-            //titleScreenButtons.get(selectedButton).
         }
     }
 

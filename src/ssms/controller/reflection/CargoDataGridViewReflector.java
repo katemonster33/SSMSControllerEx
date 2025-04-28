@@ -1,22 +1,25 @@
 package ssms.controller.reflection;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.campaign.ui.trade.CargoDataGridView;
 import com.fs.starfarer.campaign.ui.trade.CargoStackView;
+import com.fs.starfarer.campaign.util.CollectionView;
 
 public class CargoDataGridViewReflector {
     CargoDataGridView cargoDataGridView;
-    Object processInputImpl;
+    Object stackViewField;
     public CargoDataGridViewReflector(CargoDataGridView cargoGridView) {
         this.cargoDataGridView = cargoGridView;
-
         try {
-            processInputImpl = ClassReflector.GetInstance().findDeclaredMethod(cargoGridView.getClass(), "processInputImpl");
+            stackViewField = ClassReflector.GetInstance().getDeclaredField(cargoGridView.getClass(), "stackView");
         } catch(Throwable ex) {
-            Global.getLogger(getClass()).fatal("Couldn't reflect input handler of CargoDataGridView!", ex);
+            Global.getLogger(getClass()).warn("Couldn't get the field for the CargoDataGridView ItemView(s)!", ex);
         }
     }
 
@@ -26,27 +29,19 @@ public class CargoDataGridViewReflector {
 
     public  List<CargoStackView> getStacks() {
         try {
-            var children = UIPanelReflector.getChildItems((UIPanelAPI) cargoDataGridView);
-            List<CargoStackView> stacks = new ArrayList<>();
-            for(var child : children) {
-                if(CargoStackView.class.isAssignableFrom(child.getClass())) {
-                    stacks.add((CargoStackView) child);
+            Object stackViewObj = FieldReflector.GetInstance().GetVariable(stackViewField, cargoDataGridView);
+            if(stackViewObj instanceof CollectionView<?> stackView) {
+                List<CargoStackView> output = new ArrayList<>();
+                for(var child : stackView.getViews()) {
+                    if(child instanceof CargoStackView cargoStackView) {
+                        output.add(cargoStackView);
+                    }
                 }
+                return output;
             }
-            return stacks;
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't get CargoDataGridView children!", ex);
-            return null;
         }
-    }
-
-    public void processInputImpl(List<?> lstInputs) {
-        try {
-            MethodReflector.GetInstance().setAccessible(processInputImpl, true);
-
-            MethodReflector.GetInstance().invoke(processInputImpl, cargoDataGridView, lstInputs);
-        } catch(Throwable ex) {
-            Global.getLogger(getClass()).fatal("Can't send fake inputs to cargo view!", ex);
-        }
+        return null;
     }
 }
