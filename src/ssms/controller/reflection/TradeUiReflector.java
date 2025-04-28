@@ -12,10 +12,12 @@ import java.lang.invoke.MethodType;
 
 public class TradeUiReflector {
     Object tradeObj;
+    UIPanelAPI parent;
     MethodHandle confirmTransaction;
     MethodHandle cancelTransaction;
-    private TradeUiReflector(Object tradeObj) throws Throwable {
+    private TradeUiReflector(Object tradeObj, UIPanelAPI parentObj) throws Throwable {
         this.tradeObj = tradeObj;
+        this.parent = parentObj;
 
         confirmTransaction = MethodHandles.lookup().findVirtual(tradeObj.getClass(), "confirmTransaction", MethodType.methodType(void.class));
 
@@ -25,12 +27,18 @@ public class TradeUiReflector {
     public static TradeUiReflector TryGet(CoreUIAPI coreUIAPI) {
         try {
             var children = UIPanelReflector.getChildItems((UIPanelAPI) coreUIAPI);
-            if(!children.isEmpty()) {
-                var tradeParents = UIPanelReflector.getChildItems((UIPanelAPI) children.get(children.size() - 1));
-                if(!tradeParents.isEmpty()) {
-                    var tradePanel = UIPanelReflector.getChildItems((UIPanelAPI) tradeParents.get(0));
-                    if(tradePanel != null) {
-                        return new TradeUiReflector(tradePanel.get(0));
+            for(var coreuiChild : children) {
+                if(UIPanelAPI.class.isAssignableFrom(coreuiChild.getClass())) {
+                    var tradeParents = UIPanelReflector.getChildItems((UIPanelAPI) coreuiChild);
+                    if (tradeParents.size() == 1 && UIPanelAPI.class.isAssignableFrom(tradeParents.get(0).getClass())) {
+                        var tradeParent = (UIPanelAPI) tradeParents.get(0);
+                        var shouldShowLogisticsOnSwitch = ClassReflector.GetInstance().findDeclaredMethod(tradeParent.getClass(), "shouldShowLogisticsOnSwitch");
+                        if (shouldShowLogisticsOnSwitch != null) {
+                            var tradePanel = UIPanelReflector.getChildItems(tradeParent);
+                            if (tradePanel != null && !tradePanel.isEmpty() && tradePanel.size() <= 2) {
+                                return new TradeUiReflector(tradePanel.get(0), tradeParent);
+                            }
+                        }
                     }
                 }
             }
@@ -71,5 +79,9 @@ public class TradeUiReflector {
 
     public UIComponentAPI getTradePanel() {
         return (UIComponentAPI) tradeObj;
+    }
+
+    public UIPanelAPI getParent() {
+        return parent;
     }
 }

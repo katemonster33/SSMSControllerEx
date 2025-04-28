@@ -116,6 +116,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         man.registerScreen(new BattleDeploymentScreen());
         man.registerScreen(new WarroomScreen());
         man.registerScreen(new TradeScreen());
+        man.registerScreen(new CargoStackPickerScreen());
     }
 
     // enum ButtonMapping

@@ -99,8 +99,7 @@ public class DialogUI extends InputScreenBase {
         }
     }
 
-    public void clickButton()
-    {
+    public void clickButton() {
         if(selectedButton != -1 && dialogOptions != null && selectedButton < dialogOptions.size()) {
             try {
                 doButtonClick.invoke(optionsPanel, null, dialogOptions.get(selectedButton));

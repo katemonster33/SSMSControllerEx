@@ -24,6 +24,7 @@ public class InputEventReflector {
     MethodHandle setDY;
     MethodHandle setX;
     MethodHandle setY;
+    MethodHandle setShiftDown;
 
     Object inputImplField;
 
@@ -44,6 +45,8 @@ public class InputEventReflector {
         setX = lookup.findVirtual(evtType, "setX", MethodType.methodType(void.class, int.class));
 
         setY = lookup.findVirtual(evtType, "setY", MethodType.methodType(void.class, int.class));
+
+        setShiftDown = lookup.findVirtual(evtType, "setShiftDown", MethodType.methodType(void.class, boolean.class));
 
         inputImplField = ClassReflector.GetInstance().getDeclaredField(Mouse.class, "implementation");
     }
@@ -82,6 +85,14 @@ public class InputEventReflector {
         }
     }
 
+    public void setShiftDown(InputEventAPI evt, boolean val) {
+        try {
+            setShiftDown.invoke(evt, val);
+        } catch (Throwable ex) {
+            Global.getLogger(getClass()).fatal("Couldn't set shift key down on event!", ex);
+        }
+    }
+
     public static InputEventReflector GetInstance(){
         return instance;
     }
@@ -107,8 +118,8 @@ public class InputEventReflector {
         return (InputEventAPI) ctor.invoke(var1, var2, var3, var4, var5, var6);
     }
 
-    public InputEventAPI createMouseMoveEvent(int x, int y) throws Throwable {
-        var newEvent = createInputEvent(InputEventClass.MOUSE_EVENT, InputEventType.MOUSE_MOVE, 0, 0, 0, '\0');
+    public InputEventAPI createMouseDownEvent(int x, int y, int btn) throws Throwable {
+        var newEvent = createInputEvent(InputEventClass.MOUSE_EVENT, InputEventType.MOUSE_DOWN, 0, 0, btn, '\0');
         setDX.invoke(newEvent, 0);
         setDY.invoke(newEvent, 0);
         setX.invoke(newEvent, x);
@@ -116,8 +127,8 @@ public class InputEventReflector {
         return newEvent;
     }
 
-    public InputEventAPI createMouseLeftClickEvent(int x, int y) throws Throwable {
-        var newEvent = createInputEvent(InputEventClass.MOUSE_EVENT, InputEventType.MOUSE_DOWN, 0, 0, 0, '\0');
+    public InputEventAPI createMouseUpEvent(int x, int y, int btn) throws Throwable {
+        var newEvent = createInputEvent(InputEventClass.MOUSE_EVENT, InputEventType.MOUSE_UP, 0, 0, btn, '\0');
         setDX.invoke(newEvent, 0);
         setDY.invoke(newEvent, 0);
         setX.invoke(newEvent, x);

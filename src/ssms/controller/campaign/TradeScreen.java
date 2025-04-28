@@ -2,16 +2,16 @@ package ssms.controller.campaign;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
+import com.fs.starfarer.api.input.InputEventClass;
+import com.fs.starfarer.api.input.InputEventType;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
+import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.campaign.ui.trade.CargoStackView;
 import org.lwjgl.input.Mouse;
-import ssms.controller.HandlerController;
-import ssms.controller.Indicators;
-import ssms.controller.InputScreenBase;
-import ssms.controller.SSMSControllerModPluginEx;
+import ssms.controller.*;
 import ssms.controller.reflection.*;
 
 import java.lang.invoke.MethodHandles;
@@ -24,16 +24,18 @@ public class TradeScreen extends InputScreenBase {
     TradeUiReflector tradeUiReflector;
     CargoDataGridViewReflector playerDataGrid;
     CargoDataGridViewReflector otherDataGrid;
-    List<CargoStackView> playerGridItems;
-    List<CargoStackView> otherGridItems;
     boolean playerGridSelected;
     int gridStackIndexSelected = -1;
     HandlerController controller;
 
     public TradeScreen() {
         indicators = new ArrayList<>();
-        indicators.add(new Pair<>(Indicators.LeftStick, "Navigate cargo list"));
-        indicators.add(new Pair<>(Indicators.X, "Select some"));
+        indicators.add(new Pair<>(Indicators.LeftStick, "Navigate list"));
+        indicators.add(new Pair<>(Indicators.X, "Pick up stack"));
+        indicators.add(new Pair<>(Indicators.Y, "Take all"));
+        indicators.add(new Pair<>(Indicators.B, "Abort"));
+        indicators.add(new Pair<>(Indicators.A, "Confirm"));
+        indicators.add(new Pair<>(Indicators.Select, "Toggle hangar"));
         controller = SSMSControllerModPluginEx.controller;
     }
 
@@ -50,102 +52,83 @@ public class TradeScreen extends InputScreenBase {
         InputEventReflector.GetInstance().GetShim().stopOverrideMousePos();
     }
 
-    void mouseOverStack(CargoDataGridViewReflector gridView, CargoStackView cargoStackView) {
+    void mouseOverStack(CargoStackView cargoStackView) {
 
         List<InputEventAPI> eventList = new ArrayList<>();
         try {
-            Object getPosition = ClassReflector.GetInstance().findDeclaredMethod(cargoStackView.getClass(), "getPosition");
-            PositionAPI positionAPI = (PositionAPI) MethodReflector.GetInstance().invoke(getPosition, cargoStackView);
-//            eventList.add(InputEventReflector.GetInstance().createMouseMoveEvent((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY()));
-//            //Mouse.setCursorPosition((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY());
-//            cargoStackView.setHighlightOnMouseOver(false);
-//            cargoStackView.processInput(eventList);
-//            var eventLstPriv = InputEventReflector.GetInstance().createList();
-//            InputEventReflector.GetInstance().addToList(eventLstPriv, eventList.get(0));
-//            gridView.processInputImpl(eventLstPriv);
-//            cargoStackView.getHighlightFader().forceIn();
+            PositionAPI positionAPI = ((UIComponentAPI)cargoStackView).getPosition();
             InputEventReflector.GetInstance().GetShim().overrideMousePos((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY());
         }catch(Throwable ex) {
             Global.getLogger(getClass()).fatal("Failed to get stack's position!", ex);
         }
     }
 
-    void clickStack(CargoDataGridViewReflector gridView, CargoStackView cargoStackView) {
-
+    void clickStack(CargoDataGridViewReflector gridView) {
+        CargoStackView cargoStackView = gridView.getStacks().get(gridStackIndexSelected);
+        PositionAPI positionAPI = ((UIComponentAPI)cargoStackView).getPosition();
+        List<InputEventAPI> events = new ArrayList<>();
         try {
-            Object getPosition = ClassReflector.GetInstance().findDeclaredMethod(cargoStackView.getClass(), "getPosition");
+            events.add(InputEventReflector.GetInstance().createMouseDownEvent((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY(), 0));
+            InputEventReflector.GetInstance().setShiftDown(events.get(0), true);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).fatal("Failed to create a mouse left-click event!", ex);
+        }
+        gridView.getPrivateObject().processInput(events);
+    }
 
-            PositionAPI positionAPI = (PositionAPI) MethodReflector.GetInstance().invoke(getPosition, cargoStackView);
-            var eventList = InputEventReflector.GetInstance().createList();
-            var newEvt = InputEventReflector.GetInstance().createMouseLeftClickEvent((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY());
-            InputEventReflector.GetInstance().addToList(eventList, newEvt);
-            //Mouse.setCursorPosition((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY());
-            cargoStackView.setHighlightOnMouseOver(false);
-            gridView.processInputImpl(eventList);
-        }catch(Throwable ex) {
-            Global.getLogger(getClass()).fatal("Failed to get stack's position!", ex);
+    int clamp(int val, int max) {
+        if(val < 0) return 0;
+        else return Math.min(val, max);
+    }
+
+    public void selectStack(CargoDataGridViewReflector curGrid, int rowDelta, int colDelta) {
+        if(rowDelta < -1 || rowDelta > 1 || colDelta < -1 || colDelta > 1) {
+            throw new IllegalArgumentException("Can't currently move more than 1 row in any direction!");
+        }
+        int numRows = curGrid.getPrivateObject().getRows(), numCols = curGrid.getPrivateObject().getCols();
+        int curRow = gridStackIndexSelected / numRows, curCol = gridStackIndexSelected & numRows;
+        if(colDelta != 0) {
+            curCol = clamp(colDelta + curCol, numCols);
+        }
+        if(rowDelta != 0) {
+            curRow = clamp(rowDelta + curRow, numRows);
+        }
+        gridStackIndexSelected = curRow * numCols + curCol;
+        List<CargoStackView> curStacks = curGrid.getStacks();
+        gridStackIndexSelected = clamp(gridStackIndexSelected, curStacks.size());
+        mouseOverStack(curStacks.get(gridStackIndexSelected));
+    }
+
+    void trySelectFirstStack(CargoDataGridViewReflector curGrid) {
+        List<CargoStackView> curStacks = curGrid.getStacks();
+        if(curStacks != null && !curStacks.isEmpty()) {
+            gridStackIndexSelected = 0;
+            mouseOverStack(curStacks.get(gridStackIndexSelected));
         }
     }
 
     @Override
     public void preInput(float advance) {
-        //if(gridStackIndexSelected == -1) {
-            if(playerGridSelected) {
-                if(playerGridItems == null) {
-                    playerGridItems = playerDataGrid.getStacks();
-                }
-                if(playerGridItems != null && !playerGridItems.isEmpty()) {
-                    gridStackIndexSelected = 0;
-                    mouseOverStack(playerDataGrid, playerGridItems.get(gridStackIndexSelected));
-                }
-            } else {
-                if(otherGridItems == null) {
-                    otherGridItems = otherDataGrid.getStacks();
-                }
-                if(otherGridItems != null && !otherGridItems.isEmpty()) {
-                    gridStackIndexSelected = 0;
-                    mouseOverStack(otherDataGrid, otherGridItems.get(gridStackIndexSelected));
-                }
-            }
-        //}
-        if(controller.isLeftStickUp()) {
-
-        } else if(controller.isLeftStickDown()) {
-
-        } else if(controller.isButtonAPressed()) {
-            if(gridStackIndexSelected != -1) {
-                if(playerGridSelected) {
-                    clickStack(playerDataGrid, playerGridItems.get(gridStackIndexSelected));
-                } else {
-                    clickStack(otherDataGrid, otherGridItems.get(gridStackIndexSelected));
-                }
-            }
-        }
-    }
-
-    @Override
-    public void postInput(float advance) {
-
+        CargoDataGridViewReflector curGrid = playerGridSelected ? playerDataGrid : otherDataGrid;
         if(gridStackIndexSelected == -1) {
-            if(playerGridSelected) {
-                if(playerGridItems == null) {
-                    playerGridItems = playerDataGrid.getStacks();
-                }
-                if(playerGridItems != null && !playerGridItems.isEmpty()) {
-                    //gridStackIndexSelected = 0;
-                    //mouseOverStack(playerDataGrid, playerGridItems.get(gridStackIndexSelected));
-                    mouseOverStack(playerDataGrid, playerGridItems.get(gridStackIndexSelected));
-                }
-            } else {
-                if(otherGridItems == null) {
-                    otherGridItems = otherDataGrid.getStacks();
-                }
-                if(otherGridItems != null && !otherGridItems.isEmpty()) {
-                    //gridStackIndexSelected = 0;
-                    //mouseOverStack(otherDataGrid, otherGridItems.get(gridStackIndexSelected));
-                    mouseOverStack(otherDataGrid, otherGridItems.get(0));
-                }
+            trySelectFirstStack(curGrid);
+        }
+        if(controller.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1 && controller.isLeftStickUp()) {
+            selectStack(curGrid, -1, 0);
+        } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1 && controller.isLeftStickDown()) {
+            selectStack(curGrid, 1, 0);
+        } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickLeft) == 1 && controller.isLeftStickLeft()) {
+            selectStack(curGrid, 0, -1);
+        } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickRight) == 1 && controller.isLeftStickRight()) {
+            selectStack(curGrid, 0, 1);
+        } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1 && controller.isButtonAPressed()) {
+            if(gridStackIndexSelected != -1) {
+                clickStack(curGrid);
+                InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, CargoStackPickerScreen.ID, new Object[]{tradeUiReflector, curGrid, curGrid.getStacks().get(gridStackIndexSelected)});
             }
+        } else if(controller.getButtonEvent(HandlerController.Buttons.Select) == 1 && controller.isButtonSelectPressed()) {
+            playerGridSelected = !playerGridSelected;
+            gridStackIndexSelected = -1;
         }
     }
 
