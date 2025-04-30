@@ -1,6 +1,7 @@
 package ssms.controller.reflection;
 
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CargoTransferHandlerAPI;
 import com.fs.starfarer.api.campaign.CoreUIAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
@@ -70,6 +71,23 @@ public class TradeUiReflector {
                 var cargoViewParent = children.get(3);
                 MethodHandle getDataGrid = MethodHandles.lookup().findVirtual(cargoViewParent.getClass(), "getCargoDataView", MethodType.methodType(CargoDataGridView.class));
                 return new CargoDataGridViewReflector((CargoDataGridView) getDataGrid.invoke(cargoViewParent));
+            }
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).warn("Couldn't get data grid view for the upper cargo view of the trade UI!", ex);
+        }
+        return null;
+    }
+
+    public CargoTransferHandlerReflector getCargoTransferHandler() {
+        try {
+            var children = UIPanelReflector.getChildItems((UIPanelAPI) tradeObj);
+            if(children.size() >= 6) {
+                for(int i = 5; i < children.size(); i++) {
+                    var cargoTransferHandler = children.get(i);
+                    if(CargoTransferHandlerAPI.class.isAssignableFrom(cargoTransferHandler.getClass())) {
+                        return new CargoTransferHandlerReflector(cargoTransferHandler);
+                    }
+                }
             }
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't get data grid view for the upper cargo view of the trade UI!", ex);

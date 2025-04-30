@@ -226,7 +226,6 @@ public class InputScreenManager {
     
     public void renderUI(ViewportAPI viewport) {
         currentScreen.renderUI(viewport);
-        //if ( indicatorTimeout > System.currentTimeMillis() ) renderIndicators(viewport);
         renderIndicators(viewport);
     }
     

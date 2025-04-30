@@ -32,6 +32,7 @@ public class CampaignControllerListener implements EveryFrameScript {
         if(pluginActive) {
             SSMSControllerModPluginEx.controller.poll();
             InputScreenManager.getInstance().preInput(amount);
+            InputScreenManager.getInstance().renderUI(Global.getSector().getViewport());
         }
     }
 }

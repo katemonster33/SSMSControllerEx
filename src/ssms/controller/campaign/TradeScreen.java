@@ -24,6 +24,7 @@ public class TradeScreen extends InputScreenBase {
     TradeUiReflector tradeUiReflector;
     CargoDataGridViewReflector playerDataGrid;
     CargoDataGridViewReflector otherDataGrid;
+    CargoTransferHandlerReflector cargoTransferHandler;
     boolean playerGridSelected;
     int gridStackIndexSelected = -1;
     HandlerController controller;
@@ -45,6 +46,7 @@ public class TradeScreen extends InputScreenBase {
 
         playerDataGrid = tradeUiReflector.getPlayerCargoView();
         otherDataGrid = tradeUiReflector.getOtherCargoView();
+        cargoTransferHandler = tradeUiReflector.getCargoTransferHandler();
     }
 
     @Override
@@ -72,15 +74,18 @@ public class TradeScreen extends InputScreenBase {
 
     int clamp(int val, int max) {
         if(val < 0) return 0;
-        else return Math.min(val, max);
+        else return Math.min(val, max - 1);
     }
 
     public void selectStack(CargoDataGridViewReflector curGrid, int rowDelta, int colDelta) {
         if(rowDelta < -1 || rowDelta > 1 || colDelta < -1 || colDelta > 1) {
             throw new IllegalArgumentException("Can't currently move more than 1 row in any direction!");
         }
+        if(gridStackIndexSelected == -1) {
+            trySelectFirstStack(curGrid);
+        }
         int numRows = curGrid.getPrivateObject().getRows(), numCols = curGrid.getPrivateObject().getCols();
-        int curRow = gridStackIndexSelected / numRows, curCol = gridStackIndexSelected % numRows;
+        int curRow = gridStackIndexSelected / numCols, curCol = gridStackIndexSelected % numCols;
         if(colDelta != 0) {
             curCol = clamp(colDelta + curCol, numCols);
         }

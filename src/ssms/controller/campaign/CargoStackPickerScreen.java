@@ -26,12 +26,8 @@ public class CargoStackPickerScreen  extends InputScreenBase {
     List<Pair<Indicators, String>> indicators;
     HandlerController controller;
     TradeUiReflector tradeUiReflector;
-    CargoDataGridViewReflector curGrid;
-    CargoStackView curStack;
-    CargoTransferHandlerAPI cargoTransferHandler;
-    Object scrollbarField;
-    UIPanelAPI scrollbar;
-    MethodHandle getScrollbarValue;
+    CargoTransferHandlerReflector cargoTransferHandler;
+    ScrollbarUiReflector scrollbarUiReflector;
     int mouseX = -1, mouseY = -1;
 
     public CargoStackPickerScreen() {
@@ -48,9 +44,11 @@ public class CargoStackPickerScreen  extends InputScreenBase {
     @Override
     public void activate(Object ... args) {
         tradeUiReflector = (TradeUiReflector) args[0];
-        curGrid = (CargoDataGridViewReflector) args[1];
-        curStack = (CargoStackView) args[2];
-        scrollbar = null;
+        try {
+            cargoTransferHandler = new CargoTransferHandlerReflector(tradeUiReflector.getCargoTransferHandler());
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).fatal("Couldn't get cargo transfer handler from trade UI!", ex);
+        }
         mouseX = mouseY = -1;
     }
 
@@ -88,30 +86,7 @@ public class CargoStackPickerScreen  extends InputScreenBase {
 
     public boolean tryGetComponents() {
         try {
-            var children = UIPanelReflector.getChildItems((UIPanelAPI) tradeUiReflector.getTradePanel());
-            for(var child : children) {
-                if(CargoTransferHandlerAPI.class.isAssignableFrom(child.getClass())) {
-                    cargoTransferHandler = (CargoTransferHandlerAPI) child;
-                    for(Object field : ClassReflector.GetInstance().getDeclaredFields(cargoTransferHandler.getClass())) {
-                        Class<?> fieldCls = FieldReflector.GetInstance().GetVariableType(field);
-                        if(UIPanelAPI.class.isAssignableFrom(fieldCls) &&
-                                !CargoItemStack.class.isAssignableFrom(fieldCls) &&
-                                !CargoStackView.class.isAssignableFrom(fieldCls) &&
-                                !CargoData.class.isAssignableFrom(fieldCls)) {
-                            scrollbarField = field;
-                            scrollbar = (UIPanelAPI) FieldReflector.GetInstance().GetVariable(scrollbarField, cargoTransferHandler);
-                            if(scrollbar != null) {
-                                mouseX = (int) scrollbar.getPosition().getX();
-                                mouseY = (int) scrollbar.getPosition().getCenterY();
-                                getScrollbarValue = MethodHandles.lookup().findVirtual(scrollbar.getClass(), "getValue", MethodType.methodType(int.class));
-
-                                updateMousePos();
-                            }
-                            return true;
-                        }
-                    }
-                }
-            }
+            scrollbarUiReflector = new ScrollbarUiReflector(cargoTransferHandler.getScrollbar());
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't get data grid view for the upper cargo view of the trade UI!", ex);
         }

@@ -28,6 +28,7 @@ public class IndicatorDisplayPanel extends LunaBaseCustomPanelPlugin  {
         if ( args == null || args.isEmpty() ) {
             throw new IllegalArgumentException("indicators list cannot be empty!");
         }
+        elapsed = 0;
         fader = new Fader(1.f, 2.f);
         indicators = new ArrayList<>(args);
         this.parentPanel = parentPanel;

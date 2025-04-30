@@ -1,0 +1,27 @@
+package ssms.controller.reflection;
+
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.ui.UIPanelAPI;
+
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+
+public class ScrollbarUiReflector {
+    UIPanelAPI scrollbarObj;
+
+    MethodHandle getScrollbarValue;
+
+    public ScrollbarUiReflector(UIPanelAPI scrollbarObj) throws Throwable{
+
+        getScrollbarValue = MethodHandles.lookup().findVirtual(scrollbarObj.getClass(), "getValue", MethodType.methodType(int.class));
+    }
+
+    public int getValue() {
+        try {
+            return (int)getScrollbarValue.invoke(scrollbarObj);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).warn("Couldn't get scrollbar's value!", ex);
+        }
+    }
+}
