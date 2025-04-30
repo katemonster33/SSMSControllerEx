@@ -27,7 +27,6 @@ public class CargoStackPickerScreen  extends InputScreenBase {
     HandlerController controller;
     TradeUiReflector tradeUiReflector;
     CargoTransferHandlerReflector cargoTransferHandler;
-    ScrollbarUiReflector scrollbarUiReflector;
     int mouseX = -1, mouseY = -1;
 
     public CargoStackPickerScreen() {
@@ -44,11 +43,7 @@ public class CargoStackPickerScreen  extends InputScreenBase {
     @Override
     public void activate(Object ... args) {
         tradeUiReflector = (TradeUiReflector) args[0];
-        try {
-            cargoTransferHandler = new CargoTransferHandlerReflector(tradeUiReflector.getCargoTransferHandler());
-        } catch(Throwable ex) {
-            Global.getLogger(getClass()).fatal("Couldn't get cargo transfer handler from trade UI!", ex);
-        }
+        cargoTransferHandler = tradeUiReflector.getCargoTransferHandler();
         mouseX = mouseY = -1;
     }
 
@@ -84,55 +79,46 @@ public class CargoStackPickerScreen  extends InputScreenBase {
         InputEventReflector.GetInstance().GetShim().overrideMousePos(mouseX, mouseY);
     }
 
-    public boolean tryGetComponents() {
+    public ScrollbarUiReflector tryGetScrollbar() {
+        ScrollbarUiReflector scrollbarUiReflector = null;
         try {
             scrollbarUiReflector = new ScrollbarUiReflector(cargoTransferHandler.getScrollbar());
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't get data grid view for the upper cargo view of the trade UI!", ex);
         }
-        return false;
+        return scrollbarUiReflector;
     }
 
     @Override
     public void preInput(float advance) {
-        if(scrollbar == null && !tryGetComponents()) {
+        // sometimes when trade UI calls us, the trade UI is not actually transferring cargo so we need to pass control back to TradeScreen
+        // OR user ended trade themselves with mouse
+        ScrollbarUiReflector scrollbar = tryGetScrollbar();
+        if(scrollbar == null) {
+            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{ tradeUiReflector });
             return;
-        } else {
-            try {
-                // sometimes when trade UI calls us, the trade UI is not actually transferring cargo so we need to pass control back to TradeScreen
-                if (scrollbar == null || FieldReflector.GetInstance().GetVariable(scrollbarField, cargoTransferHandler) == null) {
-                    // scrollbar UI has been nullified without our intervention, assume the transfer is cancelled
-                    InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{ tradeUiReflector });
-                }
-            } catch (Throwable ex) {
-                Global.getLogger(getClass()).warn("Couldn't get the scrollbar from the cargo transfer handler, can't tell if it is open!");
-                InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{ tradeUiReflector });
-            }
         }
         if(controller.getButtonEvent(HandlerController.Buttons.LeftStickLeft) == 1 && controller.isLeftStickLeft()) {
             // the 10 is hard-coded in the scrollbar source code
             mouseX -= 10;
-            mouseX = Math.max((int) scrollbar.getPosition().getX(), mouseX);
+            mouseX = Math.max((int) scrollbar.getPrivateObj().getPosition().getX(), mouseX);
             updateMousePos();
         } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickRight) == 1 && controller.isLeftStickRight()) {
             mouseX += 10;
-            mouseX = Math.min((int)(scrollbar.getPosition().getX() + scrollbar.getPosition().getWidth()), mouseX);
+            mouseX = Math.min((int)(scrollbar.getPrivateObj().getPosition().getX() + scrollbar.getPrivateObj().getPosition().getWidth()), mouseX);
             updateMousePos();
         } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1 && controller.isLeftStickUp()) {
-            mouseX = (int)scrollbar.getPosition().getX();
+            mouseX = (int)scrollbar.getPrivateObj().getPosition().getX();
             updateMousePos();
         } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1 && controller.isLeftStickDown()) {
-            mouseX = (int)(scrollbar.getPosition().getX() + scrollbar.getPosition().getWidth());
+            mouseX = (int)(scrollbar.getPrivateObj().getPosition().getX() + scrollbar.getPrivateObj().getPosition().getWidth());
             updateMousePos();
         } else if(controller.getButtonEvent(HandlerController.Buttons.B) == 1 && controller.isButtonBPressed()) {
             cancel();
-            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{ tradeUiReflector });
         } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1 && controller.isButtonAPressed()) {
             confirm();
-            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{ tradeUiReflector });
         } else if(controller.getButtonEvent(HandlerController.Buttons.Y) == 1 && controller.isButtonYPressed()) {
             confirm();
-            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{ tradeUiReflector });
         }
     }
 

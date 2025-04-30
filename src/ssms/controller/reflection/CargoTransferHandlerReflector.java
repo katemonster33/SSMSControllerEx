@@ -13,7 +13,6 @@ import java.lang.invoke.MethodType;
 public class CargoTransferHandlerReflector {
     CargoTransferHandlerAPI cargoTransferHandler;
     Object scrollbarField;
-    UIPanelAPI scrollbar;
     public CargoTransferHandlerReflector(CargoTransferHandlerAPI cargoTransferHandler) throws  Throwable {
 
         this.cargoTransferHandler = cargoTransferHandler;
@@ -35,10 +34,12 @@ public class CargoTransferHandlerReflector {
     }
 
     public UIPanelAPI getScrollbar() {
+        UIPanelAPI scrollbar = null;
         try {
             scrollbar = (UIPanelAPI) FieldReflector.GetInstance().GetVariable(scrollbarField, cargoTransferHandler);
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't get CargoTransferHandler's scrollbar element!", ex);
         }
+        return scrollbar;
     }
 }

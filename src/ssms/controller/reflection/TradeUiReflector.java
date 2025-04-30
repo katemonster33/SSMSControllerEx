@@ -85,7 +85,7 @@ public class TradeUiReflector {
                 for(int i = 5; i < children.size(); i++) {
                     var cargoTransferHandler = children.get(i);
                     if(CargoTransferHandlerAPI.class.isAssignableFrom(cargoTransferHandler.getClass())) {
-                        return new CargoTransferHandlerReflector(cargoTransferHandler);
+                        return new CargoTransferHandlerReflector((CargoTransferHandlerAPI) cargoTransferHandler);
                     }
                 }
             }

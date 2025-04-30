@@ -17,11 +17,16 @@ public class ScrollbarUiReflector {
         getScrollbarValue = MethodHandles.lookup().findVirtual(scrollbarObj.getClass(), "getValue", MethodType.methodType(int.class));
     }
 
+    public UIPanelAPI getPrivateObj() {
+        return scrollbarObj;
+    }
+
     public int getValue() {
         try {
             return (int)getScrollbarValue.invoke(scrollbarObj);
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't get scrollbar's value!", ex);
         }
+        return -1;
     }
 }
