@@ -13,6 +13,7 @@ public class ScrollbarUiReflector {
     MethodHandle getScrollbarValue;
 
     public ScrollbarUiReflector(UIPanelAPI scrollbarObj) throws Throwable{
+        this.scrollbarObj = scrollbarObj;
 
         getScrollbarValue = MethodHandles.lookup().findVirtual(scrollbarObj.getClass(), "getValue", MethodType.methodType(int.class));
     }

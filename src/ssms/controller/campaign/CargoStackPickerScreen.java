@@ -82,7 +82,10 @@ public class CargoStackPickerScreen  extends InputScreenBase {
     public ScrollbarUiReflector tryGetScrollbar() {
         ScrollbarUiReflector scrollbarUiReflector = null;
         try {
-            scrollbarUiReflector = new ScrollbarUiReflector(cargoTransferHandler.getScrollbar());
+            var scrollbarInternal = cargoTransferHandler.getScrollbar();
+            if(scrollbarInternal != null) {
+                scrollbarUiReflector = new ScrollbarUiReflector(cargoTransferHandler.getScrollbar());
+            }
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't get data grid view for the upper cargo view of the trade UI!", ex);
         }
