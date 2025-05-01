@@ -90,9 +90,10 @@ public class InputEventReflector {
 
     public static void initializeFromListType(Class<?> cls) {
         Type arrayListCls = cls.getGenericSuperclass();
-        ParameterizedType paramType = (ParameterizedType)arrayListCls;
-        var inputEventClass = (Class<?>)paramType.getActualTypeArguments()[0];
         try {
+            //MethodHandle getGenericSuperclass = MethodHandles.lookup().findVirtual(Class.class, )
+            MethodHandle getActualTypeArguments = MethodHandles.lookup().findVirtual(arrayListCls.getClass().getInterfaces()[0], "getActualTypeArguments", MethodType.methodType(Type[].class));
+            var inputEventClass = (Class<?>)((Type[])getActualTypeArguments.invoke(arrayListCls))[0];
             instance = new InputEventReflector(cls, inputEventClass);
         } catch(Throwable ex) {
             Global.getLogger(InputEventReflector.class).warn("Couldn't derive the class of the input events!", ex);
