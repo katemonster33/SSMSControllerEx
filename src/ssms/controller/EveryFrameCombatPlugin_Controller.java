@@ -169,6 +169,7 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
                 "advance");*/
             return;
         }
+        InputShim.advance(amount);
         switch(Global.getCurrentState())
         {
             case COMBAT, TITLE:

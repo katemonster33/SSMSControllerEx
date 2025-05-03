@@ -3,6 +3,7 @@ package ssms.controller;
 import com.fs.starfarer.api.Global;
 
 import java.awt.*;
+import java.util.HashSet;
 import java.util.List;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
@@ -17,6 +18,9 @@ import java.util.ArrayList;
 
 public class InputShim implements InputImplementation {
     private static InputShim instance;
+    static Integer mouseX, mouseY;
+    static List<InputEvent> pendingEvents = new ArrayList<>();
+    static HashSet<Integer> keysDown = new HashSet<>();
 
     public static void install() {
         if(instance != null) {
@@ -43,40 +47,50 @@ public class InputShim implements InputImplementation {
 
     public static void mouseMove(int x, int y)
     {
-        instance.pendingEvents.add(new InputEvent(x, y));
-        instance.mouseX = x;
-        instance.mouseY = y;
+        pendingEvents.add(new InputEvent(x, y));
     }
 
     public static void mouseDown(int x, int y, int btn)
     {
-        instance.pendingEvents.add(new InputEvent(x, y, btn, true));
+        pendingEvents.add(new InputEvent(x, y, btn, true));
     }
 
     public static void mouseUp(int x, int y, int btn)
     {
-        instance.pendingEvents.add(new InputEvent(x, y, btn, false));
+        pendingEvents.add(new InputEvent(x, y, btn, false));
     }
 
     public static void keyDown(int keyCode, char keyChar)
     {
-        instance.pendingEvents.add(new InputEvent(keyCode, keyChar, true));
+        pendingEvents.add(new InputEvent(keyCode, keyChar, true));
+        keysDown.add(keyCode & 255);
     }
 
     public static void keyUp(int keyCode, char keyChar)
     {
-        instance.pendingEvents.add(new InputEvent(keyCode, keyChar, false));
+        pendingEvents.add(new InputEvent(keyCode, keyChar, false));
+    }
+
+    public static void advance(float amount) {
+        if(!pendingEvents.isEmpty()) {
+            var evt = pendingEvents.get(0);
+            if(evt.sent) {
+                if (evt.eventType == EventType.KEYBOARD && !evt.state) {
+                    keysDown.remove(evt.keyCode & 255);
+                }
+                pendingEvents.remove(0);
+            }
+        }
     }
 
     public static void clearAll()
     {
-        instance.pendingEvents.clear();
-        instance.mouseX = instance.mouseY = null;
+        pendingEvents.clear();
+        keysDown.clear();
+        mouseX = mouseY = null;
     }
 
     InputImplementation realImpl;
-    Integer mouseX, mouseY;
-    List<InputEvent> pendingEvents = new ArrayList<>();
 
     private InputShim(InputImplementation impl) {
         realImpl = impl;
@@ -115,8 +129,13 @@ public class InputShim implements InputImplementation {
 
     @Override
     public void readMouse(ByteBuffer byteBuffer) {
-        if(pendingEvents.isEmpty() || pendingEvents.get(0).eventType != EventType.MOUSE) {
+        if(pendingEvents.isEmpty() || pendingEvents.get(0).eventType != EventType.MOUSE || pendingEvents.get(0).sent) {
+            int origPos = byteBuffer.position();
             realImpl.readMouse(byteBuffer);
+            if(byteBuffer.position() != origPos) {
+                // a mouse event has come in from the user's mouse after we have stopped pumping fake events, so we will stop sending our fake position
+                mouseX = mouseY = null;
+            }
         } else {
             if(byteBuffer.remaining() >= 22) {
                 var evt = pendingEvents.get(0);
@@ -126,10 +145,10 @@ public class InputShim implements InputImplementation {
                 byteBuffer.putInt(evt.mouseY);
                 byteBuffer.putInt(0);
                 byteBuffer.putLong(10000000L);
-                pendingEvents.remove(0);
-                if(pendingEvents.isEmpty()) {
-                    mouseX = mouseY = null;
-                }
+                mouseX = evt.mouseX;
+                mouseY = evt.mouseY;
+                Global.getLogger(getClass()).info("InputShim sending mouse event, pos:[" + evt.mouseX + "," + evt.mouseY + "], btn:" + evt.mouseBtn + ", state:" + evt.state);
+                evt.sent = true;
             }
         }
     }
@@ -176,12 +195,11 @@ public class InputShim implements InputImplementation {
 
     @Override
     public void pollKeyboard(ByteBuffer byteBuffer) {
-
         realImpl.pollKeyboard(byteBuffer);
         int pos = byteBuffer.position();
-        for (InputEvent pendingEvent : pendingEvents) {
-            if (pendingEvent.eventType == EventType.KEYBOARD && pendingEvent.keyCode < byteBuffer.limit()) {
-                byteBuffer.put(pendingEvent.keyCode, (byte) (pendingEvent.state ? 1 : 0));
+        for(Integer keyDown : keysDown) {
+            if(keyDown != null) {
+                byteBuffer.put(keyDown, (byte)1);
             }
         }
         byteBuffer.position(pos);
@@ -189,7 +207,7 @@ public class InputShim implements InputImplementation {
 
     @Override
     public void readKeyboard(ByteBuffer byteBuffer) {
-        if(pendingEvents.isEmpty() || pendingEvents.get(0).eventType == EventType.KEYBOARD) {
+        if(pendingEvents.isEmpty() || pendingEvents.get(0).eventType != EventType.KEYBOARD) {
             realImpl.readKeyboard(byteBuffer);
         } else {
             if(byteBuffer.remaining() >= 18) {
@@ -199,6 +217,8 @@ public class InputShim implements InputImplementation {
                 byteBuffer.putInt((int)evt.ch);
                 byteBuffer.putLong(0x10000L);
                 byteBuffer.put((byte)0);
+                evt.sent = true;
+                Global.getLogger(getClass()).info("InputShim sending key:" + evt.keyCode + ", state:" + evt.state);
             }
         }
     }
@@ -236,6 +256,7 @@ public class InputShim implements InputImplementation {
 
     private static class InputEvent
     {
+        boolean sent;
         EventType eventType;
         int mouseX, mouseY;
         int mouseBtn;
@@ -251,6 +272,7 @@ public class InputShim implements InputImplementation {
             this.mouseY = mouseY;
             this.mouseBtn = btn;
             this.state = state;
+            this.sent = false;
         }
 
         public InputEvent(int mouseX, int mouseY)

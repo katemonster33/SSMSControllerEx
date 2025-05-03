@@ -74,6 +74,10 @@ public class TradeScreen extends InputScreenBase {
             }
             InputShim.mouseDown((int) positionAPI.getCenterX(), (int) positionAPI.getCenterY(), 0);
 
+            if(cargoStackView.getStack().getSize() > 4.0F) {
+                //InputShim.keyUp(Keyboard.KEY_LSHIFT, '\0');
+                //InputEventReflector.GetInstance().setShiftDown(events.get(0), true);
+            }
             if(cargoStackView.getStack().getSize() <= 4.0F) {
                 InputShim.mouseUp((int) positionAPI.getCenterX(), (int) positionAPI.getCenterY(), 0);
             }

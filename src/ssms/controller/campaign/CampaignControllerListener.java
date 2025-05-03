@@ -3,6 +3,7 @@ package ssms.controller.campaign;
 import com.fs.starfarer.api.EveryFrameScript;
 import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
+import ssms.controller.InputShim;
 import ssms.controller.SSMSControllerModPluginEx;
 import ssms.controller.InputScopeBase;
 import ssms.controller.InputScreenManager;
@@ -25,6 +26,7 @@ public class CampaignControllerListener implements EveryFrameScript {
 
     @Override
     public void advance(float amount) {
+        InputShim.advance(amount);
         if (!pluginActive && Global.getCurrentState() == GameState.CAMPAIGN) {
             pluginActive = true;
             InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
