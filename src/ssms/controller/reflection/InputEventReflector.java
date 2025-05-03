@@ -28,7 +28,6 @@ public class InputEventReflector {
     MethodHandle setY;
     MethodHandle setShiftDown;
 
-    Object inputImplField;
 
     MethodHandle addToList;
     InputShim inputShim;
@@ -50,34 +49,9 @@ public class InputEventReflector {
 
         setShiftDown = lookup.findVirtual(evtType, "setShiftDown", MethodType.methodType(void.class, boolean.class));
 
-        inputImplField = ClassReflector.GetInstance().getDeclaredField(Mouse.class, "implementation");
-
         inputEventListType = listType;
 
         inputEventType = evtType;
-    }
-
-    public void InstallShim() {
-        if(inputShim != null) {
-            Global.getLogger(getClass()).info("Input shim already installed!");
-        } else {
-            try {
-                InputImplementation originalImpl = (InputImplementation) FieldReflector.GetInstance().GetVariable(inputImplField, null);
-                if (originalImpl.getClass() == InputShim.class) {
-                    // we probably won't ever hit this, this is only if we recreate the InputEventReflector and then reinstall the existing shim
-                    inputShim = (InputShim) originalImpl;
-                } else {
-                    inputShim = new InputShim(originalImpl);
-                    FieldReflector.GetInstance().SetVariable(inputImplField, null, inputShim);
-                }
-            } catch (Throwable ex) {
-                Global.getLogger(getClass()).fatal("Couldn't install input shim!", ex);
-            }
-        }
-    }
-
-    public InputShim GetShim() {
-        return inputShim;
     }
 
     public Class<?> getInputEventListType() {

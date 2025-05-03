@@ -7,11 +7,13 @@ import com.fs.starfarer.campaign.fleet.CargoData;
 import com.fs.starfarer.campaign.ui.trade.CargoItemStack;
 import com.fs.starfarer.campaign.ui.trade.CargoStackView;
 
+import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
 public class CargoTransferHandlerReflector {
     CargoTransferHandlerAPI cargoTransferHandler;
+    MethodHandle getItemPickedUp;
     Object scrollbarField;
     public CargoTransferHandlerReflector(CargoTransferHandlerAPI cargoTransferHandler) throws  Throwable {
 
@@ -26,6 +28,17 @@ public class CargoTransferHandlerReflector {
                 scrollbarField = field;
                 break;
             }
+        }
+
+        getItemPickedUp = MethodHandles.lookup().findVirtual(cargoTransferHandler.getClass(), "getItemPickedUp", MethodType.methodType(CargoItemStack.class));
+    }
+
+    public CargoItemStack getItemPickedUp() {
+        try {
+            return (CargoItemStack) getItemPickedUp.invoke(cargoTransferHandler);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).warn("Couldn't invoke getItemPickedUp from cargo transfer handler!", ex);
+            return null;
         }
     }
 

@@ -82,7 +82,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
             var processInputTypes = MethodReflector.GetInstance().getParameterTypes(processInputImplMethod);
             InputEventReflector.initializeFromListType(processInputTypes[0]);
 
-            InputEventReflector.GetInstance().InstallShim();
+            InputShim.install();
         } catch(Throwable ex) {
             Global.getLogger(getClass()).fatal("Couldn't reflect input handler of CargoDataGridView!", ex);
         }

@@ -49,7 +49,7 @@ public class CargoStackPickerScreen  extends InputScreenBase {
 
     @Override
     public void deactivate() {
-        InputEventReflector.GetInstance().GetShim().stopOverrideMousePos();
+        InputShim.clearAll();
     }
 
     void confirm() {
@@ -76,7 +76,7 @@ public class CargoStackPickerScreen  extends InputScreenBase {
     }
 
     void updateMousePos() {
-        InputEventReflector.GetInstance().GetShim().overrideMousePos(mouseX, mouseY);
+        InputShim.mouseMove(mouseX, mouseY);
     }
 
     public ScrollbarUiReflector tryGetScrollbar() {
@@ -119,8 +119,6 @@ public class CargoStackPickerScreen  extends InputScreenBase {
         } else if(controller.getButtonEvent(HandlerController.Buttons.B) == 1 && controller.isButtonBPressed()) {
             cancel();
         } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1 && controller.isButtonAPressed()) {
-            confirm();
-        } else if(controller.getButtonEvent(HandlerController.Buttons.Y) == 1 && controller.isButtonYPressed()) {
             confirm();
         }
     }

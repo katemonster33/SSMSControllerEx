@@ -10,6 +10,7 @@ import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.campaign.ui.trade.CargoStackView;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import ssms.controller.*;
 import ssms.controller.reflection.*;
@@ -51,12 +52,12 @@ public class TradeScreen extends InputScreenBase {
 
     @Override
     public void deactivate() {
-        InputEventReflector.GetInstance().GetShim().stopOverrideMousePos();
+        InputShim.clearAll();
     }
 
     void mouseOverStack(CargoStackView cargoStackView) {
         PositionAPI positionAPI = ((UIComponentAPI)cargoStackView).getPosition();
-        InputEventReflector.GetInstance().GetShim().overrideMousePos((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY());
+        InputShim.mouseMove((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY());
     }
 
     void clickStack(CargoDataGridViewReflector gridView) {
@@ -65,12 +66,16 @@ public class TradeScreen extends InputScreenBase {
         List<InputEventAPI> events = new ArrayList<>();
         //cargoStackView.getStack()
         try {
-            events.add(InputEventReflector.GetInstance().createMouseDownEvent((int) positionAPI.getCenterX(), (int) positionAPI.getCenterY(), 0));
+            //events.add(InputEventReflector.GetInstance().createMouseDownEvent((int) positionAPI.getCenterX(), (int) positionAPI.getCenterY(), 0));
             // if there's more than 4 in the stack, the scrollbar control will be created, thus we should do a shift-click. Otherwise, we will single click to select the whole stack.
             if(cargoStackView.getStack().getSize() > 4.0F) {
-                InputEventReflector.GetInstance().setShiftDown(events.get(0), true);
-            } else {
-                events.add(InputEventReflector.GetInstance().createMouseUpEvent((int) positionAPI.getCenterX(), (int) positionAPI.getCenterY(), 0));
+                InputShim.keyDown(Keyboard.KEY_LSHIFT, '\0');
+                //InputEventReflector.GetInstance().setShiftDown(events.get(0), true);
+            }
+            InputShim.mouseDown((int) positionAPI.getCenterX(), (int) positionAPI.getCenterY(), 0);
+
+            if(cargoStackView.getStack().getSize() <= 4.0F) {
+                InputShim.mouseUp((int) positionAPI.getCenterX(), (int) positionAPI.getCenterY(), 0);
             }
         } catch(Throwable ex) {
             Global.getLogger(getClass()).fatal("Failed to create a mouse left-click event!", ex);
@@ -88,7 +93,7 @@ public class TradeScreen extends InputScreenBase {
             throw new IllegalArgumentException("Can't currently move more than 1 row in any direction!");
         }
         if(gridStackIndexSelected == -1) {
-            trySelectFirstStack(curGrid);
+            return;
         }
         int numRows = curGrid.getPrivateObject().getRows(), numCols = curGrid.getPrivateObject().getCols();
         int curRow = gridStackIndexSelected / numCols, curCol = gridStackIndexSelected % numCols;
@@ -106,10 +111,11 @@ public class TradeScreen extends InputScreenBase {
 
     void trySelectFirstStack(CargoDataGridViewReflector curGrid) {
         List<CargoStackView> curStacks = curGrid.getStacks();
-        if(curStacks != null && !curStacks.isEmpty()) {
-            gridStackIndexSelected = 0;
-            mouseOverStack(curStacks.get(gridStackIndexSelected));
+        if(curStacks == null || curStacks.isEmpty()) {
+            return;
         }
+        gridStackIndexSelected = 0;
+        mouseOverStack(curStacks.get(gridStackIndexSelected));
     }
 
     @Override
