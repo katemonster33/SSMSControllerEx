@@ -60,6 +60,12 @@ public class InputShim implements InputImplementation {
         pendingEvents.add(new InputEvent(x, y, btn, false));
     }
 
+    public static void keyDownUp(int keyCode, char keyChar)
+    {
+        keyDown(keyCode, keyChar);
+        keyUp(keyCode, keyChar);
+    }
+
     public static void keyDown(int keyCode, char keyChar)
     {
         pendingEvents.add(new InputEvent(keyCode, keyChar, true));

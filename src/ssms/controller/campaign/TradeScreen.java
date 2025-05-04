@@ -50,11 +50,6 @@ public class TradeScreen extends InputScreenBase {
         cargoTransferHandler = tradeUiReflector.getCargoTransferHandler();
     }
 
-    @Override
-    public void deactivate() {
-        InputShim.clearAll();
-    }
-
     void mouseOverStack(CargoStackView cargoStackView) {
         PositionAPI positionAPI = ((UIComponentAPI)cargoStackView).getPosition();
         InputShim.mouseMove((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY());
@@ -63,28 +58,18 @@ public class TradeScreen extends InputScreenBase {
     void clickStack(CargoDataGridViewReflector gridView) {
         CargoStackView cargoStackView = gridView.getStacks().get(gridStackIndexSelected);
         PositionAPI positionAPI = ((UIComponentAPI)cargoStackView).getPosition();
-        List<InputEventAPI> events = new ArrayList<>();
-        //cargoStackView.getStack()
-        try {
-            //events.add(InputEventReflector.GetInstance().createMouseDownEvent((int) positionAPI.getCenterX(), (int) positionAPI.getCenterY(), 0));
-            // if there's more than 4 in the stack, the scrollbar control will be created, thus we should do a shift-click. Otherwise, we will single click to select the whole stack.
-            if(cargoStackView.getStack().getSize() > 4.0F) {
-                InputShim.keyDown(Keyboard.KEY_LSHIFT, '\0');
-                //InputEventReflector.GetInstance().setShiftDown(events.get(0), true);
-            }
-            InputShim.mouseDown((int) positionAPI.getCenterX(), (int) positionAPI.getCenterY(), 0);
-
-            if(cargoStackView.getStack().getSize() > 4.0F) {
-                //InputShim.keyUp(Keyboard.KEY_LSHIFT, '\0');
-                //InputEventReflector.GetInstance().setShiftDown(events.get(0), true);
-            }
-            if(cargoStackView.getStack().getSize() <= 4.0F) {
-                InputShim.mouseUp((int) positionAPI.getCenterX(), (int) positionAPI.getCenterY(), 0);
-            }
-        } catch(Throwable ex) {
-            Global.getLogger(getClass()).fatal("Failed to create a mouse left-click event!", ex);
+        // if there's more than 4 in the stack, the scrollbar control will be created, thus we should do a shift-click. Otherwise, we will single click to select the whole stack.
+        if(cargoStackView.getStack().getSize() > 4.0F) {
+            InputShim.keyDown(Keyboard.KEY_LSHIFT, '\0');
         }
-        gridView.getPrivateObject().processInput(events);
+        InputShim.mouseDown((int) positionAPI.getCenterX(), (int) positionAPI.getCenterY(), 0);
+
+        if(cargoStackView.getStack().getSize() > 4.0F) {
+            InputShim.keyUp(Keyboard.KEY_LSHIFT, '\0');
+        }
+        if(cargoStackView.getStack().getSize() <= 4.0F) {
+            InputShim.mouseUp((int) positionAPI.getCenterX(), (int) positionAPI.getCenterY(), 0);
+        }
     }
 
     int clamp(int val, int max) {
@@ -142,10 +127,16 @@ public class TradeScreen extends InputScreenBase {
             selectStack(curGrid, 0, -1);
         } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickRight) == 1 && controller.isLeftStickRight()) {
             selectStack(curGrid, 0, 1);
-        } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1 && controller.isButtonAPressed()) {
-            if(gridStackIndexSelected != -1) {
+        } else if(controller.getButtonEvent(HandlerController.Buttons.X) == 1 && controller.isButtonXPressed()) {
+            if (gridStackIndexSelected != -1) {
                 clickStack(curGrid);
             }
+        } else if(controller.getButtonEvent(HandlerController.Buttons.Y) == 1 && controller.isButtonYPressed()) {
+            InputShim.keyDownUp(Keyboard.KEY_R, 'r');
+        } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1 && controller.isButtonAPressed()) {
+            InputShim.keyDownUp(Keyboard.KEY_G, 'g');
+        } else if(controller.getButtonEvent(HandlerController.Buttons.B) == 1 && controller.isButtonBPressed()) {
+            InputShim.keyDownUp(Keyboard.KEY_T, 't');
         } else if(controller.getButtonEvent(HandlerController.Buttons.Select) == 1 && controller.isButtonSelectPressed()) {
             playerGridSelected = !playerGridSelected;
             gridStackIndexSelected = -1;

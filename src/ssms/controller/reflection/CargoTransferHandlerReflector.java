@@ -13,7 +13,7 @@ import java.lang.invoke.MethodType;
 
 public class CargoTransferHandlerReflector {
     CargoTransferHandlerAPI cargoTransferHandler;
-    MethodHandle getItemPickedUp;
+    MethodHandle getPickedUpStack;
     Object scrollbarField;
     public CargoTransferHandlerReflector(CargoTransferHandlerAPI cargoTransferHandler) throws  Throwable {
 
@@ -30,14 +30,14 @@ public class CargoTransferHandlerReflector {
             }
         }
 
-        getItemPickedUp = MethodHandles.lookup().findVirtual(cargoTransferHandler.getClass(), "getItemPickedUp", MethodType.methodType(CargoItemStack.class));
+        getPickedUpStack = MethodHandles.lookup().findVirtual(cargoTransferHandler.getClass(), "getPickedUpStack", MethodType.methodType(CargoItemStack.class));
     }
 
-    public CargoItemStack getItemPickedUp() {
+    public CargoItemStack getPickedUpStack() {
         try {
-            return (CargoItemStack) getItemPickedUp.invoke(cargoTransferHandler);
+            return (CargoItemStack) getPickedUpStack.invoke(cargoTransferHandler);
         } catch(Throwable ex) {
-            Global.getLogger(getClass()).warn("Couldn't invoke getItemPickedUp from cargo transfer handler!", ex);
+            Global.getLogger(getClass()).warn("Couldn't invoke getPickedUpStack from cargo transfer handler!", ex);
             return null;
         }
     }

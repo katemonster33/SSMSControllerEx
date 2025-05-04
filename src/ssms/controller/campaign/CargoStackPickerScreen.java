@@ -53,27 +53,10 @@ public class CargoStackPickerScreen  extends InputScreenBase {
     }
 
     void confirm() {
-//        try {
-//            List<InputEventAPI> events = new ArrayList<>();
-//            events.add(InputEventReflector.GetInstance().createMouseUpEvent(mouseX, mouseY, 0));
-//            tradeUiReflector.getParent().processInput(events);
-//        }catch(Throwable ex) {
-//            Global.getLogger(getClass()).fatal("Failed send left-click mouse event!", ex);
-//        }
         InputShim.mouseUp(mouseX, mouseY, 0);
     }
 
     void cancel() {
-//        try {
-//            List<InputEventAPI> events = new ArrayList<>();
-//            events.add(InputEventReflector.GetInstance().createMouseDownEvent(mouseX, mouseY, 1));
-//            events.add(InputEventReflector.GetInstance().createMouseUpEvent(mouseX, mouseY, 1));
-//            // send the left-click up event after the right click - this ensures the UI doesn't get confused seeing multiple left-click events in a row
-//            events.add(InputEventReflector.GetInstance().createMouseUpEvent(mouseX, mouseY, 0));
-//            tradeUiReflector.getParent().processInput(events);
-//        } catch(Throwable ex) {
-//            Global.getLogger(getClass()).fatal("Failed send right-click mouse event!", ex);
-//        }
         InputShim.mouseDown(mouseX, mouseY, 1);
         InputShim.mouseUp(mouseX, mouseY, 1);
         InputShim.mouseUp(mouseX, mouseY, 0);
@@ -104,6 +87,9 @@ public class CargoStackPickerScreen  extends InputScreenBase {
         if(scrollbar == null) {
             InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{ tradeUiReflector });
             return;
+        } else if(mouseX == -1 || mouseY == -1) {
+            mouseX = (int) scrollbar.getPrivateObj().getPosition().getX();
+            mouseY = (int) scrollbar.getPrivateObj().getPosition().getCenterY();
         }
         if(controller.getButtonEvent(HandlerController.Buttons.LeftStickLeft) == 1 && controller.isLeftStickLeft()) {
             // the 10 is hard-coded in the scrollbar source code

@@ -94,6 +94,7 @@ public class InputScreenManager {
     }
     
     public boolean transitionDelayed(String id, Object ...args) {
+        InputShim.clearAll();
         if ( screens.containsKey(id) ) {
             var screen = screens.get(id);
             if ( screenAllowsScope(screen, currentScope.getId()) ) {
@@ -127,6 +128,7 @@ public class InputScreenManager {
         //moving to scope sets the screen id for the input screen that has the initial annoation and a matching scope
         //scope can hold variables like the engine for combat
         //transitions into the same scope are legal, they happen if no other scope is active between two seperate scope entries
+        InputShim.clearAll();
         refreshIndicators();
         if ( scopes.containsKey(scopeId) ) {
             InputScopeBase scope = scopes.get(scopeId);
@@ -138,6 +140,7 @@ public class InputScreenManager {
     }
     
     public boolean transitionToScope(String scopeId, Object[] scopeArgs, String screenId, Object[] screenArgs) {
+        InputShim.clearAll();
         refreshIndicators();
         if ( scopes.containsKey(scopeId) && screens.containsKey(screenId) ) {
             InputScreenBase screen = screens.get(screenId);
