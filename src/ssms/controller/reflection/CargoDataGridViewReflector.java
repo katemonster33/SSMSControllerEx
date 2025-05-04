@@ -6,6 +6,7 @@ import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.ui.PositionAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.campaign.ui.trade.CargoDataGridView;
 import com.fs.starfarer.campaign.ui.trade.CargoStackView;
@@ -13,14 +14,20 @@ import com.fs.starfarer.campaign.util.CollectionView;
 
 public class CargoDataGridViewReflector {
     CargoDataGridView cargoDataGridView;
+    UIPanelAPI dataGridParent;
     Object stackViewField;
-    public CargoDataGridViewReflector(CargoDataGridView cargoGridView) {
+    public CargoDataGridViewReflector(CargoDataGridView cargoGridView, UIPanelAPI parent) {
         this.cargoDataGridView = cargoGridView;
+        this.dataGridParent = parent;
         try {
             stackViewField = ClassReflector.GetInstance().getDeclaredField(cargoGridView.getClass(), "stackView");
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't get the field for the CargoDataGridView ItemView(s)!", ex);
         }
+    }
+
+    public PositionAPI getPosition() {
+        return dataGridParent.getPosition();
     }
 
     public CargoDataGridView getPrivateObject() {

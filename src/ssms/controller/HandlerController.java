@@ -306,11 +306,11 @@ public class HandlerController {
     }
     
     public boolean isLeftStickUp() {
-        return axisLeftStickY >= 0 ? controller.getAxisValue(axisLeftStickY) >= axisBtnConversionDeadzone : false;
+        return axisLeftStickY >= 0 ? controller.getAxisValue(axisLeftStickY) <= -axisBtnConversionDeadzone : false;
     }
     
     public boolean isLeftStickDown() {
-        return axisLeftStickY >= 0 ? controller.getAxisValue(axisLeftStickY) <= -axisBtnConversionDeadzone : false;
+        return axisLeftStickY >= 0 ? controller.getAxisValue(axisLeftStickY) >= axisBtnConversionDeadzone : false;
     }
     
     public ReadableVector2f getRightStick() {

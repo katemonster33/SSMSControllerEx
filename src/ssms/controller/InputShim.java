@@ -21,6 +21,7 @@ public class InputShim implements InputImplementation {
     static Integer mouseX, mouseY;
     static List<InputEvent> pendingEvents = new ArrayList<>();
     static HashSet<Integer> keysDown = new HashSet<>();
+    static HashSet<Integer> mouseBtnsDown = new HashSet<>();
 
     public static void install() {
         if(instance != null) {
@@ -84,6 +85,7 @@ public class InputShim implements InputImplementation {
     public static void mouseDown(int x, int y, int btn)
     {
         pendingEvents.add(new InputEvent(x, y, btn, true));
+        mouseBtnsDown.add(btn);
     }
 
     public static void mouseUp(int x, int y, int btn)
@@ -114,6 +116,8 @@ public class InputShim implements InputImplementation {
             if(evt.sent) {
                 if (evt.eventType == EventType.KEYBOARD && !evt.state) {
                     keysDown.remove(evt.keyCode & 255);
+                } else if(evt.eventType == EventType.MOUSE && evt.mouseBtn != 0xFF && !evt.state) {
+                    mouseBtnsDown.remove(evt.mouseBtn);
                 }
                 pendingEvents.remove(0);
             }
@@ -161,6 +165,11 @@ public class InputShim implements InputImplementation {
         }
         if(mouseY != null) {
             intBuffer.put(1, (int)mouseY);
+        }
+        for(Integer btn : mouseBtnsDown) {
+            if(btn != null) {
+                byteBuffer.put((int)btn, (byte)1);
+            }
         }
     }
 

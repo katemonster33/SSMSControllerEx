@@ -56,7 +56,7 @@ public class TradeUiReflector {
             if(children.size() >= 6) {
                 var cargoViewParent = children.get(4);
                 MethodHandle getDataGrid = MethodHandles.lookup().findVirtual(cargoViewParent.getClass(), "getCargoDataView", MethodType.methodType(CargoDataGridView.class));
-                return new CargoDataGridViewReflector((CargoDataGridView) getDataGrid.invoke(cargoViewParent));
+                return new CargoDataGridViewReflector((CargoDataGridView) getDataGrid.invoke(cargoViewParent), (UIPanelAPI) cargoViewParent);
             }
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't get data grid view for the upper cargo view of the trade UI!", ex);
@@ -70,7 +70,7 @@ public class TradeUiReflector {
             if(children.size() >= 6) {
                 var cargoViewParent = children.get(3);
                 MethodHandle getDataGrid = MethodHandles.lookup().findVirtual(cargoViewParent.getClass(), "getCargoDataView", MethodType.methodType(CargoDataGridView.class));
-                return new CargoDataGridViewReflector((CargoDataGridView) getDataGrid.invoke(cargoViewParent));
+                return new CargoDataGridViewReflector((CargoDataGridView) getDataGrid.invoke(cargoViewParent), (UIPanelAPI) cargoViewParent);
             }
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't get data grid view for the upper cargo view of the trade UI!", ex);

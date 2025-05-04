@@ -5,18 +5,13 @@ import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.util.Pair;
-import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.InputScreenBase;
 
-import java.awt.*;
-import java.awt.event.InputEvent;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import ssms.controller.Indicators;
 import ssms.controller.reflection.CampaignStateReflector;
@@ -24,7 +19,6 @@ import ssms.controller.reflection.CampaignStateReflector;
 public class MainCampaignUI  extends InputScreenBase {
     public static final String ID = "MainCampaign";
     Vector2f mousePos = new Vector2f(-1.f, -1.f);
-    Robot inputSender;
     HandlerController handler;
 
     ArrayList<Pair<Indicators, String>> indicators;
@@ -41,11 +35,6 @@ public class MainCampaignUI  extends InputScreenBase {
     @Override
     public void activate(Object... args) {
         handler = SSMSControllerModPluginEx.controller;
-        try {
-            inputSender = new Robot();
-        } catch(AWTException ex) {
-            Global.getLogger(getClass()).fatal("Couldn't create the input sending robot!", ex);
-        }
     }
 
     @Override
@@ -57,35 +46,26 @@ public class MainCampaignUI  extends InputScreenBase {
         ReadableVector2f desiredHeading = handler.getLeftStick();
         if ( desiredHeading.getX() == 0 && desiredHeading.getY() == 0 ) {
             mousePos.x = mousePos.y = -1.f;
-            //desiredHeading = Util_Steering.getHeadingFromFacing(pf.getFacing());
+            InputShim.clearAll();
             return;
         }
-        //shipLocation.y += pf.getRadius();
-//        CombatState cs = (CombatState) AppDriver.getInstance().getState(CombatState.STATE_ID);
-//        if ( cs.getWidgetPanel() == null ) return;
-//        float zoom = cs.getZoomFactor();
-        float zoom = CampaignStateReflector.GetInstance().getZoomFactor();
-
-        //a pentagon that points in the direction the ship ship wants to head into, useful since the ship turns slowly
-        //and this way the user immediately has feedback on where he is steering.
-        Vector2f vHeadingNormalised = new Vector2f(desiredHeading);
-        vHeadingNormalised.normalise();
-
-        float shipRadius = pf.getRadius();
-        //adjusting the size of the marker based on ship size but also constraining it to avoid silly dimensions.
-        float radius = shipRadius * 0.05f;
-        if ( radius < 5f ) radius = 5f;
-        else if ( radius > 20f ) radius = 20f;
-        radius *= zoom;
-        Vector2f shipLocation = new Vector2f(viewport.convertWorldXtoScreenX(pf.getLocation().x), viewport.convertWorldYtoScreenY(pf.getLocation().y));
-        Vector2f pentagonCenter = new Vector2f(shipLocation.x + vHeadingNormalised.x * shipRadius * (4f + 2f * radius / shipRadius), shipLocation.y - vHeadingNormalised.y * shipRadius * (4f + 2f * radius / shipRadius));
-
-        int windowPosX = Display.getX(), windowPosY = Display.getY();
-
-        mousePos.x = pentagonCenter.x + windowPosX;
-        mousePos.y = pentagonCenter.y + windowPosY;
-        InputShim.mouseMove((int)pentagonCenter.x, (int)pentagonCenter.y);
-        ControllerCrosshairRenderer.setSize((int)(58 / zoom));
+        float minX = viewport.getLLX(), minY = viewport.getLLY();
+        float maxX = viewport.getVisibleWidth() + minX, maxY = viewport.getVisibleHeight() + minY;
+        var shipPos = pf.getLocation();
+        float xpos, ypos;
+        if(desiredHeading.getX() < 0) {
+            xpos = shipPos.x + desiredHeading.getX() * (shipPos.x - minX);
+        } else {
+            xpos = shipPos.x + desiredHeading.getX() * (maxX - shipPos.x);
+        }
+        mousePos.x = viewport.convertWorldXtoScreenX(xpos);
+        if(desiredHeading.getY() < 0) {
+            ypos = shipPos.y + desiredHeading.getY() * (shipPos.y - minY);
+        } else {
+            ypos = shipPos.y + desiredHeading.getY() * (maxY - shipPos.y);
+        }
+        mousePos.y = viewport.convertWorldYtoScreenY(ypos);
+        InputShim.mouseMove((int)mousePos.x, (int)mousePos.y);
     }
 
     @Override
@@ -98,27 +78,19 @@ public class MainCampaignUI  extends InputScreenBase {
     boolean startButtonHandled = false;
     @Override
     public void preInput(float advance) {
+        float zoom = CampaignStateReflector.GetInstance().getZoomFactor();
+        ControllerCrosshairRenderer.setSize((int)(58 / zoom));
         if(Global.getSector().getCampaignUI().isShowingDialog() && Global.getSector().getCampaignUI().getCurrentInteractionDialog() != null) {
             InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, DialogUI.ID, new Object[]{});
         }
-        ReadableVector2f vDesiredHeading = handler.getLeftStick();
-        if (vDesiredHeading.getX() != 0 || vDesiredHeading.getY() != 0) {
-//            CampaignFleetAPI playerFleet = Global.getSector().getPlayerFleet();
-//            playerFleet.setMoveDestinationOverride(vDesiredHeading.getX(), vDesiredHeading.getY());
-//            isMoving = true;
-//            CampaignState cs = (CampaignState) AppDriver.getInstance().getCurrentState();
-//            CampaignEngine ce = (CampaignEngine)Global.getSector();
-        } else if (isMoving) {
-            isMoving = false;
-            // CampaignFleetAPI playerFleet = Global.getSector().getPlayerFleet();
-            // playerFleet.setMoveDestination(playerFleet.getLocation().getX(), playerFleet.getLocation().getY());
-        }
-        if(handler.isButtonAPressed() && !isMouseDown) {
-            inputSender.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-            isMouseDown = true;
-        } else if(!handler.isButtonAPressed() && isMouseDown) {
-            inputSender.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
-            isMouseDown = false;
+        if(mousePos.x != -1.f && mousePos.y != -1.f) {
+            if (handler.isButtonAPressed() && !isMouseDown) {
+                InputShim.mouseDown((int) mousePos.x, (int) mousePos.y, 0);
+                isMouseDown = true;
+            } else if (!handler.isButtonAPressed() && isMouseDown) {
+                InputShim.mouseUp((int) mousePos.x, (int) mousePos.y, 0);
+                isMouseDown = false;
+            }
         }
         if(handler.isButtonXPressed()) {
             CampaignFleetAPI playerFleet = Global.getSector().getPlayerFleet();

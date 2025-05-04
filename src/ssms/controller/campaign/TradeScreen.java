@@ -28,6 +28,7 @@ public class TradeScreen extends InputScreenBase {
     CargoTransferHandlerReflector cargoTransferHandler;
     boolean playerGridSelected;
     int gridStackIndexSelected = -1;
+    int selectedRow = -1, selectedCol = -1;
     HandlerController controller;
 
     public TradeScreen() {
@@ -48,27 +49,40 @@ public class TradeScreen extends InputScreenBase {
         playerDataGrid = tradeUiReflector.getPlayerCargoView();
         otherDataGrid = tradeUiReflector.getOtherCargoView();
         cargoTransferHandler = tradeUiReflector.getCargoTransferHandler();
+        playerGridSelected = true;
+        selectedCol = selectedRow = -1;
+        ControllerCrosshairRenderer.setSize(100);
     }
 
-    void mouseOverStack(CargoStackView cargoStackView) {
-        PositionAPI positionAPI = ((UIComponentAPI)cargoStackView).getPosition();
-        InputShim.mouseMove((int)positionAPI.getCenterX(), (int) positionAPI.getCenterY());
+    void mouseOverGrid(CargoDataGridViewReflector gridView) {
+        //var gridPos = gridView.getPosition();
+        var gridPos = ((UIPanelAPI)gridView.getPrivateObject()).getPosition();
+        float xpos = gridPos.getX() + (100 * selectedCol) + 43;
+        float ypos = gridPos.getY() + gridPos.getHeight() - (100 * selectedRow) - 58;
+        InputShim.mouseMove((int) xpos, (int) ypos);
     }
 
     void clickStack(CargoDataGridViewReflector gridView) {
-        CargoStackView cargoStackView = gridView.getStacks().get(gridStackIndexSelected);
-        PositionAPI positionAPI = ((UIComponentAPI)cargoStackView).getPosition();
-        // if there's more than 4 in the stack, the scrollbar control will be created, thus we should do a shift-click. Otherwise, we will single click to select the whole stack.
-        if(cargoStackView.getStack().getSize() > 4.0F) {
+        var gridPos = ((UIPanelAPI)gridView.getPrivateObject()).getPosition();
+        float xpos = gridPos.getX() + (100 * selectedCol) + 43;
+        float ypos = gridPos.getY() + gridPos.getHeight()  - (100 * selectedRow) - 58;
+        CargoStackView mousedOverStack = null;
+        for(var stack : gridView.getStacks()) {
+            var stackPos = ((UIPanelAPI)stack).getPosition();
+            if(xpos >= stackPos.getX() && xpos <= (stackPos.getX() + stackPos.getWidth()) &&
+             ypos >= stackPos.getY() && ypos <= (stackPos.getY() + stackPos.getHeight())) {
+                mousedOverStack = stack;
+                break;
+            }
+        }
+        if(mousedOverStack != null && mousedOverStack.getStack().getSize() >= 4.f) {
             InputShim.keyDown(Keyboard.KEY_LSHIFT, '\0');
         }
-        InputShim.mouseDown((int) positionAPI.getCenterX(), (int) positionAPI.getCenterY(), 0);
-
-        if(cargoStackView.getStack().getSize() > 4.0F) {
+        InputShim.mouseDown((int) xpos, (int) ypos, 0);
+        if(mousedOverStack == null || mousedOverStack.getStack().getSize() < 4.f) {
+            InputShim.mouseUp((int) xpos, (int) ypos, 0);
+        } else if(mousedOverStack != null && mousedOverStack.getStack().getSize() >= 4.f) {
             InputShim.keyUp(Keyboard.KEY_LSHIFT, '\0');
-        }
-        if(cargoStackView.getStack().getSize() <= 4.0F) {
-            InputShim.mouseUp((int) positionAPI.getCenterX(), (int) positionAPI.getCenterY(), 0);
         }
     }
 
@@ -77,34 +91,18 @@ public class TradeScreen extends InputScreenBase {
         else return Math.min(val, max - 1);
     }
 
-    public void selectStack(CargoDataGridViewReflector curGrid, int rowDelta, int colDelta) {
+    public void moveGridSelection(CargoDataGridViewReflector curGrid, int rowDelta, int colDelta) {
         if(rowDelta < -1 || rowDelta > 1 || colDelta < -1 || colDelta > 1) {
             throw new IllegalArgumentException("Can't currently move more than 1 row in any direction!");
         }
-        if(gridStackIndexSelected == -1) {
-            return;
-        }
         int numRows = curGrid.getPrivateObject().getRows(), numCols = curGrid.getPrivateObject().getCols();
-        int curRow = gridStackIndexSelected / numCols, curCol = gridStackIndexSelected % numCols;
         if(colDelta != 0) {
-            curCol = clamp(colDelta + curCol, numCols);
+            selectedCol = clamp(colDelta + selectedCol, numCols);
         }
         if(rowDelta != 0) {
-            curRow = clamp(rowDelta + curRow, numRows);
+            selectedRow = clamp(rowDelta + selectedRow, numRows);
         }
-        gridStackIndexSelected = curRow * numCols + curCol;
-        List<CargoStackView> curStacks = curGrid.getStacks();
-        gridStackIndexSelected = clamp(gridStackIndexSelected, curStacks.size());
-        mouseOverStack(curStacks.get(gridStackIndexSelected));
-    }
-
-    void trySelectFirstStack(CargoDataGridViewReflector curGrid) {
-        List<CargoStackView> curStacks = curGrid.getStacks();
-        if(curStacks == null || curStacks.isEmpty()) {
-            return;
-        }
-        gridStackIndexSelected = 0;
-        mouseOverStack(curStacks.get(gridStackIndexSelected));
+        mouseOverGrid(curGrid);
     }
 
     @Override
@@ -115,22 +113,26 @@ public class TradeScreen extends InputScreenBase {
                 InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, CargoStackPickerScreen.ID, new Object[]{ tradeUiReflector });
             }
         }
+        if(!Global.getSector().getCampaignUI().isShowingDialog()) {
+            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
+        }
         CargoDataGridViewReflector curGrid = playerGridSelected ? playerDataGrid : otherDataGrid;
-        if(gridStackIndexSelected == -1) {
-            trySelectFirstStack(curGrid);
+        if(selectedCol == -1 || selectedRow == -1) {
+            selectedCol = selectedRow = 0;
+            mouseOverGrid(curGrid);
         }
         if(controller.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1 && controller.isLeftStickUp()) {
-            selectStack(curGrid, -1, 0);
+            moveGridSelection(curGrid, -1, 0);
         } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1 && controller.isLeftStickDown()) {
-            selectStack(curGrid, 1, 0);
+            moveGridSelection(curGrid, 1, 0);
         } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickLeft) == 1 && controller.isLeftStickLeft()) {
-            selectStack(curGrid, 0, -1);
+            //selectStack(curGrid, 0, -1);
+            moveGridSelection(curGrid, 0, -1);
         } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickRight) == 1 && controller.isLeftStickRight()) {
-            selectStack(curGrid, 0, 1);
+            //selectStack(curGrid, 0, 1);
+            moveGridSelection(curGrid, 0, 1);
         } else if(controller.getButtonEvent(HandlerController.Buttons.X) == 1 && controller.isButtonXPressed()) {
-            if (gridStackIndexSelected != -1) {
-                clickStack(curGrid);
-            }
+            clickStack(curGrid);
         } else if(controller.getButtonEvent(HandlerController.Buttons.Y) == 1 && controller.isButtonYPressed()) {
             InputShim.keyDownUp(Keyboard.KEY_R, 'r');
         } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1 && controller.isButtonAPressed()) {
@@ -139,7 +141,7 @@ public class TradeScreen extends InputScreenBase {
             InputShim.keyDownUp(Keyboard.KEY_T, 't');
         } else if(controller.getButtonEvent(HandlerController.Buttons.Select) == 1 && controller.isButtonSelectPressed()) {
             playerGridSelected = !playerGridSelected;
-            gridStackIndexSelected = -1;
+            selectedRow = selectedCol = -1;
         }
     }
 
