@@ -14,15 +14,32 @@ import java.lang.invoke.MethodType;
 public class TradeUiReflector {
     Object tradeObj;
     UIPanelAPI parent;
-    MethodHandle confirmTransaction;
-    MethodHandle cancelTransaction;
-    private TradeUiReflector(Object tradeObj, UIPanelAPI parentObj) throws Throwable {
+    CoreUIAPI coreUIAPI;
+    static MethodHandle confirmTransaction;
+    static MethodHandle cancelTransaction;
+    static Object getEntityCargoView;
+    static Object getPlayerCargoView;
+    static Object getTransferHandler;
+    static Class<?> tradeParentCls;
+    private TradeUiReflector(Object tradeObj, UIPanelAPI parentObj, CoreUIAPI coreUIAPI) throws Throwable {
         this.tradeObj = tradeObj;
         this.parent = parentObj;
+        this.coreUIAPI = coreUIAPI;
+        if(getTransferHandler == null) {
+            confirmTransaction = MethodHandles.lookup().findVirtual(tradeObj.getClass(), "confirmTransaction", MethodType.methodType(void.class));
 
-        confirmTransaction = MethodHandles.lookup().findVirtual(tradeObj.getClass(), "confirmTransaction", MethodType.methodType(void.class));
+            cancelTransaction = MethodHandles.lookup().findVirtual(tradeObj.getClass(), "cancelTransaction", MethodType.methodType(void.class));
 
-        cancelTransaction = MethodHandles.lookup().findVirtual(tradeObj.getClass(), "cancelTransaction", MethodType.methodType(void.class));
+            getEntityCargoView = ClassReflector.GetInstance().findDeclaredMethod(tradeObj.getClass(), "getEntityCargoDisplay");
+
+            getPlayerCargoView = ClassReflector.GetInstance().findDeclaredMethod(tradeObj.getClass(), "getPlayerCargoDisplay");
+
+            getTransferHandler = ClassReflector.GetInstance().findDeclaredMethod(tradeObj.getClass(), "getTransferHandler");
+        }
+    }
+
+    public CoreUIAPI getCoreUIAPI() {
+        return coreUIAPI;
     }
 
     public static TradeUiReflector TryGet(CoreUIAPI coreUIAPI) {
@@ -31,13 +48,22 @@ public class TradeUiReflector {
             for(var coreuiChild : children) {
                 if(UIPanelAPI.class.isAssignableFrom(coreuiChild.getClass())) {
                     var tradeParents = UIPanelReflector.getChildItems((UIPanelAPI) coreuiChild);
-                    if (tradeParents.size() == 1 && UIPanelAPI.class.isAssignableFrom(tradeParents.get(0).getClass())) {
-                        var tradeParent = (UIPanelAPI) tradeParents.get(0);
-                        var shouldShowLogisticsOnSwitch = ClassReflector.GetInstance().findDeclaredMethod(tradeParent.getClass(), "shouldShowLogisticsOnSwitch");
-                        if (shouldShowLogisticsOnSwitch != null) {
-                            var tradePanel = UIPanelReflector.getChildItems(tradeParent);
-                            if (tradePanel != null && !tradePanel.isEmpty() && tradePanel.size() <= 2) {
-                                return new TradeUiReflector(tradePanel.get(0), tradeParent);
+                    if (tradeParents.size() == 1) {
+                        if(tradeParentCls == null) {
+                            if(UIPanelAPI.class.isAssignableFrom(tradeParents.get(0).getClass())) {
+                                var tradeParent = (UIPanelAPI) tradeParents.get(0);
+                                var shouldShowLogisticsOnSwitch = ClassReflector.GetInstance().findDeclaredMethod(tradeParent.getClass(), "shouldShowLogisticsOnSwitch");
+                                if (shouldShowLogisticsOnSwitch != null) {
+                                    var tradePanel = UIPanelReflector.getChildItems(tradeParent);
+                                    if (tradePanel != null && !tradePanel.isEmpty() && tradePanel.size() <= 2) {
+                                        return new TradeUiReflector(tradePanel.get(0), tradeParent, coreUIAPI);
+                                    }
+                                }
+                            }
+                        } else if(tradeParentCls.isAssignableFrom(tradeParents.get(0).getClass())) {
+                            var tradePanel = UIPanelReflector.getChildItems((UIPanelAPI) tradeParents);
+                            if (!tradePanel.isEmpty()) {
+                                return new TradeUiReflector(tradePanel.get(0), (UIPanelAPI) tradeParents.get(0), coreUIAPI);
                             }
                         }
                     }
@@ -52,12 +78,9 @@ public class TradeUiReflector {
 
     public CargoDataGridViewReflector getOtherCargoView() {
         try {
-            var children = UIPanelReflector.getChildItems((UIPanelAPI) tradeObj);
-            if(children.size() >= 6) {
-                var cargoViewParent = children.get(4);
-                MethodHandle getDataGrid = MethodHandles.lookup().findVirtual(cargoViewParent.getClass(), "getCargoDataView", MethodType.methodType(CargoDataGridView.class));
-                return new CargoDataGridViewReflector((CargoDataGridView) getDataGrid.invoke(cargoViewParent), (UIPanelAPI) cargoViewParent);
-            }
+            var cargoViewParent = MethodReflector.GetInstance().invoke(getEntityCargoView, tradeObj);
+            MethodHandle getDataGrid = MethodHandles.lookup().findVirtual(cargoViewParent.getClass(), "getCargoDataView", MethodType.methodType(CargoDataGridView.class));
+            return new CargoDataGridViewReflector((CargoDataGridView) getDataGrid.invoke(cargoViewParent), (UIPanelAPI) cargoViewParent);
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't get data grid view for the upper cargo view of the trade UI!", ex);
         }
@@ -66,12 +89,9 @@ public class TradeUiReflector {
 
     public CargoDataGridViewReflector getPlayerCargoView() {
         try {
-            var children = UIPanelReflector.getChildItems((UIPanelAPI) tradeObj);
-            if(children.size() >= 6) {
-                var cargoViewParent = children.get(3);
-                MethodHandle getDataGrid = MethodHandles.lookup().findVirtual(cargoViewParent.getClass(), "getCargoDataView", MethodType.methodType(CargoDataGridView.class));
-                return new CargoDataGridViewReflector((CargoDataGridView) getDataGrid.invoke(cargoViewParent), (UIPanelAPI) cargoViewParent);
-            }
+            var cargoViewParent = MethodReflector.GetInstance().invoke(getPlayerCargoView, tradeObj);
+            MethodHandle getDataGrid = MethodHandles.lookup().findVirtual(cargoViewParent.getClass(), "getCargoDataView", MethodType.methodType(CargoDataGridView.class));
+            return new CargoDataGridViewReflector((CargoDataGridView) getDataGrid.invoke(cargoViewParent), (UIPanelAPI) cargoViewParent);
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't get data grid view for the upper cargo view of the trade UI!", ex);
         }
@@ -80,15 +100,7 @@ public class TradeUiReflector {
 
     public CargoTransferHandlerReflector getCargoTransferHandler() {
         try {
-            var children = UIPanelReflector.getChildItems((UIPanelAPI) tradeObj);
-            if(children.size() >= 6) {
-                for(int i = 5; i < children.size(); i++) {
-                    var cargoTransferHandler = children.get(i);
-                    if(CargoTransferHandlerAPI.class.isAssignableFrom(cargoTransferHandler.getClass())) {
-                        return new CargoTransferHandlerReflector((CargoTransferHandlerAPI) cargoTransferHandler);
-                    }
-                }
-            }
+            return new CargoTransferHandlerReflector((CargoTransferHandlerAPI) MethodReflector.GetInstance().invoke(getTransferHandler, tradeObj));
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't get data grid view for the upper cargo view of the trade UI!", ex);
         }

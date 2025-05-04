@@ -1,6 +1,7 @@
 package ssms.controller.reflection;
 
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CoreUIAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.campaign.CampaignState;
 import com.fs.state.AppDriver;
@@ -12,6 +13,7 @@ import java.lang.invoke.MethodType;
 public class CampaignStateReflector {
     Object getWidgetPanel = null;
     Object getScreenHandle = null;
+    Object coreUiField = null;
     Object cs;
     MethodHandle getZoomFactor;
     static CampaignStateReflector instance;
@@ -22,6 +24,8 @@ public class CampaignStateReflector {
             getScreenHandle = ClassReflector.GetInstance().findDeclaredMethod(CampaignState.class, "getScreenPanel");
 
             getZoomFactor = MethodHandles.lookup().findVirtual(CampaignState.class, "getZoomFactor", MethodType.methodType(float.class));
+
+            coreUiField = ClassReflector.GetInstance().getDeclaredField(CampaignState.class, "core");
         } catch(Throwable ex) {
             Global.getLogger(getClass()).fatal("Couldn't reflect into CampaignState!");
         }
@@ -48,6 +52,15 @@ public class CampaignStateReflector {
             return (UIPanelAPI) MethodReflector.GetInstance().invoke(getScreenHandle, cs);
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't call CampaignState.getScreenPanel!", ex);
+            return null;
+        }
+    }
+
+    public CoreUIAPI getCoreUI() {
+        try {
+            return (CoreUIAPI) FieldReflector.GetInstance().GetVariable(coreUiField, cs);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).warn("Couldn't fetch CampaignState.core!", ex);
             return null;
         }
     }

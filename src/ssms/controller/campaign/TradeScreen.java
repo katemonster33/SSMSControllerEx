@@ -12,6 +12,7 @@ import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.campaign.ui.trade.CargoStackView;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.reflection.*;
 
@@ -39,6 +40,7 @@ public class TradeScreen extends InputScreenBase {
         indicators.add(new Pair<>(Indicators.B, "Abort"));
         indicators.add(new Pair<>(Indicators.A, "Confirm"));
         indicators.add(new Pair<>(Indicators.Select, "Toggle hangar"));
+        indicators.add(new Pair<>(Indicators.Start, "Close"));
         controller = SSMSControllerModPluginEx.controller;
     }
 
@@ -54,23 +56,25 @@ public class TradeScreen extends InputScreenBase {
         ControllerCrosshairRenderer.setSize(100);
     }
 
-    void mouseOverGrid(CargoDataGridViewReflector gridView) {
-        //var gridPos = gridView.getPosition();
+    Vector2f getMousePosForSelection(CargoDataGridViewReflector gridView) {
         var gridPos = ((UIPanelAPI)gridView.getPrivateObject()).getPosition();
         float xpos = gridPos.getX() + (100 * selectedCol) + 43;
         float ypos = gridPos.getY() + gridPos.getHeight() - (100 * selectedRow) - 58;
-        InputShim.mouseMove((int) xpos, (int) ypos);
+        return new Vector2f(xpos, ypos);
+    }
+
+    void mouseOverGrid(CargoDataGridViewReflector gridView) {
+        var mousePos = getMousePosForSelection(gridView);
+        InputShim.mouseMove((int) mousePos.x, (int) mousePos.y);
     }
 
     void clickStack(CargoDataGridViewReflector gridView) {
-        var gridPos = ((UIPanelAPI)gridView.getPrivateObject()).getPosition();
-        float xpos = gridPos.getX() + (100 * selectedCol) + 43;
-        float ypos = gridPos.getY() + gridPos.getHeight()  - (100 * selectedRow) - 58;
+        var mousePos = getMousePosForSelection(gridView);
         CargoStackView mousedOverStack = null;
         for(var stack : gridView.getStacks()) {
             var stackPos = ((UIPanelAPI)stack).getPosition();
-            if(xpos >= stackPos.getX() && xpos <= (stackPos.getX() + stackPos.getWidth()) &&
-             ypos >= stackPos.getY() && ypos <= (stackPos.getY() + stackPos.getHeight())) {
+            if(mousePos.x >= stackPos.getX() && mousePos.x <= (stackPos.getX() + stackPos.getWidth()) &&
+                    mousePos.y >= stackPos.getY() && mousePos.y <= (stackPos.getY() + stackPos.getHeight())) {
                 mousedOverStack = stack;
                 break;
             }
@@ -78,9 +82,9 @@ public class TradeScreen extends InputScreenBase {
         if(mousedOverStack != null && mousedOverStack.getStack().getSize() >= 4.f) {
             InputShim.keyDown(Keyboard.KEY_LSHIFT, '\0');
         }
-        InputShim.mouseDown((int) xpos, (int) ypos, 0);
+        InputShim.mouseDown((int) mousePos.x, (int) mousePos.y, 0);
         if(mousedOverStack == null || mousedOverStack.getStack().getSize() < 4.f) {
-            InputShim.mouseUp((int) xpos, (int) ypos, 0);
+            InputShim.mouseUp((int) mousePos.x, (int) mousePos.y, 0);
         } else if(mousedOverStack != null && mousedOverStack.getStack().getSize() >= 4.f) {
             InputShim.keyUp(Keyboard.KEY_LSHIFT, '\0');
         }
@@ -115,6 +119,8 @@ public class TradeScreen extends InputScreenBase {
         }
         if(!Global.getSector().getCampaignUI().isShowingDialog()) {
             InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
+        } else if(tradeUiReflector.getCoreUIAPI().getTradeMode() == null) {
+            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
         }
         CargoDataGridViewReflector curGrid = playerGridSelected ? playerDataGrid : otherDataGrid;
         if(selectedCol == -1 || selectedRow == -1) {
@@ -142,6 +148,8 @@ public class TradeScreen extends InputScreenBase {
         } else if(controller.getButtonEvent(HandlerController.Buttons.Select) == 1 && controller.isButtonSelectPressed()) {
             playerGridSelected = !playerGridSelected;
             selectedRow = selectedCol = -1;
+        } else if(controller.getButtonEvent(HandlerController.Buttons.Start) == 1 && controller.isButtonStartPressed()) {
+            InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
         }
     }
 

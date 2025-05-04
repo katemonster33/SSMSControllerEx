@@ -15,6 +15,7 @@ import java.util.List;
 
 import ssms.controller.Indicators;
 import ssms.controller.reflection.CampaignStateReflector;
+import ssms.controller.reflection.TradeUiReflector;
 
 public class MainCampaignUI  extends InputScreenBase {
     public static final String ID = "MainCampaign";
@@ -80,8 +81,18 @@ public class MainCampaignUI  extends InputScreenBase {
     public void preInput(float advance) {
         float zoom = CampaignStateReflector.GetInstance().getZoomFactor();
         ControllerCrosshairRenderer.setSize((int)(58 / zoom));
-        if(Global.getSector().getCampaignUI().isShowingDialog() && Global.getSector().getCampaignUI().getCurrentInteractionDialog() != null) {
-            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, DialogUI.ID, new Object[]{});
+        if(Global.getSector().getCampaignUI().isShowingDialog()) {
+            if(Global.getSector().getCampaignUI().getCurrentInteractionDialog() != null) {
+                InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, DialogUI.ID, new Object[]{});
+            } else if(Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.CARGO) {
+                var coreui = CampaignStateReflector.GetInstance().getCoreUI();
+                if(coreui != null) {
+                    var tradeui = TradeUiReflector.TryGet(coreui);
+                    if(tradeui != null) {
+                        InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{ tradeui });
+                    }
+                }
+            }
         }
         if(mousePos.x != -1.f && mousePos.y != -1.f) {
             if (handler.isButtonAPressed() && !isMouseDown) {

@@ -193,7 +193,7 @@ public class InputShim implements InputImplementation {
                 byteBuffer.putLong(10000000L);
                 mouseX = evt.mouseX;
                 mouseY = evt.mouseY;
-                Global.getLogger(getClass()).info("InputShim sending mouse event, pos:[" + evt.mouseX + "," + evt.mouseY + "], btn:" + evt.mouseBtn + ", state:" + evt.state);
+                Global.getLogger(getClass()).debug("InputShim sending mouse event, pos:[" + evt.mouseX + "," + evt.mouseY + "], btn:" + evt.mouseBtn + ", state:" + evt.state);
                 evt.sent = true;
             }
         }
@@ -264,7 +264,7 @@ public class InputShim implements InputImplementation {
                 byteBuffer.putLong(0x10000L);
                 byteBuffer.put((byte)0);
                 evt.sent = true;
-                Global.getLogger(getClass()).info("InputShim sending key:" + evt.keyCode + ", state:" + evt.state);
+                Global.getLogger(getClass()).debug("InputShim sending key:" + evt.keyCode + ", state:" + evt.state);
             }
         }
     }
