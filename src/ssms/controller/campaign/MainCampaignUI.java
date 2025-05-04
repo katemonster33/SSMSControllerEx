@@ -68,14 +68,6 @@ public class MainCampaignUI  extends InputScreenBase {
 
         //a pentagon that points in the direction the ship ship wants to head into, useful since the ship turns slowly
         //and this way the user immediately has feedback on where he is steering.
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-
-        //HUD color for own ship
-        final float cr = 155.0f/255.0f, cg = 255.0f/255.0f, cb = 0f/255.0f;
-        GL11.glColor3f(cr, cg, cb);
-        GL11.glLineWidth(1f);
         Vector2f vHeadingNormalised = new Vector2f(desiredHeading);
         vHeadingNormalised.normalise();
 
@@ -88,26 +80,12 @@ public class MainCampaignUI  extends InputScreenBase {
         Vector2f shipLocation = new Vector2f(viewport.convertWorldXtoScreenX(pf.getLocation().x), viewport.convertWorldYtoScreenY(pf.getLocation().y));
         Vector2f pentagonCenter = new Vector2f(shipLocation.x + vHeadingNormalised.x * shipRadius * (4f + 2f * radius / shipRadius), shipLocation.y - vHeadingNormalised.y * shipRadius * (4f + 2f * radius / shipRadius));
 
-        float angleIncrement = (float) Math.toRadians(360.0f / 5f);
-        //rotating the pentagon so that it points in the right direction and the missing slice is opposite to that point.
-        float angle = (float) Math.toRadians(Util_Steering.getFacingFromHeading(new Vector2f(desiredHeading))) + 3f * angleIncrement;
-
-        GL11.glBegin(GL11.GL_TRIANGLE_FAN);
-        GL11.glVertex2f(pentagonCenter.x, pentagonCenter.y);
-        //alpha on the edges avoids sharp contours for large ships.
-        GL11.glColor4f(cr, cg, cb, 0.2f);
-        for (int k = 0; k < 5; ++k) {
-            GL11.glVertex2f(pentagonCenter.x + radius * (float)Math.cos(angle), pentagonCenter.y + radius * (float)Math.sin(angle));
-            angle += angleIncrement;
-        }
-        GL11.glEnd();
-
-        //int innerX = Display.getParent().getX();
         int windowPosX = Display.getX(), windowPosY = Display.getY();
+
         mousePos.x = pentagonCenter.x + windowPosX;
         mousePos.y = pentagonCenter.y + windowPosY;
-        inputSender.mouseMove((int)mousePos.x, (int)mousePos.y);
-        //viewport.getLLX()
+        InputShim.mouseMove((int)pentagonCenter.x, (int)pentagonCenter.y);
+        ControllerCrosshairRenderer.setSize((int)(58 / zoom));
     }
 
     @Override

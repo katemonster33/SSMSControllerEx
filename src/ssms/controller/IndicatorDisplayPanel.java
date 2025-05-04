@@ -63,6 +63,9 @@ public class IndicatorDisplayPanel extends LunaBaseCustomPanelPlugin  {
                 cleanup();
             }
         }
+        if(InputShim.mouseX != null && InputShim.mouseY != null) {
+
+        }
     }
 
     @Override

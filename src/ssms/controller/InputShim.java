@@ -45,6 +45,37 @@ public class InputShim implements InputImplementation {
         }
     }
 
+    public static Integer getMouseX() {
+        return mouseX;
+    }
+
+    public static Integer getMouseY() {
+        return mouseY;
+    }
+
+    public static void remove() {
+        if(instance == null) {
+            Global.getLogger(InputShim.class).info("Input shim already installed!");
+        } else {
+            try {
+                var inputImplField = ClassReflector.GetInstance().getDeclaredField(Mouse.class, "implementation");
+                var inputImplFieldKb = ClassReflector.GetInstance().getDeclaredField(Keyboard.class, "implementation");
+                InputImplementation originalImpl = (InputImplementation) FieldReflector.GetInstance().GetVariable(inputImplField, null);
+                InputImplementation originalImplKb = (InputImplementation) FieldReflector.GetInstance().GetVariable(inputImplFieldKb, null);
+                if (originalImpl != originalImplKb) {
+                    // we probably won't ever hit this, if we do, then ruh-roh.
+                    throw new IllegalArgumentException("Can't remove input shim - keyboard/mouse input implementations use different objects!");
+                } else {
+                    FieldReflector.GetInstance().SetVariable(inputImplField, null, instance.realImpl);
+                    FieldReflector.GetInstance().SetVariable(inputImplFieldKb, null, instance.realImpl);
+                    instance = null;
+                }
+            } catch (Throwable ex) {
+                Global.getLogger(InputShim.class).fatal("Couldn't remove input shim!", ex);
+            }
+        }
+    }
+
     public static void mouseMove(int x, int y)
     {
         pendingEvents.add(new InputEvent(x, y));

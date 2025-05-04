@@ -263,6 +263,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
     public void onGameLoad(boolean newGame) {
 
         Global.getSector().addTransientScript(new CampaignControllerListener());
+        Global.getSector().getListenerManager().addListener(new CampaignRenderer());
     }
 
     protected HashMap<String, ControllerMapping> configureControllerMappings(JSONObject controllerMappingsObj) {

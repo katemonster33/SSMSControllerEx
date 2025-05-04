@@ -128,8 +128,6 @@ public class InputScreenManager {
         //moving to scope sets the screen id for the input screen that has the initial annoation and a matching scope
         //scope can hold variables like the engine for combat
         //transitions into the same scope are legal, they happen if no other scope is active between two seperate scope entries
-        InputShim.clearAll();
-        refreshIndicators();
         if ( scopes.containsKey(scopeId) ) {
             InputScopeBase scope = scopes.get(scopeId);
             return transitionToScope(scopeId, args, scope.getDefaultScreen(), null);
@@ -231,31 +229,31 @@ public class InputScreenManager {
         currentScreen.renderUI(viewport);
         renderIndicators(viewport);
     }
+
+    UIPanelAPI getCurrentStatePanel() {
+        return switch (Global.getCurrentState()) {
+            case TITLE -> TitleScreenStateReflector.GetInstance().getScreenPanel();
+            case CAMPAIGN -> CampaignStateReflector.GetInstance().getScreenPanel();
+            case COMBAT -> CombatStateReflector.GetInstance().getWidgetPanel();
+        };
+    }
+
+
+    Alignment getCurrentStateAlignment() {
+        return switch (Global.getCurrentState()) {
+            case TITLE -> Alignment.BL;
+            case CAMPAIGN -> Alignment.RMID;
+            case COMBAT -> Alignment.BR;
+        };
+    }
     
     private void renderIndicators(ViewportAPI viewport) {
-        
         InputScreenBase screen = getCurrentScreen();
         if(screen != null && screen.getIndicators() != null && !screen.getIndicators().isEmpty()) {
             if(displayPanel == null) {
                 try {
-                    UIPanelAPI mainPanel = null;
-                    Alignment displayPanelAlignment = Alignment.BL;
-                    switch(Global.getCurrentState())
-                    {
-                        case TITLE:
-                            mainPanel = TitleScreenStateReflector.GetInstance().getScreenPanel();
-                            displayPanelAlignment = Alignment.BL;
-                            break;
-                        case CAMPAIGN:
-                            mainPanel = CampaignStateReflector.GetInstance().getScreenPanel();
-                            displayPanelAlignment = Alignment.RMID;
-                            break;
-                        case COMBAT:
-                            mainPanel = CombatStateReflector.GetInstance().getWidgetPanel();
-                            displayPanelAlignment = Alignment.BR;
-                            break;
-
-                    }
+                    var mainPanel = getCurrentStatePanel();
+                    var displayPanelAlignment = getCurrentStateAlignment();
                     if(mainPanel != null) {
                         displayPanel = new IndicatorDisplayPanel(mainPanel, screen.getIndicators(), displayPanelAlignment);
                     }
@@ -263,43 +261,7 @@ public class InputScreenManager {
                     Global.getLogger(getClass()).fatal("Could not create the panel for displaying indicator sprites!", ex);
                 }
             }
-//            if(displayPanel != null) {
-//                displayPanel.render(viewport.getAlphaMult());
-//            }
         }
-//        List<Pair<Indicators, String>> indicators = screen.getIndicators();
-//        if ( indicators == null || indicators.isEmpty() ) return;
-//
-//        float yMin = viewport.convertWorldYtoScreenY(viewport.getLLY()), xMax = 0;
-//        xMax = viewport.convertWorldXtoScreenX(viewport.getLLX() + viewport.getVisibleWidth());
-//
-//        final float lineHeight = 25, spacing = 8f, textWidth = 200f;
-//        float x = xMax - textWidth - lineHeight - spacing - spacing, y = yMin + indicators.size() * (lineHeight + spacing) + spacing;
-//        for ( Pair<Indicators,String> e : indicators ) {
-//            if ( e.one != null ) {
-//                SpriteAPI sprite = indicatorSprites.get(e.one);
-//                if ( sprite != null ) {
-//                    sprite.setWidth(lineHeight);
-//                    sprite.setHeight(lineHeight);
-//                    sprite.render(x, y);
-//                }
-//                //UIUtil.getInstance().renderText(e.two, Color.white, x + spacing + lineHeight, y, textWidth, lineHeight, Alignment.LMID);
-//
-//                var str = defaultFont.createText(e.two, Color.white, textLineHeight, textWidth, lineHeight);
-//                str.setAlignment(TextAlignment.LEFT);
-//                str.setAnchor(TextAnchor.TOP_LEFT);
-//                str.draw(x + spacing + lineHeight, y + textLineHeight + 2);
-//                y -= lineHeight + spacing;
-//            } else {
-//                //UIUtil.getInstance().renderText(e.two, Color.white, x, y, textWidth + spacing + lineHeight, textLineHeight, Alignment.LMID);
-//                var str = defaultFont.createText(e.two, Color.white, textLineHeight, textWidth + spacing + lineHeight, lineHeight);
-//                str.setAlignment(TextAlignment.LEFT);
-//                str.setAnchor(TextAnchor.CENTER_LEFT);
-//                str.draw(x, y - textLineHeight);
-//
-//                y -= textLineHeight + spacing;
-//            }
-//        }
     }
     
     public void stopFrame() {
