@@ -1,22 +1,15 @@
 package ssms.controller.campaign;
 
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.input.InputEventAPI;
-import com.fs.starfarer.api.input.InputEventClass;
-import com.fs.starfarer.api.input.InputEventType;
-import com.fs.starfarer.api.ui.ButtonAPI;
-import com.fs.starfarer.api.ui.PositionAPI;
-import com.fs.starfarer.api.ui.UIComponentAPI;
+import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.campaign.ui.trade.CargoStackView;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.reflection.*;
 
-import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +17,7 @@ public class TradeScreen extends InputScreenBase {
     public static final String ID = "Trade";
     List<Pair<Indicators, String>> indicators;
     TradeUiReflector tradeUiReflector;
+    InteractionDialogAPI interactionDialogAPI;
     CargoDataGridViewReflector playerDataGrid;
     CargoDataGridViewReflector otherDataGrid;
     CargoTransferHandlerReflector cargoTransferHandler;
@@ -54,6 +48,7 @@ public class TradeScreen extends InputScreenBase {
         playerGridSelected = true;
         selectedCol = selectedRow = -1;
         ControllerCrosshairRenderer.setSize(100);
+        interactionDialogAPI = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
     }
 
     Vector2f getMousePosForSelection(CargoDataGridViewReflector gridView) {
@@ -119,8 +114,11 @@ public class TradeScreen extends InputScreenBase {
         }
         if(!Global.getSector().getCampaignUI().isShowingDialog()) {
             InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
-        } else if(tradeUiReflector.getCoreUIAPI().getTradeMode() == null) {
-            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
+        } else if(tradeUiReflector.getCoreUIAPI().getTradeMode() != null){
+            var tradePanelChildren = UIPanelReflector.getChildItems((UIPanelAPI) interactionDialogAPI);
+            if(!tradePanelChildren.contains(tradeUiReflector.getCoreUIAPI())) {
+                InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, DialogUI.ID, new Object[]{});
+            }
         }
         CargoDataGridViewReflector curGrid = playerGridSelected ? playerDataGrid : otherDataGrid;
         if(selectedCol == -1 || selectedRow == -1) {

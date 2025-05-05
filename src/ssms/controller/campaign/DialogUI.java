@@ -117,10 +117,13 @@ public class DialogUI extends InputScreenBase {
         }
         var interactionCoreUi = interactReflector.getCoreUI(interactionDialogAPI);
         if(interactionCoreUi != null && interactionCoreUi.getTradeMode() != null) {
-            var tradeUi = TradeUiReflector.TryGet(interactionCoreUi);
-            if(tradeUi != null) {
-                InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{ tradeUi });
-                return;
+            var dialogChildren = UIPanelReflector.getChildItems((UIPanelAPI) interactionDialogAPI);
+            if(dialogChildren.contains(interactionCoreUi)) {
+                var tradeUi = TradeUiReflector.TryGet(interactionCoreUi);
+                if (tradeUi != null && tradeUi.getTradePanel() != null && tradeUi.getTradePanel().getOpacity() != 0.f) {
+                    InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{tradeUi});
+                    return;
+                }
             }
         }
         if(dialogOptions == null) {
