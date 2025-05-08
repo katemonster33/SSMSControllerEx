@@ -249,17 +249,15 @@ public class InputScreenManager {
     
     private void renderIndicators(ViewportAPI viewport) {
         InputScreenBase screen = getCurrentScreen();
-        if(screen != null && screen.getIndicators() != null && !screen.getIndicators().isEmpty()) {
-            if(displayPanel == null) {
-                try {
-                    var mainPanel = getCurrentStatePanel();
-                    var displayPanelAlignment = getCurrentStateAlignment();
-                    if(mainPanel != null) {
-                        displayPanel = new IndicatorDisplayPanel(mainPanel, screen.getIndicators(), displayPanelAlignment);
-                    }
-                } catch(IllegalArgumentException ex) {
-                    Global.getLogger(getClass()).fatal("Could not create the panel for displaying indicator sprites!", ex);
+        if(displayPanel == null && screen != null && screen.getIndicators() != null && !screen.getIndicators().isEmpty()) {
+            try {
+                var mainPanel = getCurrentStatePanel();
+                var displayPanelAlignment = getCurrentStateAlignment();
+                if(mainPanel != null) {
+                    displayPanel = new IndicatorDisplayPanel(mainPanel, screen.getIndicators(), displayPanelAlignment);
                 }
+            } catch(IllegalArgumentException ex) {
+                Global.getLogger(getClass()).fatal("Could not create the panel for displaying indicator sprites!", ex);
             }
         }
     }

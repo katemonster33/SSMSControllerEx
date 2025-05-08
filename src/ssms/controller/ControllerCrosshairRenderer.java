@@ -40,7 +40,7 @@ public class ControllerCrosshairRenderer {
         if (!init)
         {
             init = true;
-            indicTL.setSize(indicTL.getWidth() / 1.5f, indicTL.getHeight() / 1.5f);
+            indicTL.setSize(origWidth / 1.5f, origHeight / 1.5f);
             indicTR.setSize(indicTL.getWidth(), indicTL.getHeight());
             indicBL.setSize(indicTL.getWidth(), indicTL.getHeight());
             indicBR.setSize(indicTL.getWidth(), indicTL.getHeight());

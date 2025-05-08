@@ -54,6 +54,10 @@ public class InputShim implements InputImplementation {
         return mouseY;
     }
 
+    public static boolean hasMouseControl() {
+        return mouseX != null || mouseY != null;
+    }
+
     public static void remove() {
         if(instance == null) {
             Global.getLogger(InputShim.class).info("Input shim already installed!");
