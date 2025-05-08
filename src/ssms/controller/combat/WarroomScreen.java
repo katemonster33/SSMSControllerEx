@@ -23,6 +23,8 @@ public class WarroomScreen extends InputScreenBase {
     CombatStateReflector csr;
     HandlerController controller;
     boolean isMovingMap = false;
+    int selectedButtonGroup = -1, selectedButton = -1;
+    boolean selectingButton = false;
     BattleScope scope;
     WarroomReflector warroomReflector;
     List<Pair<Indicators, String>> indicators;
@@ -33,6 +35,7 @@ public class WarroomScreen extends InputScreenBase {
     ViewportAPI viewportAPI;
     Vector2f desiredMousePos = null;
     final float mouseMoveFactor = 4.f;
+    boolean isLeftMouseDown = false;
     @Override
     public List<Pair<Indicators, String>> getIndicators() {
         return indicators;
@@ -50,6 +53,7 @@ public class WarroomScreen extends InputScreenBase {
         deployedPlayerShips = playerFleetManager.getAllEverDeployedCopy();
         deployedFleetMember = null;
 
+        selectedButtonGroup = selectedButton = -1;
         indicators = new ArrayList<>();
         indicators.add(new Pair<>(Indicators.Start, "Pause"));
         indicators.add(new Pair<>(Indicators.Select, "Show video feed"));
@@ -58,10 +62,10 @@ public class WarroomScreen extends InputScreenBase {
         //indicators.add(new Pair<>(Indicators.RightStick, "Move map"));
         indicators.add(new Pair<>(Indicators.A, "Select object/button"));
         indicators.add(new Pair<>(Indicators.X, "Target point/object"));
-        indicators.add((new Pair<>(Indicators.BumperLeft, "Select prev allied ship")));
-        indicators.add((new Pair<>(Indicators.BumperRight, "Select next allied ship")));
-        indicators.add(new Pair<>(Indicators.LeftTrigger, "Select hostile ships"));
-        indicators.add(new Pair<>(Indicators.RightTrigger, "Select hostile ships"));
+        indicators.add((new Pair<>(Indicators.BumperLeft, "Select prev button")));
+        indicators.add((new Pair<>(Indicators.BumperRight, "Select next button")));
+        indicators.add(new Pair<>(Indicators.LeftTrigger, "Select prev button group"));
+        indicators.add(new Pair<>(Indicators.RightTrigger, "Select next button group"));
     }
 
     @Override
@@ -91,6 +95,11 @@ public class WarroomScreen extends InputScreenBase {
 
         ReadableVector2f leftStick = controller.getLeftStick();
         if(leftStick.getX() != 0 || leftStick.getY() != 0) {
+            if(selectingButton) {
+                selectedButton = selectedButtonGroup = -1;
+                desiredMousePos = null;
+                selectingButton = false;
+            }
             if(desiredMousePos == null) {
                 desiredMousePos = new Vector2f(viewportAPI.convertWorldXtoScreenX(viewportAPI.getCenter().getX()), viewportAPI.convertWorldYtoScreenY(viewportAPI.getCenter().getY()));
             } else {
@@ -107,22 +116,53 @@ public class WarroomScreen extends InputScreenBase {
                 }
                 isMovingMap = !isMovingMap;
             }
-            if(controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
-                if(controller.isButtonAPressed()) {
-                    InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
-                } else {
-                    InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
-                }
+            if(!isLeftMouseDown && controller.isButtonAPressed()) {
+                InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
+                isLeftMouseDown = true;
+            } else if(isLeftMouseDown && !controller.isButtonAPressed()) {
+                InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
+                isLeftMouseDown = false;
             }
             if(controller.getButtonEvent(HandlerController.Buttons.X) == 1) {
-                if(controller.isButtonXPressed()) {
-                    InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
-                } else {
-                    InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
-                }
+                InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
+                InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
             }
         }
 
+        if(controller.getButtonEvent(HandlerController.Buttons.BumperLeft) == 1 ||
+                controller.getButtonEvent(HandlerController.Buttons.BumperRight) == 1 ||
+                controller.getButtonEvent(HandlerController.Buttons.LeftTrigger) == 1 ||
+                controller.getButtonEvent(HandlerController.Buttons.RightTrigger) == 1) {
+            selectingButton = true;
+            var buttonGroups = warroomReflector.getButtonGroups();
+            if((selectedButtonGroup != -1 && selectedButton != -1) &&
+                    (selectedButtonGroup >= buttonGroups.size() || selectedButton >= buttonGroups.get(selectedButtonGroup).size())) {
+                selectedButtonGroup = selectedButton = -1;
+            }
+            if(selectedButtonGroup == -1 || selectedButton == -1) {
+                if(!buttonGroups.isEmpty()) {
+                    selectedButtonGroup = selectedButton = 0;
+                    var btnPos = buttonGroups.get(selectedButtonGroup).get(selectedButton).getPosition();
+                    InputShim.mouseMove((int) btnPos.getCenterX(), (int) btnPos.getCenterY());
+                }
+            } else {
+                if(controller.getButtonEvent(HandlerController.Buttons.BumperLeft) == 1) {
+                    if(selectedButton > 0) selectedButton--;
+                } else if(controller.getButtonEvent(HandlerController.Buttons.BumperRight) == 1) {
+                    if(selectedButton < buttonGroups.get(selectedButtonGroup).size() - 1) selectedButton++;
+                } else if(controller.getButtonEvent(HandlerController.Buttons.LeftTrigger) == 1 &&
+                        controller.isTriggerLeft()) {
+                    if(selectedButtonGroup > 0) selectedButtonGroup--;
+                    selectedButton = 0;
+                } else if(controller.getButtonEvent(HandlerController.Buttons.RightTrigger) == 1 &&
+                        controller.isTriggerRight()) {
+                    if(selectedButtonGroup < buttonGroups.size() - 1) selectedButtonGroup++;
+                    selectedButton = 0;
+                }
+                var btnPos = buttonGroups.get(selectedButtonGroup).get(selectedButton).getPosition();
+                InputShim.mouseMove((int) btnPos.getCenterX(), (int) btnPos.getCenterY());
+            }
+        }
 
         if(controller.getButtonEvent(HandlerController.Buttons.Start) == 1) {
             Global.getCombatEngine().setPaused(!Global.getCombatEngine().isPaused());
@@ -130,12 +170,6 @@ public class WarroomScreen extends InputScreenBase {
             csr.HideWarroom();
             csr.SetVideoFeedToPlayerShip();
             //Global.getCombatEngine().sho
-        } else if(controller.getButtonEvent(HandlerController.Buttons.BumperLeft) == 1 && controller.isButtonBumperLeftPressed()) {
-
-            int selectedShipIdx = -1;
-            if(deployedFleetMember != null) {
-                selectedShipIdx = deployedPlayerShips.indexOf(deployedFleetMember);
-            }
         }
 
     }

@@ -260,8 +260,8 @@ public class HandlerController {
             case LeftStickUp -> getBtnEvent(axisLeftStickY, controller.getButtonCount());
             case LeftStickLeft -> getBtnEvent(axisLeftStickX, controller.getButtonCount());
             case LeftStickRight -> getBtnEvent(axisLeftStickX, controller.getButtonCount() + 1);
-            case LeftTrigger -> getBtnEvent(axisTrigger, controller.getButtonCount());
-            case RightTrigger -> getBtnEvent(axisTrigger, controller.getButtonCount() + 1);
+            case LeftTrigger -> axisRTrigger >= 0 ? getBtnEvent(axisTrigger, controller.getButtonCount() + 1) : getBtnEvent(axisTrigger, controller.getButtonCount());
+            case RightTrigger -> axisRTrigger >= 0 ? getBtnEvent(axisRTrigger, controller.getButtonCount() + 1) : getBtnEvent(axisTrigger, controller.getButtonCount() + 1);
             case DpadUp -> getBtnEvent(axisDpadY, controller.getButtonCount());
             case DpadDown -> getBtnEvent(axisDpadY, controller.getButtonCount() + 1);
             case DpadLeft -> getBtnEvent(axisDpadX, controller.getButtonCount());
