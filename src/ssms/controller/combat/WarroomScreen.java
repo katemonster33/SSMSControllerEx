@@ -143,6 +143,7 @@ public class WarroomScreen extends InputScreenBase {
                 if(!buttonGroups.isEmpty()) {
                     selectedButtonGroup = selectedButton = 0;
                     var btnPos = buttonGroups.get(selectedButtonGroup).get(selectedButton).getPosition();
+                    desiredMousePos.set(btnPos.getCenterX(), btnPos.getCenterY());
                     InputShim.mouseMove((int) btnPos.getCenterX(), (int) btnPos.getCenterY());
                 }
             } else {
@@ -160,6 +161,7 @@ public class WarroomScreen extends InputScreenBase {
                     selectedButton = 0;
                 }
                 var btnPos = buttonGroups.get(selectedButtonGroup).get(selectedButton).getPosition();
+                desiredMousePos.set(btnPos.getCenterX(), btnPos.getCenterY());
                 InputShim.mouseMove((int) btnPos.getCenterX(), (int) btnPos.getCenterY());
             }
         }
