@@ -118,7 +118,7 @@ public class BattleSteeringScreen extends InputScreenBase {
     @Override
     public void preInput(float amount) {
         if(Global.getCombatEngine().getCombatUI().isShowingDeploymentDialog()) {
-            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, BattleDeploymentScreen.ID, new Object[]{});
+            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, BattleDeploymentScreen.ID, new Object[]{ csr });
             return;
         } else if(Global.getCombatEngine().getCombatUI().isShowingCommandUI()) {
             InputScreenManager.getInstance().transitionDelayed(WarroomScreen.ID);

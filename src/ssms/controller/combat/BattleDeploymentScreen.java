@@ -13,18 +13,21 @@ import java.util.List;
 
 public class BattleDeploymentScreen extends InputScreenBase {
     public static final String ID = "BattleDeployment";
-    List<Pair<Indicators, String>> indicators;
-    Object deploymentUi;
+    List<Pair<Indicators, String>> indicators = null;
     DeploymentUiReflector dui; // hehe, dui
     HandlerController controller;
     int selectedButton = -1;
     List<ButtonAPI> dialogOptions;
-    List<ButtonAPI> ships;
     int selectedShip = -1;
     boolean selectingShips = false;
 
     public BattleDeploymentScreen() {
-        indicators = null;
+        indicators = new ArrayList<>();
+        indicators.add(new Pair<>(Indicators.LeftStickUp, "Select ships"));
+        indicators.add(new Pair<>(Indicators.LeftStickDown, "Select buttons"));
+        indicators.add(new Pair<>(Indicators.LeftStickRight, "Next ship/button"));
+        indicators.add(new Pair<>(Indicators.LeftStickLeft, "Prev ship/button"));
+        indicators.add(new Pair<>(Indicators.A, "Select ship/button"));
     }
 
     @Override
@@ -35,11 +38,24 @@ public class BattleDeploymentScreen extends InputScreenBase {
     @Override
     public void activate(Object ...args) {
         controller = SSMSControllerModPluginEx.controller;
-        deploymentUi = null;
-        dui = null;
+        CombatStateReflector csr = (CombatStateReflector) args[0];
+        dui = new DeploymentUiReflector(csr.getDeploymentDialog());
+        dialogOptions = dui.getAllButtons();
+        selectingShips = false;
+        if(!dialogOptions.isEmpty()) {
+            for (selectedButton = 0; selectedButton < dialogOptions.size(); selectedButton++) {
+                if (dialogOptions.get(selectedButton).isEnabled()) {
+                    dialogOptions.get(selectedButton).highlight();
+                    break;
+                }
+            }
+            if(selectedButton >= dialogOptions.size()) {
+                selectedButton = -1;
+            }
+        }
     }
 
-    public void selectNextShip() {
+    public void selectNextShip(List<ButtonAPI> ships) {
         if(ships != null && !ships.isEmpty()) {
             int oldSelectedButton = selectedShip;
             if(selectedShip == -1) {
@@ -60,7 +76,7 @@ public class BattleDeploymentScreen extends InputScreenBase {
         }
     }
 
-    public void selectPrevShip() {
+    public void selectPrevShip(List<ButtonAPI> ships) {
         if(ships != null && !ships.isEmpty()) {
             int oldSelectedButton = selectedShip;
             if(selectedShip == -1) {
@@ -81,7 +97,7 @@ public class BattleDeploymentScreen extends InputScreenBase {
         }
     }
 
-    public void clickShip() {
+    public void clickShip(List<ButtonAPI> ships) {
         if(selectedShip != -1 && ships != null && selectedShip < ships.size()) {
             dui.doActionPerformedShip(ships.get(selectedShip));
         }
@@ -90,42 +106,40 @@ public class BattleDeploymentScreen extends InputScreenBase {
     public void selectNextButton() {
         if(dialogOptions != null && !dialogOptions.isEmpty()) {
             int oldSelectedButton = selectedButton;
-            if(selectedButton == -1) {
-                selectedButton = 0;
-            } else if(selectedButton < (dialogOptions.size() - 1)) {
-                selectedButton++;
-            }
-            if(!dialogOptions.get(selectedButton).isEnabled()) {
-                selectedButton++;
+            selectedButton++;
+            for(; selectedButton < dialogOptions.size(); selectedButton++) {
+                if(dialogOptions.get(selectedButton).isEnabled()) {
+                    break;
+                }
             }
             if(selectedButton >= dialogOptions.size()) {
-                selectedButton = 0;
+                selectedButton = oldSelectedButton;
+            } else {
+                if (oldSelectedButton != -1) {
+                    dialogOptions.get(oldSelectedButton).unhighlight();
+                }
+                dialogOptions.get(selectedButton).highlight();
             }
-            if(selectedButton != oldSelectedButton && oldSelectedButton != -1) {
-                dialogOptions.get(oldSelectedButton).unhighlight();
-            }
-            dialogOptions.get(selectedButton).highlight();
         }
     }
 
     public void selectPrevButton() {
         if(dialogOptions != null && !dialogOptions.isEmpty()) {
             int oldSelectedButton = selectedButton;
-            if(selectedButton == -1) {
-                selectedButton = 0;
-            } else if(selectedButton > 0) {
-                selectedButton--;
-            }
-            if(!dialogOptions.get(selectedButton).isEnabled()) {
-                selectedButton--;
+            selectedButton--;
+            for(; selectedButton >= 0; selectedButton--) {
+                if(dialogOptions.get(selectedButton).isEnabled()) {
+                    break;
+                }
             }
             if(selectedButton < 0) {
-                selectedButton = dialogOptions.size() - 1;
+                selectedButton = oldSelectedButton;
+            } else {
+                if (oldSelectedButton != -1) {
+                    dialogOptions.get(oldSelectedButton).unhighlight();
+                }
+                dialogOptions.get(selectedButton).highlight();
             }
-            if(selectedButton != oldSelectedButton && oldSelectedButton != -1) {
-                dialogOptions.get(oldSelectedButton).unhighlight();
-            }
-            dialogOptions.get(selectedButton).highlight();
         }
     }
 
@@ -140,80 +154,92 @@ public class BattleDeploymentScreen extends InputScreenBase {
         return indicators;
     }
 
+    Object getUiOnTop() {
+        var panel = CombatStateReflector.GetInstance().getWidgetPanel();
+        if (panel != null) {
+            var items = UIPanelReflector.getChildItems(panel);
+            if (!items.isEmpty()) {
+                var lastChild = items.get(items.size() - 1);
+                if(InputScreenManager.getInstance().getDisplayPanel() != null && lastChild == InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
+                    lastChild = items.get(items.size() - 2);
+                }
+                if(lastChild == dui.getDialogObject()) {
+                    return null;
+                }
+                return lastChild;
+            }
+        }
+        return null;
+    }
+
     Object lastUIOnTop = null;
     @Override
     public void preInput(float advance) {
-        if(Global.getCurrentState() == GameState.COMBAT) {
-            if(Global.getCombatEngine().getCombatUI().isShowingDeploymentDialog()) {
-                var panel = CombatStateReflector.GetInstance().getWidgetPanel();
-                if (panel != null) {
-                    var items = UIPanelReflector.getChildItems(panel);
-                    if (!items.isEmpty()) {
-                        var lastChild = items.get(items.size() - 1);
-                        if (lastChild != null && lastChild != lastUIOnTop) {
-                            lastUIOnTop = lastChild;
-                            if (InputScreenManager.getInstance().getDisplayPanel() == null || lastUIOnTop != InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
-                                // this nonsense tries to tell if the topmost UI element is the message box that shows up the first time we enter combat
-                                MessageBoxReflector dr = MessageBoxReflector.TryGet(lastUIOnTop);
-                                if (dr != null) {
-                                    InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MessageBoxScreen.ID, new Object[]{dr, getId()});
-                                } else if(deploymentUi == null) {
-                                    // if it ain't, then we hope that we're looking at the actual deployment dialog
-                                    deploymentUi = lastUIOnTop;
-                                    dui = DeploymentUiReflector.TryGet(deploymentUi);
-                                    if(dui != null) {
-                                        dialogOptions = dui.getAllButtons();
-                                        ships = dui.getShips();
+        if(Global.getCombatEngine().getCombatUI().isShowingDeploymentDialog()) {
+            var lastChild = getUiOnTop();
+            if(lastChild != null && lastChild != lastUIOnTop) {
+                lastUIOnTop = lastChild;
+                // this nonsense tries to tell if the topmost UI element is the message box that shows up the first time we enter combat
+                MessageBoxReflector dr = MessageBoxReflector.TryGet(lastUIOnTop);
+                if (dr != null) {
+                    InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MessageBoxScreen.ID, new Object[]{ dr, getId() });
+                    return;
+                }
+            }
+        } else {
+            InputScreenManager.getInstance().transitionToScope(BattleScope.ID, Global.getCombatEngine());
+            return;
+        }
+        if(selectingShips) {
+            List<ButtonAPI> ships = dui.getShips();
+            if(selectedShip >= 0 && selectedShip < ships.size()) {
+                if(!ships.get(selectedShip).isEnabled()) {
+                    ships.get(selectedShip).unhighlight();
 
-                                        // hopefully it's safe to add the indicators now
-                                        indicators = new ArrayList<>();
-                                        indicators.add(new Pair<>(Indicators.LeftStickUp, "Select ships"));
-                                        indicators.add(new Pair<>(Indicators.LeftStickDown, "Select buttons"));
-                                        indicators.add(new Pair<>(Indicators.LeftStickRight, "Next ship/button"));
-                                        indicators.add(new Pair<>(Indicators.LeftStickLeft, "Prev ship/button"));
-                                        indicators.add(new Pair<>(Indicators.A, "Select ship/button"));
-                                    }
-                                }
-                            }
+                    for(selectedShip = 0; selectedShip < ships.size(); selectedShip++) {
+                        if(ships.get(selectedShip).isEnabled()) {
+                            ships.get(selectedShip).highlight();
+                            break;
                         }
                     }
-                }
-                if(selectingShips) {
-                    if(controller.getButtonEvent(HandlerController.Buttons.LeftStickRight) == 1) {
-                        selectNextShip();
-                    } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickLeft) == 1) {
-                        selectPrevShip();
-                    } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
-                        clickShip();
-                    }
-                } else {
-                    if(controller.getButtonEvent(HandlerController.Buttons.LeftStickRight) == 1) {
-                        selectNextButton();
-                    } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickLeft) == 1) {
-                        selectPrevButton();
-                    } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
-                        clickButton();
+                    if(selectedShip >= ships.size()) {
+                        selectedShip = -1;
                     }
                 }
-                if(controller.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1 && !selectingShips) {
+            }
+            if (controller.getButtonEvent(HandlerController.Buttons.LeftStickRight) == 1) {
+                selectNextShip(ships);
+            } else if (controller.getButtonEvent(HandlerController.Buttons.LeftStickLeft) == 1) {
+                selectPrevShip(ships);
+            } else if (controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
+                clickShip(ships);
+            } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1) {
+                selectingShips = false;
+                if(selectedShip != -1 && selectedShip < ships.size()) {
+                    ships.get(selectedShip).unhighlight();
+                }
+                selectedShip = -1;
+                selectedButton = -1;
+                selectNextButton();
+            }
+        } else {
+            if(!dialogOptions.isEmpty()) {
+                if (controller.getButtonEvent(HandlerController.Buttons.LeftStickRight) == 1) {
+                    selectNextButton();
+                } else if (controller.getButtonEvent(HandlerController.Buttons.LeftStickLeft) == 1) {
+                    selectPrevButton();
+                } else if (controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
+                    clickButton();
+                } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1) {
                     selectingShips = true;
                     selectedShip = -1;
-                    if(selectedButton != -1) {
+                    if(selectedButton != -1 && selectedButton < dialogOptions.size()) {
                         dialogOptions.get(selectedButton).unhighlight();
                     }
                     selectedButton = -1;
-                    selectNextShip();
-                } else  if(controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1 && selectingShips) {
-                    selectingShips = false;
-                    if(selectedShip != -1) {
-                        ships.get(selectedShip).unhighlight();
-                    }
-                    selectedShip = -1;
-                    selectedButton = -1;
-                    selectNextButton();
+                    var ships = dui.getShips();
+                    selectNextShip(ships);
                 }
-            } else {
-                InputScreenManager.getInstance().transitionToScope(BattleScope.ID, Global.getCombatEngine());
             }
         }
     }

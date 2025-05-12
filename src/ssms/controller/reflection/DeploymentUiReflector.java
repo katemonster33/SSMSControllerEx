@@ -3,25 +3,34 @@ package ssms.controller.reflection;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
+import com.fs.starfarer.campaign.fleet.FleetMember;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 public class DeploymentUiReflector {
     MethodHandle dismiss;
     Object isBeingDismissed;
     MethodHandle actionPerformed;
     MethodHandle shipActionPerformed;
-    Object deploymentUiObj;
+    UIPanelAPI deploymentUiObj;
     Object shipPanel;
-    private DeploymentUiReflector(Object deploymentUiObject) throws Throwable {
+
+    public DeploymentUiReflector(UIPanelAPI deploymentUiObject) {
         this.deploymentUiObj = deploymentUiObject;
-        var lookup = MethodHandles.lookup();
-        dismiss = lookup.findVirtual(deploymentUiObj.getClass(), "dismiss", MethodType.methodType(void.class, int.class));
-        actionPerformed = lookup.findVirtual(deploymentUiObj.getClass(), "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
+
+        try {
+            dismiss = MethodHandles.lookup().findVirtual(deploymentUiObject.getClass(), "dismiss", MethodType.methodType(void.class, int.class));
+
+            actionPerformed = MethodHandles.lookup().findVirtual(deploymentUiObject.getClass(), "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).warn("Could not reflect DeploymentUI type from object!", ex);
+        }
     }
 
     public List<ButtonAPI> getShips() {
@@ -59,20 +68,11 @@ public class DeploymentUiReflector {
             var getInnerPanel = ClassReflector.GetInstance().findDeclaredMethod(deploymentUiObj.getClass(), "getInnerPanel");
             var innerPanel = MethodReflector.GetInstance().invoke(getInnerPanel, deploymentUiObj);
             output.addAll(UIPanelReflector.getChildButtons((UIPanelAPI) innerPanel));
+            output.sort((buttonAPI, t1) -> (int)(buttonAPI.getPosition().getX() - t1.getPosition().getX()));
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't fetch buttons of dialog!");
         }
         return output;
-    }
-
-    public static DeploymentUiReflector TryGet(Object obj) {
-        // here we determine whether our object is the deployment UI based on the methods it contains, what is my life
-        try {
-            return new DeploymentUiReflector(obj);
-        } catch(Throwable ex) {
-            Global.getLogger(DeploymentUiReflector.class).fatal("Error while attempting to create DialogReflector from existing object!", ex);
-        }
-        return null;
     }
 
     public Object getDialogObject() {

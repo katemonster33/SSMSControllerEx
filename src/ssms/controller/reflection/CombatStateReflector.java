@@ -30,6 +30,7 @@ public class CombatStateReflector {
     static CombatStateReflector instance;
     Object entityToFollowField;
     Object warroom;
+    Object deploymentDialog;
     Object autoOmniShield = null;
     private CombatStateReflector()
     {
@@ -55,6 +56,8 @@ public class CombatStateReflector {
             getZoomFactorMethod = ClassReflector.GetInstance().getDeclaredMethod(cs.getClass(), "getZoomFactor");
 
             autoOmniShield = ClassReflector.GetInstance().getDeclaredField(cs.getClass(), "AUTO_OMNI_SHIELDS");
+
+            deploymentDialog = ClassReflector.GetInstance().getDeclaredField(cs.getClass(), "fdd");
         } catch(Throwable ex) {
             Global.getLogger(SSMSControllerModPluginEx.class).log(Level.FATAL, "Couldn't find essential methods of CombatState class!");
         }
@@ -81,6 +84,15 @@ public class CombatStateReflector {
             return (UIPanelAPI) FieldReflector.GetInstance().GetVariable(warroom, cs);
         } catch(Throwable ex) {
             Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Couldn't get warroom! " + ex.getMessage());
+        }
+        return null;
+    }
+
+    public UIPanelAPI getDeploymentDialog() {
+        try {
+            return (UIPanelAPI) FieldReflector.GetInstance().GetVariable(deploymentDialog, cs);
+        } catch(Throwable ex) {
+            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Couldn't get fleet deployment dialog! " + ex.getMessage());
         }
         return null;
     }
