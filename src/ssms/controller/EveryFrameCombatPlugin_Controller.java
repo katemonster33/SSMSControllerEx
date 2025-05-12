@@ -27,15 +27,12 @@ import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.combat.CombatState;
 
 import ssms.controller.campaign.CampaignControllerListener;
-import ssms.controller.combat.BattleDeploymentScreen;
 import ssms.controller.combat.BattleScope;
 
 import java.util.List;
 
 import ssms.controller.reflection.CombatStateReflector;
 import ssms.controller.reflection.InputEventReflector;
-import ssms.controller.reflection.MessageBoxReflector;
-import ssms.controller.reflection.UIPanelReflector;
 import ssms.controller.titlescreen.AutoMapperUI;
 import ssms.controller.titlescreen.TitleScreenUI;
 //import org.apache.log4j.Level;
