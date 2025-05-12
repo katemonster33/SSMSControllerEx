@@ -8,6 +8,7 @@ import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.mission.FleetSide;
 import com.fs.starfarer.api.util.Pair;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
@@ -62,6 +63,7 @@ public class WarroomScreen extends InputScreenBase {
         //indicators.add(new Pair<>(Indicators.RightStick, "Move map"));
         indicators.add(new Pair<>(Indicators.A, "Select object/button"));
         indicators.add(new Pair<>(Indicators.X, "Target point/object"));
+        indicators.add(new Pair<>(Indicators.Y, "Return to deployment screen"));
         indicators.add((new Pair<>(Indicators.BumperLeft, "Select prev button")));
         indicators.add((new Pair<>(Indicators.BumperRight, "Select next button")));
         indicators.add(new Pair<>(Indicators.LeftTrigger, "Select prev button group"));
@@ -85,7 +87,7 @@ public class WarroomScreen extends InputScreenBase {
             return;
         }
         if(Global.getCombatEngine().getCombatUI().isShowingDeploymentDialog()) {
-            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MessageBoxScreen.ID, new Object[]{});
+            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, BattleDeploymentScreen.ID, new Object[]{ csr });
             return;
         }
 
@@ -172,6 +174,8 @@ public class WarroomScreen extends InputScreenBase {
             csr.HideWarroom();
             csr.SetVideoFeedToPlayerShip();
             //Global.getCombatEngine().sho
+        } else if(controller.getButtonEvent(HandlerController.Buttons.Y) == 1) {
+            InputShim.keyDownUp(Keyboard.KEY_G, 'G');
         }
 
     }
