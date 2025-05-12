@@ -86,6 +86,11 @@ public class InputShim implements InputImplementation {
         pendingEvents.add(new InputEvent(x, y));
     }
 
+    public static void mouseDownUp(int x, int y, int btn) {
+        mouseDown(x, y, btn);
+        mouseUp(x, y, btn);
+    }
+
     public static void mouseDown(int x, int y, int btn)
     {
         pendingEvents.add(new InputEvent(x, y, btn, true));
@@ -132,6 +137,7 @@ public class InputShim implements InputImplementation {
     {
         pendingEvents.clear();
         keysDown.clear();
+        mouseBtnsDown.clear();
         mouseX = mouseY = null;
     }
 

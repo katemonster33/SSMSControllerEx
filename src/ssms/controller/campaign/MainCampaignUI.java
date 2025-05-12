@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.combat.ViewportAPI;
+import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
@@ -19,6 +20,7 @@ import ssms.controller.reflection.TradeUiReflector;
 
 public class MainCampaignUI  extends InputScreenBase {
     public static final String ID = "MainCampaign";
+    Vector2f lastHeading = null;
     Vector2f mousePos = new Vector2f(-1.f, -1.f);
     HandlerController handler;
 
@@ -28,6 +30,7 @@ public class MainCampaignUI  extends InputScreenBase {
     public MainCampaignUI() {
         indicators = new ArrayList<>();
         indicators.add(new Pair<>(Indicators.LeftStick, "Set ship heading"));
+        indicators.add(new Pair<>(Indicators.LeftStickButton, "Toggle free look"));
         indicators.add(new Pair<>(Indicators.A, "Navigate"));
         indicators.add(new Pair<>(Indicators.Start, "Pause"));
         //indicators.add(new Pair<>(Indicators.Select, "Reset keybindings"));
@@ -45,10 +48,19 @@ public class MainCampaignUI  extends InputScreenBase {
             return;
         }
         ReadableVector2f desiredHeading = handler.getLeftStick();
-        if ( desiredHeading.getX() == 0 && desiredHeading.getY() == 0 ) {
-            mousePos.x = mousePos.y = -1.f;
-            InputShim.clearAll();
-            return;
+        if ( desiredHeading.getX() == 0 && desiredHeading.getY() == 0) {
+            if(lastHeading != null && (desiredHeading.getX() != lastHeading.getX() || desiredHeading.getY() != lastHeading.getY())) {
+                mousePos.x = pf.getLocation().getX();
+                mousePos.y = pf.getLocation().getY();
+                InputShim.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
+            } else {
+                return;
+            }
+        }
+        if(lastHeading == null) {
+            lastHeading = new Vector2f(desiredHeading.getX(), desiredHeading.getY());
+        } else {
+            lastHeading.set(desiredHeading.getX(), desiredHeading.getY());
         }
         float minX = viewport.getLLX(), minY = viewport.getLLY();
         float maxX = viewport.getVisibleWidth() + minX, maxY = viewport.getVisibleHeight() + minY;
@@ -102,6 +114,17 @@ public class MainCampaignUI  extends InputScreenBase {
                 InputShim.mouseUp((int) mousePos.x, (int) mousePos.y, 0);
                 isMouseDown = false;
             }
+        }
+        if(handler.getButtonEvent(HandlerController.Buttons.LeftStickButton) == 1) {
+            if(mousePos.x == -1.f || mousePos.y == -1.f) {
+                if(Global.getSector().getPlayerFleet() != null) {
+                    var shipLoc = Global.getSector().getPlayerFleet().getLocation();
+                    mousePos.x = shipLoc.getX();
+                    mousePos.y = shipLoc.getY();
+                }
+            }
+            InputShim.mouseMove((int) mousePos.x, (int) mousePos.y);
+            InputShim.mouseDownUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.RIGHT);
         }
         if(handler.isButtonXPressed()) {
             CampaignFleetAPI playerFleet = Global.getSector().getPlayerFleet();
