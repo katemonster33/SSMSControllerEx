@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ssms.controller.Indicators;
+import ssms.controller.reflection.BorderedPanelReflector;
 import ssms.controller.reflection.CampaignStateReflector;
 import ssms.controller.reflection.TradeUiReflector;
 
@@ -96,12 +97,20 @@ public class MainCampaignUI  extends InputScreenBase {
         if(Global.getSector().getCampaignUI().isShowingDialog()) {
             if(Global.getSector().getCampaignUI().getCurrentInteractionDialog() != null) {
                 InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, DialogUI.ID, new Object[]{});
-            } else if(Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.CARGO) {
+            } else if(Global.getSector().getCampaignUI().getCurrentCoreTab() != null) {
                 var coreui = CampaignStateReflector.GetInstance().getCoreUI();
                 if(coreui != null) {
-                    var tradeui = TradeUiReflector.TryGet(coreui);
-                    if(tradeui != null) {
-                        InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{ tradeui });
+                    var borderedPanel = BorderedPanelReflector.TryGet(coreui);
+                    if(borderedPanel != null) {
+                        switch (Global.getSector().getCampaignUI().getCurrentCoreTab()) {
+                            case CARGO -> {
+                                var tradeui = TradeUiReflector.TryGet(coreui, borderedPanel);
+                                if (tradeui != null) {
+                                    InputScreenManager.getInstance().transitionToScope(TradeScreen.ID, tradeui);
+                                }
+                            }
+                            case CHARACTER -> InputScreenManager.getInstance().transitionToScreen(CharacterTabUI.ID, borderedPanel.getPanel());
+                        }
                     }
                 }
             }

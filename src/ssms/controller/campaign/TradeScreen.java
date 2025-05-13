@@ -109,15 +109,15 @@ public class TradeScreen extends InputScreenBase {
         if(cargoTransferHandler != null) {
             var scrollbar = cargoTransferHandler.getScrollbar();
             if(scrollbar != null) {
-                InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, CargoStackPickerScreen.ID, new Object[]{ tradeUiReflector });
+                InputScreenManager.getInstance().transitionToScreen(CargoStackPickerScreen.ID, tradeUiReflector);
             }
         }
         if(!Global.getSector().getCampaignUI().isShowingDialog()) {
-            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
+            InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
         } else if(tradeUiReflector.getCoreUIAPI().getTradeMode() != null && interactionDialogAPI != null){
             var tradePanelChildren = UIPanelReflector.getChildItems((UIPanelAPI) interactionDialogAPI);
             if(!tradePanelChildren.contains(tradeUiReflector.getCoreUIAPI())) {
-                InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, DialogUI.ID, new Object[]{});
+                InputScreenManager.getInstance().transitionToScreen(DialogUI.ID);
             }
         }
         CargoDataGridViewReflector curGrid = playerGridSelected ? playerDataGrid : otherDataGrid;

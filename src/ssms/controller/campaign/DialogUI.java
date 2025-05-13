@@ -7,6 +7,7 @@ import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.apache.log4j.Level;
 import ssms.controller.*;
+import ssms.controller.reflection.BorderedPanelReflector;
 import ssms.controller.reflection.InteractionDialogReflector;
 import ssms.controller.reflection.TradeUiReflector;
 import ssms.controller.reflection.UIPanelReflector;
@@ -119,10 +120,13 @@ public class DialogUI extends InputScreenBase {
         if(interactionCoreUi != null && interactionCoreUi.getTradeMode() != null) {
             var dialogChildren = UIPanelReflector.getChildItems((UIPanelAPI) interactionDialogAPI);
             if(dialogChildren.contains(interactionCoreUi)) {
-                var tradeUi = TradeUiReflector.TryGet(interactionCoreUi);
-                if (tradeUi != null && tradeUi.getTradePanel() != null && tradeUi.getTradePanel().getOpacity() != 0.f) {
-                    InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{tradeUi});
-                    return;
+                BorderedPanelReflector borderPanel = BorderedPanelReflector.TryGet(interactionCoreUi);
+                if(borderPanel != null) {
+                    var tradeUi = TradeUiReflector.TryGet(interactionCoreUi, borderPanel);
+                    if (tradeUi != null && tradeUi.getTradePanel() != null && tradeUi.getTradePanel().getOpacity() != 0.f) {
+                        InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{tradeUi});
+                        return;
+                    }
                 }
             }
         }

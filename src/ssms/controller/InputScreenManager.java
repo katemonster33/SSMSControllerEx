@@ -136,6 +136,49 @@ public class InputScreenManager {
         }
         return false;
     }
+
+
+    public boolean transitionToScreen(String screenId, Object ... screenArgs) {
+        InputShim.clearAll();
+        refreshIndicators();
+        if ( scopes.containsKey(InputScopeBase.ID) && screens.containsKey(screenId) ) {
+            InputScreenBase screen = screens.get(screenId);
+            if ( screenAllowsScope(screen, InputScopeBase.ID) ) {
+                InputScopeBase oldScope = currentScope;
+                InputScopeBase scope = scopes.get(InputScopeBase.ID);
+                try {
+                    try {
+                        if ( currentScope != null ) {
+                            currentScope.deactivate();
+                        }
+                    } catch ( Throwable t ) {
+                        Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Failed to deactivate scope, ignoring: "+currentScope, t);
+                    }
+                    scope.activate(new Object[]{});
+                    currentScope = scope;
+                    try {
+                        if ( currentScreen != null ) {
+                            currentScreen.deactivate();
+                        }
+                    } catch ( Throwable t ) {
+                        Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Failed to deactivate screen, ignoring: "+currentScreen, t);
+                    }
+                    //horizontalAlignment = AlignmentHorizontal.right;
+                    screen.activate(screenArgs);
+                    currentScreen = screen;
+                } catch ( Throwable t ) {
+                    Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to activate scope skipping transition: "+InputScopeBase.ID, t);
+                    currentScope = oldScope;
+                }
+                return true;
+            } else {
+                Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Screen \""+screenId+"\" is not allowed in scope \""+InputScopeBase.ID+"\"!");
+            }
+        } else {
+            if ( !screens.containsKey(screenId) ) Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Screen \""+screenId+"\" is not registered!");
+        }
+        return false;
+    }
     
     public boolean transitionToScope(String scopeId, Object[] scopeArgs, String screenId, Object[] screenArgs) {
         InputShim.clearAll();
