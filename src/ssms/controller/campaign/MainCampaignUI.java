@@ -17,6 +17,7 @@ import java.util.List;
 import ssms.controller.Indicators;
 import ssms.controller.reflection.BorderedPanelReflector;
 import ssms.controller.reflection.CampaignStateReflector;
+import ssms.controller.reflection.CharacterSheetReflector;
 import ssms.controller.reflection.TradeUiReflector;
 
 public class MainCampaignUI  extends InputScreenBase {
@@ -109,7 +110,12 @@ public class MainCampaignUI  extends InputScreenBase {
                                     InputScreenManager.getInstance().transitionToScope(TradeScreen.ID, tradeui);
                                 }
                             }
-                            case CHARACTER -> InputScreenManager.getInstance().transitionToScreen(CharacterTabUI.ID, borderedPanel.getPanel());
+                            case CHARACTER -> {
+                                var charUi = CharacterSheetReflector.TryGet(coreui, borderedPanel);
+                                if(charUi != null) {
+                                    InputScreenManager.getInstance().transitionToScreen(CharacterTabUI.ID, charUi);
+                                }
+                            }
                         }
                     }
                 }

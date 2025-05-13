@@ -17,8 +17,14 @@
  */
 package ssms.controller;
 
+import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
+import com.fs.starfarer.api.ui.Alignment;
+import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
+import ssms.controller.reflection.CampaignStateReflector;
+import ssms.controller.reflection.CombatStateReflector;
+import ssms.controller.reflection.TitleScreenStateReflector;
 
 import java.util.List;
 
@@ -56,4 +62,20 @@ public class InputScreenBase {
     public String getId() { return ID; }
 
     public String[] getScopes() { return new String[]{ SCOPES }; }
+
+    public UIPanelAPI getPanelForIndicators() {
+        return switch (Global.getCurrentState()) {
+            case TITLE -> TitleScreenStateReflector.GetInstance().getScreenPanel();
+            case CAMPAIGN -> CampaignStateReflector.GetInstance().getScreenPanel();
+            case COMBAT -> CombatStateReflector.GetInstance().getWidgetPanel();
+        };
+    }
+
+    public Alignment getIndicatorsAlignment() {
+        return switch (Global.getCurrentState()) {
+            case TITLE -> Alignment.BL;
+            case CAMPAIGN -> Alignment.RMID;
+            case COMBAT -> Alignment.BR;
+        };
+    }
 }

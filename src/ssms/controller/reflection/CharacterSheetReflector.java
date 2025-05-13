@@ -1,9 +1,11 @@
 package ssms.controller.reflection;
 
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CoreUIAPI;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.coreui.AptitudeRow;
+import ssms.controller.HandlerController;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -14,32 +16,38 @@ import java.util.Map;
 import java.util.Set;
 
 public class CharacterSheetReflector {
+    CoreUIAPI coreUIAPI;
     UIPanelAPI characterSheetObj;
     static MethodHandle getAptitudeRows;
     static Class<?> characterSheetCls;
 
     static MethodHandle getButtonsMap;
 
-    private CharacterSheetReflector(UIPanelAPI characterSheetObj) {
+    private CharacterSheetReflector(CoreUIAPI coreUIAPI, UIPanelAPI characterSheetObj) {
+        this.coreUIAPI = coreUIAPI;
         this.characterSheetObj = characterSheetObj;
     }
 
-    public CharacterSheetReflector TryGet(BorderedPanelReflector borderedPanelReflector) {
+    public CoreUIAPI getCoreUIAPI() {
+        return coreUIAPI;
+    }
+
+    public static CharacterSheetReflector TryGet(CoreUIAPI coreUIAPI, BorderedPanelReflector borderedPanelReflector) {
         var parentPanel = borderedPanelReflector.getPanel();
         if(characterSheetCls == null) {
-            if(UIPanelAPI.class.isAssignableFrom(parentPanel.getClass())) {
-                try {
-                    getAptitudeRows = MethodHandles.lookup().findVirtual(parentPanel.getClass(), "getAptitudeRows", MethodType.methodType(List.class));
+            try {
+                getAptitudeRows = MethodHandles.lookup().findVirtual(parentPanel.getClass(), "getAptitudeRows", MethodType.methodType(List.class));
 
-                    characterSheetCls = parentPanel.getClass();
+                characterSheetCls = parentPanel.getClass();
 
-                    getButtonsMap = MethodHandles.lookup().findVirtual(AptitudeRow.class, "getButtonsMap", MethodType.methodType(Map.class));
-                } catch(Throwable ex) {
-                    Global.getLogger(CharacterSheetReflector.class).fatal("Couldn't reflect CharacterSheet UI object!", ex);
-                }
+                getButtonsMap = MethodHandles.lookup().findVirtual(AptitudeRow.class, "getButtonsMap", MethodType.methodType(Map.class));
+
+                return new CharacterSheetReflector(coreUIAPI, borderedPanelReflector.getPanel());
+            } catch(Throwable ex) {
+                Global.getLogger(CharacterSheetReflector.class).fatal("Couldn't reflect CharacterSheet UI object!", ex);
             }
         } else if(characterSheetCls.isAssignableFrom(parentPanel.getClass())) {
-            return new CharacterSheetReflector(borderedPanelReflector.getPanel());
+            return new CharacterSheetReflector(coreUIAPI, borderedPanelReflector.getPanel());
         }
         return null;
     }
@@ -47,10 +55,17 @@ public class CharacterSheetReflector {
     public List<List<ButtonAPI>> getButtonRows() {
         List<List<ButtonAPI>> output = new ArrayList<>();
         try {
-            var aptitudeRows = (List<AptitudeRow>)getAptitudeRows.invoke(characterSheetObj);
+            var aptitudeRows = (List<?>)getAptitudeRows.invoke(characterSheetObj);
 
-            for(AptitudeRow row : aptitudeRows) {
+            for(var row : aptitudeRows) {
                 List<ButtonAPI> buttons = new ArrayList<>();
+                var children = UIPanelReflector.getChildItems((UIPanelAPI) row);
+                if(!children.isEmpty()) {
+                    var childrenOfChildren = UIPanelReflector.getChildItems((UIPanelAPI) children.get(0));
+                    if(!childrenOfChildren.isEmpty() && ButtonAPI.class.isAssignableFrom(childrenOfChildren.get(0).getClass())) {
+                        buttons.add((ButtonAPI) childrenOfChildren.get(0));
+                    }
+                }
                 Map<?,?> buttonMap = (Map<?,?>) getButtonsMap.invoke(row);
                 for(Object obj : buttonMap.keySet()) {
                     if(ButtonAPI.class.isAssignableFrom(obj.getClass())) {
@@ -58,6 +73,7 @@ public class CharacterSheetReflector {
                     }
                 }
                 if(!buttons.isEmpty()) {
+                    buttons.sort((ButtonAPI left, ButtonAPI right) -> (int)(left.getPosition().getX() - right.getPosition().getX()));
                     output.add(buttons);
                 }
             }

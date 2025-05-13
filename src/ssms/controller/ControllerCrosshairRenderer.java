@@ -14,6 +14,7 @@ public class ControllerCrosshairRenderer {
     static Color indicColor = new Color(0xFFD200);
     static int width = 58;
     static final int maxWidth = 58;
+    static boolean shouldDraw = true;
     static float origWidth = indicTL.getWidth(), origHeight = indicTL.getHeight();
 
     static boolean init = false;
@@ -27,6 +28,14 @@ public class ControllerCrosshairRenderer {
         indicBR.setSize(indicTL.getWidth(), indicTL.getHeight());
     }
 
+    public static void disable() {
+        shouldDraw = false;
+    }
+
+    public static void enable() {
+        shouldDraw = true;
+    }
+
     public static void setColors()
     {
         indicTL.setColor(indicColor);
@@ -37,6 +46,9 @@ public class ControllerCrosshairRenderer {
 
     public static void AttemptRender(ViewportAPI viewport, int mouseX, int mouseY)
     {
+        if(!shouldDraw) {
+            return;
+        }
         if (!init)
         {
             init = true;

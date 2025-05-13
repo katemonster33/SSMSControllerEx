@@ -26,13 +26,8 @@ public class WarroomScreen extends InputScreenBase {
     boolean isMovingMap = false;
     int selectedButtonGroup = -1, selectedButton = -1;
     boolean selectingButton = false;
-    BattleScope scope;
     WarroomReflector warroomReflector;
     List<Pair<Indicators, String>> indicators;
-    DeployedFleetMemberAPI deployedFleetMember = null;
-    CombatFleetManagerAPI playerFleetManager;
-    CombatTaskManagerAPI playerTaskManager;
-    List<DeployedFleetMemberAPI> deployedPlayerShips;
     ViewportAPI viewportAPI;
     Vector2f desiredMousePos = null;
     final float mouseMoveFactor = 4.f;
@@ -48,11 +43,6 @@ public class WarroomScreen extends InputScreenBase {
         warroomReflector = new WarroomReflector(csr.getWarroom());
         controller = SSMSControllerModPluginEx.controller;
         viewportAPI = Global.getCombatEngine().getViewport();
-
-        playerFleetManager = Global.getCombatEngine().getFleetManager(FleetSide.PLAYER);
-        playerTaskManager = playerFleetManager.getTaskManager(false);
-        deployedPlayerShips = playerFleetManager.getAllEverDeployedCopy();
-        deployedFleetMember = null;
 
         selectedButtonGroup = selectedButton = -1;
         indicators = new ArrayList<>();

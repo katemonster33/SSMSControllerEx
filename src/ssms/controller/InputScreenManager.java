@@ -272,30 +272,13 @@ public class InputScreenManager {
         currentScreen.renderUI(viewport);
         renderIndicators(viewport);
     }
-
-    UIPanelAPI getCurrentStatePanel() {
-        return switch (Global.getCurrentState()) {
-            case TITLE -> TitleScreenStateReflector.GetInstance().getScreenPanel();
-            case CAMPAIGN -> CampaignStateReflector.GetInstance().getScreenPanel();
-            case COMBAT -> CombatStateReflector.GetInstance().getWidgetPanel();
-        };
-    }
-
-
-    Alignment getCurrentStateAlignment() {
-        return switch (Global.getCurrentState()) {
-            case TITLE -> Alignment.BL;
-            case CAMPAIGN -> Alignment.RMID;
-            case COMBAT -> Alignment.BR;
-        };
-    }
     
     private void renderIndicators(ViewportAPI viewport) {
         InputScreenBase screen = getCurrentScreen();
         if(displayPanel == null && screen != null && screen.getIndicators() != null && !screen.getIndicators().isEmpty()) {
             try {
-                var mainPanel = getCurrentStatePanel();
-                var displayPanelAlignment = getCurrentStateAlignment();
+                var mainPanel = screen.getPanelForIndicators();
+                var displayPanelAlignment = screen.getIndicatorsAlignment();
                 if(mainPanel != null) {
                     displayPanel = new IndicatorDisplayPanel(mainPanel, screen.getIndicators(), displayPanelAlignment);
                 }
