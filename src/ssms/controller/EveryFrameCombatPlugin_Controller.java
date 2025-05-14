@@ -201,7 +201,7 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
         InputScreenManager.getInstance().renderUI(viewport);
         InputScreenManager.getInstance().stopFrame();
         if(InputShim.mouseX != null && InputShim.mouseY != null) {
-            ControllerCrosshairRenderer.AttemptRender(viewport, (int) InputShim.mouseX, (int) InputShim.mouseY);
+            ControllerCrosshairRenderer.getControllerRenderer().AttemptRender(viewport, (int) InputShim.mouseX, (int) InputShim.mouseY);
         }
     }
 }

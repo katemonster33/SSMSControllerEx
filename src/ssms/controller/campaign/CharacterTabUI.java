@@ -44,12 +44,12 @@ public class CharacterTabUI extends InputScreenBase {
 
         campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
         campaignScope.refreshSelectedIndex();
-        ControllerCrosshairRenderer.disable();
+        ControllerCrosshairRenderer.getControllerRenderer().disable();
     }
 
     @Override
     public void deactivate() {
-        ControllerCrosshairRenderer.enable();
+        ControllerCrosshairRenderer.getControllerRenderer().enable();
     }
 
     void selectNewBtn() {

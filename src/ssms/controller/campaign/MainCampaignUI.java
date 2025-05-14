@@ -5,7 +5,9 @@ import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
+import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.util.Pair;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
@@ -26,6 +28,9 @@ public class MainCampaignUI extends InputScreenBase {
     Vector2f lastHeading = null;
     Vector2f mousePos = new Vector2f(-1.f, -1.f);
     HandlerController handler;
+    boolean isShiftDown = false;
+    ControllerCrosshairRenderer hotbarIndicatorRenderer;
+    int currentHotkeyGroup = 0, currentHotkey = 0;
 
     ArrayList<Pair<Indicators, String>> indicators;
     int selectedHotkey, selectedHotkeyGroup;
@@ -33,13 +38,17 @@ public class MainCampaignUI extends InputScreenBase {
 
     public MainCampaignUI() {
         indicators = new ArrayList<>();
+        indicators.add(new Pair<>(Indicators.A, "Navigate"));
+        indicators.add(new Pair<>(Indicators.B, "Use/assign hotkey"));
+        indicators.add(new Pair<>(Indicators.Start, "Pause"));
+        indicators.add(new Pair<>(Indicators.Select, "Open menu"));
         indicators.add(new Pair<>(Indicators.LeftStick, "Set ship heading"));
         indicators.add(new Pair<>(Indicators.LeftStickButton, "Toggle free look"));
-        indicators.add(new Pair<>(Indicators.A, "Navigate"));
-        indicators.add(new Pair<>(Indicators.B, "(hold) Go slow"));
         indicators.add(new Pair<>(Indicators.RightStick, "Navigate hotkeys"));
         indicators.add(new Pair<>(Indicators.RightStickButton, "Reassign hotkey"));
-        indicators.add(new Pair<>(Indicators.Y, "Use/assign hotkey"));
+        indicators.add(new Pair<>(Indicators.LeftTrigger, "Open character sheet"));
+        indicators.add(new Pair<>(Indicators.BumperRight, "(hold) Speed up time"));
+        indicators.add(new Pair<>(Indicators.RightTrigger, "(hold) Go slow"));
         //indicators.add(new Pair<>(Indicators.Select, "Reset keybindings"));
     }
 
@@ -49,10 +58,17 @@ public class MainCampaignUI extends InputScreenBase {
         campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
         campaignScope.refreshSelectedIndex();
         selectedHotkey = selectedHotkeyGroup = selectedTab = -1;
+        currentHotkeyGroup = currentHotkey = 0;
+        isMouseDown = isMoving = isShiftDown = false;
+        hotbarIndicatorRenderer = new ControllerCrosshairRenderer(58);
     }
 
     @Override
     public void renderUI(ViewportAPI viewport) {
+        // render hotbar indicator
+        int x = 277 + currentHotkey * 59 + 29, y = 103;
+        hotbarIndicatorRenderer.AttemptRender(viewport, x, y);
+
         var pf = Global.getSector().getPlayerFleet();
         if(pf == null) {
             return;
@@ -99,11 +115,10 @@ public class MainCampaignUI extends InputScreenBase {
 
     boolean isMouseDown = false;
     boolean isMoving = false;
-    boolean startButtonHandled = false;
     @Override
     public void preInput(float advance) {
         float zoom = CampaignStateReflector.GetInstance().getZoomFactor();
-        ControllerCrosshairRenderer.setSize((int)(58 / zoom));
+        ControllerCrosshairRenderer.getControllerRenderer().setSize((int)(58 / zoom));
         if(Global.getSector().getCampaignUI().isShowingDialog()) {
             if(Global.getSector().getCampaignUI().getCurrentInteractionDialog() != null) {
                 InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{ }, DialogUI.ID, new Object[]{ });
@@ -154,19 +169,49 @@ public class MainCampaignUI extends InputScreenBase {
             CampaignFleetAPI playerFleet = Global.getSector().getPlayerFleet();
             playerFleet.goSlowOneFrame();
         }
-        if(!startButtonHandled && handler.isButtonStartPressed()) {
+        if(handler.getButtonEvent(HandlerController.Buttons.Start) == 1) {
             Global.getSector().setPaused(!Global.getSector().isPaused());
-            startButtonHandled = true;
-        } else if(!handler.isButtonStartPressed()) {
-            startButtonHandled = false;
         }
         if(handler.getButtonEvent(HandlerController.Buttons.Select) == 1) {
-            if(Global.getSector().getCampaignUI().isHideUI()) {
-                Global.getSector().getCampaignUI().setHideUI(false);
-            } else {
-                Global.getSector().getCampaignUI().showCoreUITab(CoreUITabId.MAP);
+            InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
+        } else if(handler.getButtonEvent(HandlerController.Buttons.LeftTrigger) == 1) {
+            InputShim.keyDownUp(Keyboard.KEY_C, 'c');
+        } else if(handler.getButtonEvent(HandlerController.Buttons.RightStickUp) == 1) {
+            if(currentHotkeyGroup > 0) {
+                currentHotkeyGroup--;
+                InputShim.keyDown(Keyboard.KEY_LCONTROL, '\0');
+                InputShim.keyDown(Keyboard.KEY_1 + currentHotkeyGroup - 1, (char)('0' + currentHotkeyGroup));
+                InputShim.keyUp(Keyboard.KEY_LCONTROL, '\0');
+                InputShim.keyUp(Keyboard.KEY_1 + currentHotkeyGroup - 1, (char)('0' + currentHotkeyGroup));
             }
+        } else if(handler.getButtonEvent(HandlerController.Buttons.RightStickDown) == 1) {
+            if(currentHotkeyGroup < 4) {
+                currentHotkeyGroup++;
+                InputShim.keyDown(Keyboard.KEY_LCONTROL, '\0');
+                InputShim.keyDown(Keyboard.KEY_1 + currentHotkeyGroup, (char)('1' + currentHotkeyGroup));
+                InputShim.keyUp(Keyboard.KEY_LCONTROL, '\0');
+                InputShim.keyUp(Keyboard.KEY_1 + currentHotkeyGroup, (char)('1' + currentHotkeyGroup));
+            }
+        } else if(handler.getButtonEvent(HandlerController.Buttons.RightStickLeft) == 1) {
+            if(currentHotkey > 0) {
+                currentHotkey--;
+            }
+        } else if(handler.getButtonEvent(HandlerController.Buttons.RightStickRight) == 1) {
+            if(currentHotkey < 9) {
+                currentHotkey++;
+            }
+        } else if(handler.getButtonEvent(HandlerController.Buttons.B) == 1) {
+            InputShim.keyDown(Keyboard.KEY_1 + currentHotkey, (char)('1' + currentHotkey));
+            InputShim.keyUp(Keyboard.KEY_1 + currentHotkey, (char)('1' + currentHotkey));
         }
+        if(!isShiftDown && handler.isButtonBumperRightPressed()) {
+            InputShim.keyDown(Keyboard.KEY_LSHIFT, '\0');
+            isShiftDown = true;
+        } else if(isShiftDown && !handler.isButtonBumperRightPressed()) {
+            InputShim.keyUp(Keyboard.KEY_LSHIFT, '\0');
+            isShiftDown = false;
+        }
+
         if(handler.isDpadRight()) {
             //Global.getSector().
         }

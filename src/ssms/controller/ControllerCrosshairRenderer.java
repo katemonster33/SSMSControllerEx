@@ -6,21 +6,30 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 import java.awt.Color;
 
 public class ControllerCrosshairRenderer {
+    static ControllerCrosshairRenderer controllerRenderer;
+    SpriteAPI indicTL = Global.getSettings().getSprite("ui","sortIcon");
+    SpriteAPI indicTR = Global.getSettings().getSprite("ui","sortIcon");
+    SpriteAPI indicBL = Global.getSettings().getSprite("ui","sortIcon");
+    SpriteAPI indicBR = Global.getSettings().getSprite("ui","sortIcon");
+    Color indicColor = new Color(0xFFD200);
+    int width = 58;
+    int maxWidth = 58;
+    boolean init = false;
+    boolean shouldDraw = true;
+    float origWidth = indicTL.getWidth(), origHeight = indicTL.getHeight();
 
-    static SpriteAPI indicTL = Global.getSettings().getSprite("ui","sortIcon");
-    static SpriteAPI indicTR = Global.getSettings().getSprite("ui","sortIcon");
-    static SpriteAPI indicBL = Global.getSettings().getSprite("ui","sortIcon");
-    static SpriteAPI indicBR = Global.getSettings().getSprite("ui","sortIcon");
-    static Color indicColor = new Color(0xFFD200);
-    static int width = 58;
-    static final int maxWidth = 58;
-    static boolean shouldDraw = true;
-    static float origWidth = indicTL.getWidth(), origHeight = indicTL.getHeight();
+    public ControllerCrosshairRenderer(int initialSize) {
+        this.maxWidth = this.width = initialSize;
+    }
 
-    static boolean init = false;
+    public static ControllerCrosshairRenderer getControllerRenderer() {
+        if(controllerRenderer == null) controllerRenderer = new ControllerCrosshairRenderer(58);
 
-    public static void setSize(int width) {
-        ControllerCrosshairRenderer.width = width;
+        return controllerRenderer;
+    }
+
+    public void setSize(int width) {
+        this.width = width;
         float ratio = width / (float)maxWidth;
         indicTL.setSize(origWidth * ratio / 1.5f, origHeight * ratio / 1.5f);
         indicTR.setSize(indicTL.getWidth(), indicTL.getHeight());
@@ -28,15 +37,15 @@ public class ControllerCrosshairRenderer {
         indicBR.setSize(indicTL.getWidth(), indicTL.getHeight());
     }
 
-    public static void disable() {
+    public void disable() {
         shouldDraw = false;
     }
 
-    public static void enable() {
+    public void enable() {
         shouldDraw = true;
     }
 
-    public static void setColors()
+    public void setColors()
     {
         indicTL.setColor(indicColor);
         indicTR.setColor(indicColor);
@@ -44,7 +53,7 @@ public class ControllerCrosshairRenderer {
         indicBR.setColor(indicColor);
     }
 
-    public static void AttemptRender(ViewportAPI viewport, int mouseX, int mouseY)
+    public void AttemptRender(ViewportAPI viewport, int mouseX, int mouseY)
     {
         if(!shouldDraw) {
             return;
