@@ -43,7 +43,7 @@ public class CharacterTabUI extends InputScreenBase {
         controller = SSMSControllerModPluginEx.controller;
 
         campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
-
+        campaignScope.refreshSelectedIndex();
         ControllerCrosshairRenderer.disable();
     }
 
@@ -114,7 +114,7 @@ public class CharacterTabUI extends InputScreenBase {
         } else if(controller.getButtonEvent(HandlerController.Buttons.B) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
         }
-        campaignScope.handleInput(advance);
+        campaignScope.handleInput(advance, true);
     }
 
     @Override

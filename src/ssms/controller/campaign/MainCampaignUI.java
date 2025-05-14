@@ -20,7 +20,7 @@ import ssms.controller.reflection.CampaignStateReflector;
 import ssms.controller.reflection.CharacterSheetReflector;
 import ssms.controller.reflection.TradeUiReflector;
 
-public class MainCampaignUI  extends InputScreenBase {
+public class MainCampaignUI extends InputScreenBase {
     public static final String ID = "MainCampaign";
     CampaignScope campaignScope;
     Vector2f lastHeading = null;
@@ -47,6 +47,7 @@ public class MainCampaignUI  extends InputScreenBase {
     public void activate(Object... args) {
         handler = SSMSControllerModPluginEx.controller;
         campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
+        campaignScope.refreshSelectedIndex();
         selectedHotkey = selectedHotkeyGroup = selectedTab = -1;
     }
 
@@ -93,7 +94,6 @@ public class MainCampaignUI  extends InputScreenBase {
     @Override
     public List<Pair<Indicators, String>> getIndicators() {
         var output = new ArrayList<>(indicators);
-        output.addAll(campaignScope.getIndicators());
         return output;
     }
 
@@ -106,7 +106,7 @@ public class MainCampaignUI  extends InputScreenBase {
         ControllerCrosshairRenderer.setSize((int)(58 / zoom));
         if(Global.getSector().getCampaignUI().isShowingDialog()) {
             if(Global.getSector().getCampaignUI().getCurrentInteractionDialog() != null) {
-                InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, DialogUI.ID, new Object[]{});
+                InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{ }, DialogUI.ID, new Object[]{ });
             } else if(Global.getSector().getCampaignUI().getCurrentCoreTab() != null) {
                 var coreui = CampaignStateReflector.GetInstance().getCoreUI();
                 if(coreui != null) {
@@ -167,7 +167,6 @@ public class MainCampaignUI  extends InputScreenBase {
                 Global.getSector().getCampaignUI().showCoreUITab(CoreUITabId.MAP);
             }
         }
-        campaignScope.handleInput(advance);
         if(handler.isDpadRight()) {
             //Global.getSector().
         }

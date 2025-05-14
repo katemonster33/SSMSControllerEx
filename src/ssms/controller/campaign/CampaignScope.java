@@ -49,17 +49,32 @@ public class CampaignScope extends InputScopeBase {
         return campaignButtonTabPanel;
     }
 
-    public void handleInput(float advance) {
+    public void handleInput(float advance, boolean autoNavigate) {
         if(controller.getButtonEvent(HandlerController.Buttons.BumperLeft) == 1) {
-            highlightPrevTab();
+            highlightPrevTab(autoNavigate);
+            if(autoNavigate) {
+                selectTab();
+            }
         } else if(controller.getButtonEvent(HandlerController.Buttons.BumperRight) == 1) {
-            highlightNextTab();
+            highlightNextTab(autoNavigate);
+            if(autoNavigate) {
+                selectTab();
+            }
         } else if(controller.getButtonEvent(HandlerController.Buttons.X) == 1) {
             selectTab();
         }
     }
 
-    void highlightPrevTab() {
+    public void refreshSelectedIndex() {
+        for(int i =0; i < campaignTabBtns.size(); i++) {
+            if(campaignTabBtns.get(i).isHighlighted()) {
+                selectedTab = i;
+                break;
+            }
+        }
+    }
+
+    void highlightPrevTab(boolean autoNavigate) {
         int oldTab = selectedTab;
         if(selectedTab == -1) {
             selectedTab = 0;
@@ -68,13 +83,15 @@ public class CampaignScope extends InputScopeBase {
         } else {
             return;
         }
-        if(oldTab != selectedTab && oldTab != -1) {
-            campaignTabBtns.get(oldTab).unhighlight();
+        if(!autoNavigate) {
+            if (oldTab != selectedTab && oldTab != -1) {
+                campaignTabBtns.get(oldTab).unhighlight();
+            }
+            campaignTabBtns.get(selectedTab).highlight();
         }
-        campaignTabBtns.get(selectedTab).highlight();
     }
 
-    void highlightNextTab() {
+    void highlightNextTab(boolean autoNavigate) {
         int oldTab = selectedTab;
         if(selectedTab == -1) {
             selectedTab = 0;
@@ -83,10 +100,12 @@ public class CampaignScope extends InputScopeBase {
         } else {
             return;
         }
-        if(oldTab != selectedTab && oldTab != -1) {
-            campaignTabBtns.get(oldTab).unhighlight();
+        if(!autoNavigate) {
+            if (oldTab != selectedTab && oldTab != -1) {
+                campaignTabBtns.get(oldTab).unhighlight();
+            }
+            campaignTabBtns.get(selectedTab).highlight();
         }
-        campaignTabBtns.get(selectedTab).highlight();
     }
 
     void selectTab() {
