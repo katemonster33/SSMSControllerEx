@@ -113,7 +113,7 @@ public class DialogUI extends InputScreenBase {
     @Override
     public void preInput(float advance) {
         if(!Global.getSector().getCampaignUI().isShowingDialog()) {
-            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
+            InputScreenManager.getInstance().transitionToScope(CampaignScope.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
             return;
         }
         var interactionCoreUi = interactReflector.getCoreUI(interactionDialogAPI);

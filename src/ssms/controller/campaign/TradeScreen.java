@@ -22,7 +22,6 @@ public class TradeScreen extends InputScreenBase {
     CargoDataGridViewReflector otherDataGrid;
     CargoTransferHandlerReflector cargoTransferHandler;
     boolean playerGridSelected;
-    int gridStackIndexSelected = -1;
     int selectedRow = -1, selectedCol = -1;
     HandlerController controller;
 
@@ -113,7 +112,7 @@ public class TradeScreen extends InputScreenBase {
             }
         }
         if(!Global.getSector().getCampaignUI().isShowingDialog()) {
-            InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
+            InputScreenManager.getInstance().transitionToScope(CampaignScope.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
         } else if(tradeUiReflector.getCoreUIAPI().getTradeMode() != null && interactionDialogAPI != null){
             var tradePanelChildren = UIPanelReflector.getChildItems((UIPanelAPI) interactionDialogAPI);
             if(!tradePanelChildren.contains(tradeUiReflector.getCoreUIAPI())) {

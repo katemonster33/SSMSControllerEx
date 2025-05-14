@@ -17,6 +17,7 @@ import java.util.List;
 public class CharacterTabUI extends InputScreenBase {
     public static final String ID = "CharacterTab";
     CharacterSheetReflector characterSheetReflector;
+    CampaignScope campaignScope;
     List<List<ButtonAPI>> buttonRows;
     HandlerController controller;
     int rowSelected = -1, buttonSelected = -1;
@@ -28,8 +29,8 @@ public class CharacterTabUI extends InputScreenBase {
         indicators.add(new Pair<>(Indicators.LeftStick, "Navigate list"));
         indicators.add(new Pair<>(Indicators.A, "Select"));
         indicators.add(new Pair<>(Indicators.B, "Close"));
-        indicators.add(new Pair<>(Indicators.Y, "Confirm"));
-        indicators.add(new Pair<>(Indicators.X, "Reset"));
+        indicators.add(new Pair<>(Indicators.Start, "Confirm"));
+        indicators.add(new Pair<>(Indicators.Y, "Reset"));
         indicators.add(new Pair<>(Indicators.Select, "Re-assign skills"));
     }
 
@@ -40,6 +41,8 @@ public class CharacterTabUI extends InputScreenBase {
         buttonRows = characterSheetReflector.getButtonRows();
 
         controller = SSMSControllerModPluginEx.controller;
+
+        campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
 
         ControllerCrosshairRenderer.disable();
     }
@@ -62,7 +65,7 @@ public class CharacterTabUI extends InputScreenBase {
     @Override
     public void preInput(float advance) {
         if(Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.CHARACTER) {
-            InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
+            InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
             return;
         }
         if(rowSelected == -1 || buttonSelected == -1) {
@@ -111,6 +114,7 @@ public class CharacterTabUI extends InputScreenBase {
         } else if(controller.getButtonEvent(HandlerController.Buttons.B) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
         }
+        campaignScope.handleInput(advance);
     }
 
     @Override
@@ -120,11 +124,18 @@ public class CharacterTabUI extends InputScreenBase {
 
     @Override
     public List<Pair<Indicators, String>> getIndicators() {
-        return indicators;
+        var output = new ArrayList(indicators);
+        output.addAll(campaignScope.getIndicators());
+        return output;
     }
 
     @Override
     public String getId() {
         return ID;
+    }
+
+    @Override
+    public String[] getScopes() {
+        return new String[]{ CampaignScope.ID };
     }
 }

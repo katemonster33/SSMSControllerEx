@@ -22,25 +22,32 @@ import ssms.controller.reflection.TradeUiReflector;
 
 public class MainCampaignUI  extends InputScreenBase {
     public static final String ID = "MainCampaign";
+    CampaignScope campaignScope;
     Vector2f lastHeading = null;
     Vector2f mousePos = new Vector2f(-1.f, -1.f);
     HandlerController handler;
 
     ArrayList<Pair<Indicators, String>> indicators;
-
+    int selectedHotkey, selectedHotkeyGroup;
+    int selectedTab;
 
     public MainCampaignUI() {
         indicators = new ArrayList<>();
         indicators.add(new Pair<>(Indicators.LeftStick, "Set ship heading"));
         indicators.add(new Pair<>(Indicators.LeftStickButton, "Toggle free look"));
         indicators.add(new Pair<>(Indicators.A, "Navigate"));
-        indicators.add(new Pair<>(Indicators.Start, "Pause"));
+        indicators.add(new Pair<>(Indicators.B, "(hold) Go slow"));
+        indicators.add(new Pair<>(Indicators.RightStick, "Navigate hotkeys"));
+        indicators.add(new Pair<>(Indicators.RightStickButton, "Reassign hotkey"));
+        indicators.add(new Pair<>(Indicators.Y, "Use/assign hotkey"));
         //indicators.add(new Pair<>(Indicators.Select, "Reset keybindings"));
     }
 
     @Override
     public void activate(Object... args) {
         handler = SSMSControllerModPluginEx.controller;
+        campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
+        selectedHotkey = selectedHotkeyGroup = selectedTab = -1;
     }
 
     @Override
@@ -85,7 +92,9 @@ public class MainCampaignUI  extends InputScreenBase {
 
     @Override
     public List<Pair<Indicators, String>> getIndicators() {
-        return indicators;
+        var output = new ArrayList<>(indicators);
+        output.addAll(campaignScope.getIndicators());
+        return output;
     }
 
     boolean isMouseDown = false;
@@ -107,13 +116,13 @@ public class MainCampaignUI  extends InputScreenBase {
                             case CARGO -> {
                                 var tradeui = TradeUiReflector.TryGet(coreui, borderedPanel);
                                 if (tradeui != null) {
-                                    InputScreenManager.getInstance().transitionToScope(TradeScreen.ID, tradeui);
+                                    InputScreenManager.getInstance().transitionToScreen(TradeScreen.ID, tradeui);
                                 }
                             }
                             case CHARACTER -> {
                                 var charUi = CharacterSheetReflector.TryGet(coreui, borderedPanel);
                                 if(charUi != null) {
-                                    InputScreenManager.getInstance().transitionToScreen(CharacterTabUI.ID, charUi);
+                                    InputScreenManager.getInstance().transitionDelayed(CharacterTabUI.ID, charUi);
                                 }
                             }
                         }
@@ -151,13 +160,14 @@ public class MainCampaignUI  extends InputScreenBase {
         } else if(!handler.isButtonStartPressed()) {
             startButtonHandled = false;
         }
-        if(handler.isButtonSelectPressed()) {
+        if(handler.getButtonEvent(HandlerController.Buttons.Select) == 1) {
             if(Global.getSector().getCampaignUI().isHideUI()) {
                 Global.getSector().getCampaignUI().setHideUI(false);
             } else {
                 Global.getSector().getCampaignUI().showCoreUITab(CoreUITabId.MAP);
             }
         }
+        campaignScope.handleInput(advance);
         if(handler.isDpadRight()) {
             //Global.getSector().
         }
@@ -166,5 +176,10 @@ public class MainCampaignUI  extends InputScreenBase {
     @Override
     public String getId() {
         return ID;
+    }
+
+    @Override
+    public String[] getScopes() {
+        return new String[]{ CampaignScope.ID };
     }
 }

@@ -23,10 +23,7 @@ import net.java.games.input.ControllerEnvironment;
 import ssms.controller.campaign.*;
 import ssms.controller.combat.*;
 import ssms.controller.generic.MessageBoxScreen;
-import ssms.controller.reflection.ClassReflector;
-import ssms.controller.reflection.InputEventReflector;
-import ssms.controller.reflection.MethodReflector;
-import ssms.controller.reflection.UIPanelReflector;
+import ssms.controller.reflection.*;
 import ssms.controller.titlescreen.AutoMapperUI;
 import ssms.controller.titlescreen.TitleScreenUI;
 
@@ -75,6 +72,9 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         }
         var testPnl = Global.getSettings().createCustom(1.f, 1.f, null);
         UIPanelReflector.initialize((Class<? extends UIPanelAPI>) testPnl.getClass().getSuperclass());
+        var testElem = testPnl.createUIElement(1.f, 1.f, false);
+        var testBtn = testElem.addButton("TEST", null, 1.f, 1.f, 0.f);
+        ButtonReflector.init(testBtn.getClass());
 
         try {
             var processInputImplMethod = ClassReflector.GetInstance().findDeclaredMethod(CargoDataGridView.class, "processInputImpl");
@@ -103,6 +103,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         
         man.registerScope(new InputScopeBase());
         man.registerScope(new BattleScope());
+        man.registerScope(new CampaignScope());
         
         man.registerScreen(new InputScreenBase());
         man.registerScreen(new BattleSteeringScreen());
