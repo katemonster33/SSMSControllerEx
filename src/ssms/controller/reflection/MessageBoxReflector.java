@@ -14,36 +14,35 @@ public class MessageBoxReflector {
     // The class representing the highest-order message dialog type
     static Class<?> messageBoxClass;
 
-    MethodHandle dismiss;
-    Object isBeingDismissed;
-    MethodHandle actionPerformed;
-    Object dialogObject;
-    private MessageBoxReflector(Object dialogObject) throws Throwable {
+    static MethodHandle dismiss;
+    static Object isBeingDismissed;
+    static MethodHandle actionPerformed;
+    static Object dialogObject;
+    private MessageBoxReflector(Object dialogObject) {
         this.dialogObject = dialogObject;
-        var lookup = MethodHandles.lookup();
-        dismiss = lookup.findVirtual(dialogObject.getClass(), "dismiss", MethodType.methodType(void.class, int.class));
-        actionPerformed = lookup.findVirtual(dialogObject.getClass(), "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
-        isBeingDismissed = ClassReflector.GetInstance().getDeclaredMethod(dialogObject.getClass().getSuperclass().getSuperclass(), "isBeingDismissed");
     }
 
-    static boolean TryGetMessageBoxType(Object obj)
+    public static MessageBoxReflector TryGet(UIPanelAPI msgBoxObject)
     {
-        var lookup = MethodHandles.lookup();
-        MethodHandle doNotShowAgain;
-        Object showIfNeeded;
-        try {
-            doNotShowAgain = lookup.findVirtual(obj.getClass(), "doNotShowAgain", MethodType.methodType(boolean.class));
-            showIfNeeded = ClassReflector.GetInstance().findDeclaredMethod(obj.getClass(), "showIfNeeded");
-        } catch (Throwable ex) {
-            Global.getLogger(MessageBoxReflector.class).fatal("Given object is not a dialog object!", ex);
-            return false;
+        if(messageBoxClass == null) {
+            try {
+                var lookup = MethodHandles.lookup();
+                dismiss = lookup.findVirtual(msgBoxObject.getClass(), "dismiss", MethodType.methodType(void.class, int.class));
+
+                actionPerformed = lookup.findVirtual(msgBoxObject.getClass(), "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
+
+                isBeingDismissed = ClassReflector.GetInstance().getDeclaredMethod(msgBoxObject.getClass().getSuperclass().getSuperclass(), "isBeingDismissed");
+
+                messageBoxClass = msgBoxObject.getClass();
+
+                return new MessageBoxReflector(msgBoxObject);
+            } catch (Throwable ex) {
+                Global.getLogger(MessageBoxReflector.class).fatal("Given object is not a dialog object!", ex);
+            }
+        } else if(messageBoxClass.isAssignableFrom(msgBoxObject.getClass())) {
+            return new MessageBoxReflector(msgBoxObject);
         }
-        if (doNotShowAgain == null || showIfNeeded == null) {
-            return false;
-        }
-        // we likely found our dialog class, move forward
-        messageBoxClass = obj.getClass();
-        return true;
+        return null;
     }
 
     public boolean isBeingDismissed(){
@@ -67,23 +66,6 @@ public class MessageBoxReflector {
             Global.getLogger(getClass()).warn("Couldn't fetch buttons of dialog!");
         }
         return output;
-    }
-
-    public static MessageBoxReflector TryGet(Object obj) {
-        if(messageBoxClass == null) {
-            if(!TryGetMessageBoxType(obj)) {
-                return null;
-            }
-        }
-        // make sure the type of obj is a subclass of our dialog type
-        if (obj.getClass() == messageBoxClass) {
-            try {
-                return new MessageBoxReflector(obj);
-            } catch(Throwable ex) {
-                Global.getLogger(MessageBoxReflector.class).fatal("Error while attempting to create DialogReflector from existing object!", ex);
-            }
-        }
-        return null;
     }
 
     public Object getDialogObject() {

@@ -29,6 +29,8 @@ public class MainCampaignUI extends InputScreenBase {
     Vector2f mousePos = new Vector2f(-1.f, -1.f);
     HandlerController handler;
     boolean isShiftDown = false;
+    boolean isMouseDown = false;
+    boolean isMoving = false;
     ControllerCrosshairRenderer hotbarIndicatorRenderer;
     int currentHotkeyGroup = 0, currentHotkey = 0;
 
@@ -113,8 +115,6 @@ public class MainCampaignUI extends InputScreenBase {
         return output;
     }
 
-    boolean isMouseDown = false;
-    boolean isMoving = false;
     @Override
     public void preInput(float advance) {
         float zoom = CampaignStateReflector.GetInstance().getZoomFactor();

@@ -3,6 +3,7 @@ package ssms.controller.combat;
 import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.ui.ButtonAPI;
+import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import ssms.controller.*;
 import ssms.controller.generic.MessageBoxScreen;
@@ -177,10 +178,10 @@ public class BattleDeploymentScreen extends InputScreenBase {
     public void preInput(float advance) {
         if(Global.getCombatEngine().getCombatUI().isShowingDeploymentDialog()) {
             var lastChild = getUiOnTop();
-            if(lastChild != null && lastChild != lastUIOnTop) {
+            if(lastChild != null && lastChild != lastUIOnTop && lastChild instanceof UIPanelAPI lastChildPanel) {
                 lastUIOnTop = lastChild;
                 // this nonsense tries to tell if the topmost UI element is the message box that shows up the first time we enter combat
-                MessageBoxReflector dr = MessageBoxReflector.TryGet(lastUIOnTop);
+                MessageBoxReflector dr = MessageBoxReflector.TryGet(lastChildPanel);
                 if (dr != null) {
                     InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MessageBoxScreen.ID, new Object[]{ dr, getId() });
                     return;
