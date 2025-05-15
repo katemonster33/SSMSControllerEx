@@ -66,7 +66,7 @@ public class MainCampaignUI extends InputScreenBase {
     @Override
     public void renderUI(ViewportAPI viewport) {
         // render hotbar indicator
-        int x = 277 + currentHotkey * 59 + 29, y = 103;
+        int x = 277 + currentHotkey * 59 + 29, y = 103 - 29;
         hotbarIndicatorRenderer.AttemptRender(viewport, x, y);
 
         var pf = Global.getSector().getPlayerFleet();
@@ -165,7 +165,7 @@ public class MainCampaignUI extends InputScreenBase {
             InputShim.mouseMove((int) mousePos.x, (int) mousePos.y);
             InputShim.mouseDownUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.RIGHT);
         }
-        if(handler.isButtonXPressed()) {
+        if(handler.isTriggerRight()) {
             CampaignFleetAPI playerFleet = Global.getSector().getPlayerFleet();
             playerFleet.goSlowOneFrame();
         }
@@ -180,9 +180,9 @@ public class MainCampaignUI extends InputScreenBase {
             if(currentHotkeyGroup > 0) {
                 currentHotkeyGroup--;
                 InputShim.keyDown(Keyboard.KEY_LCONTROL, '\0');
-                InputShim.keyDown(Keyboard.KEY_1 + currentHotkeyGroup - 1, (char)('0' + currentHotkeyGroup));
+                InputShim.keyDown(Keyboard.KEY_1 + currentHotkeyGroup, (char)('0' + currentHotkeyGroup));
                 InputShim.keyUp(Keyboard.KEY_LCONTROL, '\0');
-                InputShim.keyUp(Keyboard.KEY_1 + currentHotkeyGroup - 1, (char)('0' + currentHotkeyGroup));
+                InputShim.keyUp(Keyboard.KEY_1 + currentHotkeyGroup, (char)('0' + currentHotkeyGroup));
             }
         } else if(handler.getButtonEvent(HandlerController.Buttons.RightStickDown) == 1) {
             if(currentHotkeyGroup < 4) {
