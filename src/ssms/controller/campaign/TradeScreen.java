@@ -2,6 +2,7 @@ package ssms.controller.campaign;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
+import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.campaign.ui.trade.CargoStackView;
@@ -76,9 +77,9 @@ public class TradeScreen extends InputScreenBase {
         if(mousedOverStack != null && mousedOverStack.getStack().getSize() >= 4.f) {
             InputShim.keyDown(Keyboard.KEY_LSHIFT, '\0');
         }
-        InputShim.mouseDown((int) mousePos.x, (int) mousePos.y, 0);
+        InputShim.mouseDown((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
         if(mousedOverStack == null || mousedOverStack.getStack().getSize() < 4.f) {
-            InputShim.mouseUp((int) mousePos.x, (int) mousePos.y, 0);
+            InputShim.mouseUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
         } else if(mousedOverStack != null && mousedOverStack.getStack().getSize() >= 4.f) {
             InputShim.keyUp(Keyboard.KEY_LSHIFT, '\0');
         }

@@ -15,7 +15,7 @@ public class ShipEngineControllerReflection {
                 Class<?> c = original.getClass(); //Class.forName("com.fs.starfarer.combat.entities.ship.H");
                 mGetEffectiveStrafeAcceleration = ClassReflector.GetInstance().getDeclaredMethod(c, "getEffectiveStrafeAcceleration");
             } catch (Throwable ex) {
-                Global.getLogger(SSMSControllerModPluginEx.class).log(org.apache.log4j.Level.ERROR, "Failed to find methods for " + original.getClass().getSimpleName() + "!", ex);
+                Global.getLogger(SSMSControllerModPluginEx.class).error("Failed to find methods for " + original.getClass().getSimpleName() + "!", ex);
             }
         }
         try {

@@ -32,7 +32,6 @@ import ssms.controller.combat.BattleScope;
 import java.util.List;
 
 import ssms.controller.reflection.CombatStateReflector;
-import ssms.controller.reflection.InputEventReflector;
 import ssms.controller.titlescreen.AutoMapperUI;
 import ssms.controller.titlescreen.TitleScreenUI;
 //import org.apache.log4j.Level;
@@ -45,7 +44,6 @@ import ssms.controller.titlescreen.TitleScreenUI;
 public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugin {
     protected CombatEngineAPI engine;
     CombatStateReflector csr;
-    InputEventReflector inputEventReflector;
     protected float nextLog;
     protected boolean wasShowingWarroom = false, skipFrame = true;
     boolean initDone = false;

@@ -6,7 +6,9 @@ import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.ButtonAPI;
+import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
+import me.xdrop.fuzzywuzzy.Main;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
@@ -17,10 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ssms.controller.Indicators;
-import ssms.controller.reflection.BorderedPanelReflector;
-import ssms.controller.reflection.CampaignStateReflector;
-import ssms.controller.reflection.CharacterSheetReflector;
-import ssms.controller.reflection.TradeUiReflector;
+import ssms.controller.generic.MessageBoxScreen;
+import ssms.controller.reflection.*;
 
 public class MainCampaignUI extends InputScreenBase {
     public static final String ID = "MainCampaign";
@@ -33,6 +33,7 @@ public class MainCampaignUI extends InputScreenBase {
     boolean isMoving = false;
     ControllerCrosshairRenderer hotbarIndicatorRenderer;
     int currentHotkeyGroup = 0, currentHotkey = 0;
+    int lastFrameNumChildren = -1;
 
     ArrayList<Pair<Indicators, String>> indicators;
     int selectedHotkey, selectedHotkeyGroup;
@@ -63,6 +64,7 @@ public class MainCampaignUI extends InputScreenBase {
         currentHotkeyGroup = currentHotkey = 0;
         isMouseDown = isMoving = isShiftDown = false;
         hotbarIndicatorRenderer = new ControllerCrosshairRenderer(58);
+        lastFrameNumChildren = UIPanelReflector.getChildItems(getPanelForIndicators()).size();
     }
 
     @Override
@@ -144,13 +146,29 @@ public class MainCampaignUI extends InputScreenBase {
                     }
                 }
             }
+        } else {
+            var children = UIPanelReflector.getChildItems(getPanelForIndicators());
+            int numChildren = children.size();
+            if(numChildren > lastFrameNumChildren) {
+                for(int i = lastFrameNumChildren; i < numChildren; i++ ) {
+                    var child = children.get(i);
+                    if(UIPanelAPI.class.isAssignableFrom(child.getClass()) && InputScreenManager.getInstance().getDisplayPanel() != null && child == InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
+                        var msgBox = MessageBoxReflector.TryGet((UIPanelAPI) child);
+                        if(msgBox != null) {
+                            InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, msgBox, MainCampaignUI.ID);
+                            return;
+                        }
+                    }
+                }
+            }
+            lastFrameNumChildren = numChildren;
         }
         if(mousePos.x != -1.f && mousePos.y != -1.f) {
             if (handler.isButtonAPressed() && !isMouseDown) {
-                InputShim.mouseDown((int) mousePos.x, (int) mousePos.y, 0);
+                InputShim.mouseDown((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
                 isMouseDown = true;
             } else if (!handler.isButtonAPressed() && isMouseDown) {
-                InputShim.mouseUp((int) mousePos.x, (int) mousePos.y, 0);
+                InputShim.mouseUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
                 isMouseDown = false;
             }
         }
@@ -201,8 +219,7 @@ public class MainCampaignUI extends InputScreenBase {
                 currentHotkey++;
             }
         } else if(handler.getButtonEvent(HandlerController.Buttons.B) == 1) {
-            InputShim.keyDown(Keyboard.KEY_1 + currentHotkey, (char)('1' + currentHotkey));
-            InputShim.keyUp(Keyboard.KEY_1 + currentHotkey, (char)('1' + currentHotkey));
+            InputShim.keyDownUp(Keyboard.KEY_1 + currentHotkey, (char)('1' + currentHotkey));
         }
         if(!isShiftDown && handler.isButtonBumperRightPressed()) {
             InputShim.keyDown(Keyboard.KEY_LSHIFT, '\0');

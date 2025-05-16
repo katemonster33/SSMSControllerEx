@@ -3,6 +3,7 @@ package ssms.controller.campaign;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CargoTransferHandlerAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
+import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.PositionAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
@@ -53,13 +54,12 @@ public class CargoStackPickerScreen  extends InputScreenBase {
     }
 
     void confirm() {
-        InputShim.mouseUp(mouseX, mouseY, 0);
+        InputShim.mouseUp(mouseX, mouseY, InputEventMouseButton.LEFT);
     }
 
     void cancel() {
-        InputShim.mouseDown(mouseX, mouseY, 1);
-        InputShim.mouseUp(mouseX, mouseY, 1);
-        InputShim.mouseUp(mouseX, mouseY, 0);
+        InputShim.mouseDownUp(mouseX, mouseY, InputEventMouseButton.RIGHT);
+        InputShim.mouseUp(mouseX, mouseY, InputEventMouseButton.LEFT);
     }
 
     void updateMousePos() {

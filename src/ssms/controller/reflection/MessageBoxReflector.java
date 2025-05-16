@@ -9,14 +9,15 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class MessageBoxReflector {
     // The class representing the highest-order message dialog type
     static Class<?> messageBoxClass;
 
-    static MethodHandle dismiss;
     static Object isBeingDismissed;
     static MethodHandle actionPerformed;
+    static MethodHandle getOptionMap;
     static Object dialogObject;
     private MessageBoxReflector(Object dialogObject) {
         this.dialogObject = dialogObject;
@@ -25,21 +26,33 @@ public class MessageBoxReflector {
     public static MessageBoxReflector TryGet(UIPanelAPI msgBoxObject)
     {
         if(messageBoxClass == null) {
+            var lookup = MethodHandles.lookup();
             try {
-                var lookup = MethodHandles.lookup();
-                dismiss = lookup.findVirtual(msgBoxObject.getClass(), "dismiss", MethodType.methodType(void.class, int.class));
+                Class<?> clsTmp = msgBoxObject.getClass();
+                try {
+                    getOptionMap = lookup.findVirtual(clsTmp, "getOptionMap", MethodType.methodType(Map.class));
+                } catch(Throwable ex) {
+                    try {
+                        clsTmp = clsTmp.getSuperclass();
 
-                actionPerformed = lookup.findVirtual(msgBoxObject.getClass(), "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
+                        getOptionMap = lookup.findVirtual(clsTmp, "getOptionMap", MethodType.methodType(Map.class));
+                    } catch(Throwable ex2) {
+                        Global.getLogger(MessageBoxReflector.class).warn("Couldn't reflect MessageBox from class!", ex2);
+                        return null;
+                    }
+                }
 
-                isBeingDismissed = ClassReflector.GetInstance().getDeclaredMethod(msgBoxObject.getClass().getSuperclass().getSuperclass(), "isBeingDismissed");
+                actionPerformed = lookup.findVirtual(clsTmp, "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
 
-                messageBoxClass = msgBoxObject.getClass();
+                isBeingDismissed = ClassReflector.GetInstance().getDeclaredMethod(clsTmp.getSuperclass(), "isBeingDismissed");
+
+                messageBoxClass = clsTmp;
 
                 return new MessageBoxReflector(msgBoxObject);
             } catch (Throwable ex) {
                 Global.getLogger(MessageBoxReflector.class).fatal("Given object is not a dialog object!", ex);
             }
-        } else if(messageBoxClass.isAssignableFrom(msgBoxObject.getClass())) {
+        } else if(msgBoxObject.getClass().isAssignableFrom(messageBoxClass)) {
             return new MessageBoxReflector(msgBoxObject);
         }
         return null;
@@ -59,9 +72,12 @@ public class MessageBoxReflector {
     public List<ButtonAPI> getDialogButtons() {
         List<ButtonAPI> output = new ArrayList<>();
         try {
-            var getInnerPanel = ClassReflector.GetInstance().findDeclaredMethod(dialogObject.getClass(), "getInnerPanel");
-            var innerPanel = MethodReflector.GetInstance().invoke(getInnerPanel, dialogObject);
-            output.addAll(UIPanelReflector.getChildButtons((UIPanelAPI) innerPanel));
+            Map<?,?> options = (Map<?,?>) getOptionMap.invoke(dialogObject);
+            for(Object obj : options.keySet()) {
+                if(ButtonAPI.class.isAssignableFrom(obj.getClass())) {
+                    output.add((ButtonAPI) output);
+                }
+            }
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't fetch buttons of dialog!");
         }
@@ -77,14 +93,6 @@ public class MessageBoxReflector {
             actionPerformed.invoke(dialogObject, obj1, obj2);
         } catch(Throwable ex) {
             Global.getLogger(getClass()).fatal("Could not invoke actionPerformed on dialog!", ex);
-        }
-    }
-
-    public void doDismiss() {
-        try {
-            dismiss.invoke(dialogObject, 1);
-        } catch(Throwable ex) {
-            Global.getLogger(getClass()).fatal("Could not invoke dismiss on dialog!", ex);
         }
     }
 }

@@ -77,14 +77,9 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         ButtonReflector.init(testBtn.getClass());
 
         try {
-            var processInputImplMethod = ClassReflector.GetInstance().findDeclaredMethod(CargoDataGridView.class, "processInputImpl");
-
-            var processInputTypes = MethodReflector.GetInstance().getParameterTypes(processInputImplMethod);
-            InputEventReflector.initializeFromListType(processInputTypes[0]);
-
             InputShim.install();
         } catch(Throwable ex) {
-            Global.getLogger(getClass()).fatal("Couldn't reflect input handler of CargoDataGridView!", ex);
+            Global.getLogger(getClass()).fatal("Couldn't install input shim!", ex);
         }
         // var csvObj = Global.getSettings().loadCSV("data/config/gamecontrollerdb.txt");
         // for(int i =0; i < csvObj.length(); i++) {

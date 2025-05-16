@@ -4,6 +4,7 @@ import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.util.Pair;
+import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
 import ssms.controller.combat.BattleScope;
 import ssms.controller.reflection.ClassReflector;
@@ -114,9 +115,12 @@ public class MessageBoxScreen extends InputScreenBase {
         }
     }
 
-
     @Override
     public void preInput(float advance) {
+        if(dialogReflector.isBeingDismissed()) {
+            dialogOptions = null;
+            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, uiToReturnTo, new Object[]{});
+        }
         if(controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1) {
             selectNextButton();
         } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1) {
@@ -124,14 +128,12 @@ public class MessageBoxScreen extends InputScreenBase {
         } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
             clickButton();
         } else if(controller.getButtonEvent(HandlerController.Buttons.B) == 1) {
-            dialogReflector.doDismiss();
+            InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
             if(Global.getCurrentState() == GameState.COMBAT) {
                 InputScreenManager.getInstance().transitionToScope(BattleScope.ID, Global.getCombatEngine());
             }
-        }
-        if(dialogReflector.isBeingDismissed()) {
-            dialogOptions = null;
-            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, uiToReturnTo, new Object[]{});
+        } else if(controller.getButtonEvent(HandlerController.Buttons.Y) == 1) {
+            InputShim.keyDownUp(Keyboard.KEY_RETURN, '\0');
         }
     }
 
