@@ -9,6 +9,7 @@ import com.fs.starfarer.campaign.ui.trade.CargoStackView;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
+import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.reflection.*;
 
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ public class TradeScreen extends InputScreenBase {
     boolean playerGridSelected;
     int selectedRow = -1, selectedCol = -1;
     HandlerController controller;
+    int lastFrameChildCount = 0;
 
     public TradeScreen() {
         indicators = new ArrayList<>();
@@ -40,7 +42,9 @@ public class TradeScreen extends InputScreenBase {
 
     @Override
     public void activate(Object ... args) {
-        tradeUiReflector = (TradeUiReflector) args[0];
+        if(args.length > 0) {
+            tradeUiReflector = (TradeUiReflector) args[0];
+        }
 
         playerDataGrid = tradeUiReflector.getPlayerCargoView();
         otherDataGrid = tradeUiReflector.getOtherCargoView();
@@ -49,6 +53,7 @@ public class TradeScreen extends InputScreenBase {
         selectedCol = selectedRow = -1;
         ControllerCrosshairRenderer.getControllerRenderer().setSize(100);
         interactionDialogAPI = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
+        lastFrameChildCount = UIPanelReflector.getChildItems((UIPanelAPI) tradeUiReflector.getCoreUIAPI()).size();
     }
 
     Vector2f getMousePosForSelection(CargoDataGridViewReflector gridView) {
@@ -80,7 +85,7 @@ public class TradeScreen extends InputScreenBase {
         InputShim.mouseDown((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
         if(mousedOverStack == null || mousedOverStack.getStack().getSize() < 4.f) {
             InputShim.mouseUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
-        } else if(mousedOverStack != null && mousedOverStack.getStack().getSize() >= 4.f) {
+        } else if(mousedOverStack.getStack().getSize() >= 4.f) {
             InputShim.keyUp(Keyboard.KEY_LSHIFT, '\0');
         }
     }
@@ -118,6 +123,22 @@ public class TradeScreen extends InputScreenBase {
             var tradePanelChildren = UIPanelReflector.getChildItems((UIPanelAPI) interactionDialogAPI);
             if(!tradePanelChildren.contains(tradeUiReflector.getCoreUIAPI())) {
                 InputScreenManager.getInstance().transitionToScreen(DialogUI.ID);
+            } else {
+                var coreUiChildren = UIPanelReflector.getChildItems((UIPanelAPI) tradeUiReflector.getCoreUIAPI());
+                int numChildren = coreUiChildren.size();
+                if(numChildren > lastFrameChildCount) {
+                    for(int i = lastFrameChildCount; i < numChildren; i++) {
+                        var child = coreUiChildren.get(i);
+                        if(UIPanelAPI.class.isAssignableFrom(child.getClass()) && InputScreenManager.getInstance().getDisplayPanel() != null && child != InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
+                            MessageBoxReflector messageBoxReflector = MessageBoxReflector.TryGet((UIPanelAPI) child);
+                            if(messageBoxReflector != null) {
+                                InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, messageBoxReflector, TradeScreen.ID);
+                                return;
+                            }
+                        }
+                    }
+                }
+                lastFrameChildCount = numChildren;
             }
         }
         CargoDataGridViewReflector curGrid = playerGridSelected ? playerDataGrid : otherDataGrid;

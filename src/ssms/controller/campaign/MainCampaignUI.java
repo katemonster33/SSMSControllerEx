@@ -122,47 +122,50 @@ public class MainCampaignUI extends InputScreenBase {
         float zoom = CampaignStateReflector.GetInstance().getZoomFactor();
         ControllerCrosshairRenderer.getControllerRenderer().setSize((int)(58 / zoom));
         if(Global.getSector().getCampaignUI().isShowingDialog()) {
-            if(Global.getSector().getCampaignUI().getCurrentInteractionDialog() != null) {
-                InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{ }, DialogUI.ID, new Object[]{ });
-            } else if(Global.getSector().getCampaignUI().getCurrentCoreTab() != null) {
+            if (Global.getSector().getCampaignUI().getCurrentInteractionDialog() != null) {
+                InputScreenManager.getInstance().transitionToScreen(DialogUI.ID);
+                return;
+            } else if (Global.getSector().getCampaignUI().getCurrentCoreTab() != null) {
                 var coreui = CampaignStateReflector.GetInstance().getCoreUI();
-                if(coreui != null) {
+                if (coreui != null) {
                     var borderedPanel = BorderedPanelReflector.TryGet(coreui);
-                    if(borderedPanel != null) {
+                    if (borderedPanel != null) {
                         switch (Global.getSector().getCampaignUI().getCurrentCoreTab()) {
                             case CARGO -> {
                                 var tradeui = TradeUiReflector.TryGet(coreui, borderedPanel);
                                 if (tradeui != null) {
                                     InputScreenManager.getInstance().transitionToScreen(TradeScreen.ID, tradeui);
+                                    return;
                                 }
                             }
                             case CHARACTER -> {
                                 var charUi = CharacterSheetReflector.TryGet(coreui, borderedPanel);
-                                if(charUi != null) {
+                                if (charUi != null) {
                                     InputScreenManager.getInstance().transitionDelayed(CharacterTabUI.ID, charUi);
+                                    return;
                                 }
                             }
                         }
                     }
                 }
             }
-        } else {
-            var children = UIPanelReflector.getChildItems(getPanelForIndicators());
-            int numChildren = children.size();
-            if(numChildren > lastFrameNumChildren) {
-                for(int i = lastFrameNumChildren; i < numChildren; i++ ) {
-                    var child = children.get(i);
-                    if(UIPanelAPI.class.isAssignableFrom(child.getClass()) && InputScreenManager.getInstance().getDisplayPanel() != null && child == InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
-                        var msgBox = MessageBoxReflector.TryGet((UIPanelAPI) child);
-                        if(msgBox != null) {
-                            InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, msgBox, MainCampaignUI.ID);
-                            return;
-                        }
+        }
+        var children = UIPanelReflector.getChildItems(getPanelForIndicators());
+        int numChildren = children.size();
+        if(numChildren > lastFrameNumChildren) {
+            for(int i = lastFrameNumChildren; i < numChildren; i++ ) {
+                var child = children.get(i);
+                if(UIPanelAPI.class.isAssignableFrom(child.getClass()) && InputScreenManager.getInstance().getDisplayPanel() != null && child != InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
+                    var msgBox = MessageBoxReflector.TryGet((UIPanelAPI) child);
+                    if(msgBox != null) {
+                        InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, msgBox, MainCampaignUI.ID);
+                        return;
                     }
                 }
             }
-            lastFrameNumChildren = numChildren;
         }
+        lastFrameNumChildren = numChildren;
+
         if(mousePos.x != -1.f && mousePos.y != -1.f) {
             if (handler.isButtonAPressed() && !isMouseDown) {
                 InputShim.mouseDown((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);

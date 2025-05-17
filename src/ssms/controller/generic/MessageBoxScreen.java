@@ -119,7 +119,11 @@ public class MessageBoxScreen extends InputScreenBase {
     public void preInput(float advance) {
         if(dialogReflector.isBeingDismissed()) {
             dialogOptions = null;
-            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, uiToReturnTo, new Object[]{});
+            if(Global.getCurrentState() == GameState.COMBAT) {
+                InputScreenManager.getInstance().transitionToScope(BattleScope.ID, Global.getCombatEngine());
+            } else {
+                InputScreenManager.getInstance().transitionToScreen(uiToReturnTo);
+            }
         }
         if(controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1) {
             selectNextButton();
@@ -129,9 +133,6 @@ public class MessageBoxScreen extends InputScreenBase {
             clickButton();
         } else if(controller.getButtonEvent(HandlerController.Buttons.B) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-            if(Global.getCurrentState() == GameState.COMBAT) {
-                InputScreenManager.getInstance().transitionToScope(BattleScope.ID, Global.getCombatEngine());
-            }
         } else if(controller.getButtonEvent(HandlerController.Buttons.Y) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_RETURN, '\0');
         }

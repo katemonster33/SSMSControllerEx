@@ -17,8 +17,8 @@ public class MessageBoxReflector {
 
     static Object isBeingDismissed;
     static MethodHandle actionPerformed;
-    static MethodHandle getOptionMap;
-    static Object dialogObject;
+    static Object getOptionMap;
+    Object dialogObject;
     private MessageBoxReflector(Object dialogObject) {
         this.dialogObject = dialogObject;
     }
@@ -30,12 +30,12 @@ public class MessageBoxReflector {
             try {
                 Class<?> clsTmp = msgBoxObject.getClass();
                 try {
-                    getOptionMap = lookup.findVirtual(clsTmp, "getOptionMap", MethodType.methodType(Map.class));
+                    getOptionMap = ClassReflector.GetInstance().getDeclaredMethod(clsTmp, "getOptionMap");
                 } catch(Throwable ex) {
                     try {
                         clsTmp = clsTmp.getSuperclass();
 
-                        getOptionMap = lookup.findVirtual(clsTmp, "getOptionMap", MethodType.methodType(Map.class));
+                        getOptionMap = ClassReflector.GetInstance().getDeclaredMethod(clsTmp, "getOptionMap");
                     } catch(Throwable ex2) {
                         Global.getLogger(MessageBoxReflector.class).warn("Couldn't reflect MessageBox from class!", ex2);
                         return null;
@@ -52,7 +52,7 @@ public class MessageBoxReflector {
             } catch (Throwable ex) {
                 Global.getLogger(MessageBoxReflector.class).fatal("Given object is not a dialog object!", ex);
             }
-        } else if(msgBoxObject.getClass().isAssignableFrom(messageBoxClass)) {
+        } else if(messageBoxClass.isAssignableFrom(msgBoxObject.getClass())) {
             return new MessageBoxReflector(msgBoxObject);
         }
         return null;
@@ -72,10 +72,10 @@ public class MessageBoxReflector {
     public List<ButtonAPI> getDialogButtons() {
         List<ButtonAPI> output = new ArrayList<>();
         try {
-            Map<?,?> options = (Map<?,?>) getOptionMap.invoke(dialogObject);
+            Map<?,?> options = (Map<?,?>) MethodReflector.GetInstance().invoke(getOptionMap, dialogObject);
             for(Object obj : options.keySet()) {
                 if(ButtonAPI.class.isAssignableFrom(obj.getClass())) {
-                    output.add((ButtonAPI) output);
+                    output.add((ButtonAPI) obj);
                 }
             }
         } catch(Throwable ex) {
