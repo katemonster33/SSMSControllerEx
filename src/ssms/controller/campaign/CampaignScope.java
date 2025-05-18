@@ -23,7 +23,7 @@ public class CampaignScope extends InputScopeBase {
 
         indicators.add(new Pair<>(Indicators.BumperLeft, "Select previous tab"));
         indicators.add(new Pair<>(Indicators.BumperLeft, "Select next tab"));
-        indicators.add(new Pair<>(Indicators.Start, "Pause"));
+        //indicators.add(new Pair<>(Indicators.Start, "Pause"));
     }
 
     public List<Pair<Indicators, String>> getIndicators() {
@@ -60,8 +60,6 @@ public class CampaignScope extends InputScopeBase {
             if(autoNavigate) {
                 selectTab();
             }
-        } else if(controller.getButtonEvent(HandlerController.Buttons.X) == 1) {
-            selectTab();
         }
     }
 

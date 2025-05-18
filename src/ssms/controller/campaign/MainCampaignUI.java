@@ -5,10 +5,8 @@ import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
-import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
-import me.xdrop.fuzzywuzzy.Main;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
@@ -142,6 +140,13 @@ public class MainCampaignUI extends InputScreenBase {
                                 var charUi = CharacterSheetReflector.TryGet(coreui, borderedPanel);
                                 if (charUi != null) {
                                     InputScreenManager.getInstance().transitionDelayed(CharacterTabUI.ID, charUi);
+                                    return;
+                                }
+                            }
+                            case FLEET -> {
+                                var fleetUi = FleetTabReflector.TryGet(coreui, borderedPanel);
+                                if (fleetUi != null) {
+                                    InputScreenManager.getInstance().transitionDelayed(FleetTabUI.ID, fleetUi);
                                     return;
                                 }
                             }

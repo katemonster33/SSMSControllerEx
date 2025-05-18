@@ -124,7 +124,7 @@ public class CharacterTabUI extends InputScreenBase {
 
     @Override
     public List<Pair<Indicators, String>> getIndicators() {
-        var output = new ArrayList(indicators);
+        List<Pair<Indicators, String>> output = new ArrayList<>(indicators);
         output.addAll(campaignScope.getIndicators());
         return output;
     }

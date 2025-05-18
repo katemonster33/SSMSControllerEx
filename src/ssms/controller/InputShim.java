@@ -263,7 +263,7 @@ public class InputShim implements InputImplementation {
 
     @Override
     public void readKeyboard(ByteBuffer byteBuffer) {
-        if(pendingEvents.isEmpty() || pendingEvents.get(0).eventType != EventType.KEYBOARD) {
+        if(pendingEvents.isEmpty() || pendingEvents.get(0).eventType != EventType.KEYBOARD || pendingEvents.get(0).sent) {
             realImpl.readKeyboard(byteBuffer);
         } else {
             if(byteBuffer.remaining() >= 18) {
