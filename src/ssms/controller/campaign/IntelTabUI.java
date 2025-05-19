@@ -1,10 +1,15 @@
 package ssms.controller.campaign;
 
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CoreUITabId;
+import com.fs.starfarer.api.campaign.InteractionDialogAPI;
+import com.fs.starfarer.api.campaign.comm.IntelManagerAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.campaign.CampaignEngine;
 import com.fs.starfarer.campaign.comms.IntelTabData;
 import ssms.controller.Indicators;
 import ssms.controller.InputScreenBase;
+import ssms.controller.InputScreenManager;
 import ssms.controller.reflection.IntelTabReflector;
 
 import java.util.ArrayList;
@@ -14,6 +19,7 @@ public class IntelTabUI extends InputScreenBase {
     public static final String ID = "IntelTab";
     IntelTabReflector intelTabReflector;
     IntelTabData intelTabData;
+    IntelManagerAPI intelManagerAPI;
     List<Pair<Indicators, String>> indicators = null;
     @Override
     public String getId() {
@@ -36,12 +42,10 @@ public class IntelTabUI extends InputScreenBase {
     @Override
     public List<Pair<Indicators, String>> getIndicators() {
         if(indicators == null) {
-            indicators = new ArrayList<>();
-            switch (intelTabData.getSelectedTabIndex()) {
-                case 0 -> indicators = getIntelIndicators();
-                case 1 -> indicators = null;
-                case 2 -> indicators = null;
-            }
+            indicators = switch (intelTabData.getSelectedTabIndex()) {
+                case 0 -> getIntelIndicators();
+                default -> new ArrayList<>();
+            };
         }
         return indicators;
     }
@@ -50,5 +54,13 @@ public class IntelTabUI extends InputScreenBase {
     public void activate(Object ... args) {
         intelTabReflector = (IntelTabReflector) args[0];
         intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
+    }
+
+    @Override
+    public void preInput(float amount) {
+        if(Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.INTEL) {
+            InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
+            return;
+        }
     }
 }

@@ -54,23 +54,15 @@ public class HandlerController {
 
    String[] getAxisNames(AxisId axisId)
    {
-       switch(axisId)
-       {
-           case XAxis:
-               return new String[]{"X Axis", "x"};
-           case YAxis:
-               return new String[]{"Y Axis", "y"};
-           case ZAxis:
-               return new String[]{"Z Axis", "z"};
-           case ZRotation:
-               return new String[]{"Z Rotation", "rz"};
-           case XRotation:
-               return new String[]{ "X Rotation", "rx"};
-           case YRotation:
-               return new String[]{"Y Rotation", "ry"};
-           default:
-               return null;
-       }
+       return switch (axisId) {
+           case XAxis -> new String[]{"X Axis", "x"};
+           case YAxis -> new String[]{"Y Axis", "y"};
+           case ZAxis -> new String[]{"Z Axis", "z"};
+           case ZRotation -> new String[]{"Z Rotation", "rz"};
+           case XRotation -> new String[]{"X Rotation", "rx"};
+           case YRotation -> new String[]{"Y Rotation", "ry"};
+           default -> null;
+       };
    }
 
    int getAxisIndex(AxisId axisId, Integer axisIndex, Map<String,Integer> axisIndices, int axisCount)

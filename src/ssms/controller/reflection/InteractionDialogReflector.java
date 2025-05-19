@@ -9,22 +9,12 @@ import java.util.Objects;
 
 public class InteractionDialogReflector {
     static InteractionDialogReflector instance;
-    Object getCoreUI;
-    Object getPlugin;
+    static Object getCoreUI;
     private InteractionDialogReflector() throws Throwable{
 
         var interactionDialogAPI = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
-        Object getCargoPicker = null;
-        var methods = ClassReflector.GetInstance().getDeclaredMethods(interactionDialogAPI.getClass());
-        for(var meth : methods) {
-            if(Objects.equals(MethodReflector.GetInstance().getName(meth), "getCargoPicker")) {
-                getCargoPicker = meth;
-                break;
-            }
-        }
 
         getCoreUI = ClassReflector.GetInstance().findDeclaredMethod(interactionDialogAPI.getClass(), "getCoreUI");
-        getPlugin = ClassReflector.GetInstance().findDeclaredMethod(interactionDialogAPI.getClass(), "getPlugin");
     }
 
     public CoreUIAPI getCoreUI(InteractionDialogAPI interactionDialogAPI) {
@@ -32,15 +22,6 @@ public class InteractionDialogReflector {
             return (CoreUIAPI) MethodReflector.GetInstance().invoke(getCoreUI, interactionDialogAPI);
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't get CoreUI from InteractionDialogAPI!", ex);
-            return null;
-        }
-    }
-
-    public InteractionDialogPlugin getPlugin(InteractionDialogAPI interactionDialogAPI) {
-        try {
-            return (InteractionDialogPlugin) MethodReflector.GetInstance().invoke(getPlugin, interactionDialogAPI);
-        } catch(Throwable ex) {
-            Global.getLogger(getClass()).warn("Couldn't fetch active plugin of interaction dialog!", ex);
             return null;
         }
     }

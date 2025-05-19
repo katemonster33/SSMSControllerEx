@@ -124,43 +124,7 @@ public class MainCampaignUI extends InputScreenBase {
                 InputScreenManager.getInstance().transitionToScreen(DialogUI.ID);
                 return;
             } else if (Global.getSector().getCampaignUI().getCurrentCoreTab() != null) {
-                var coreui = CampaignStateReflector.GetInstance().getCoreUI();
-                if (coreui != null) {
-                    var borderedPanel = BorderedPanelReflector.TryGet(coreui);
-                    if (borderedPanel != null) {
-                        switch (Global.getSector().getCampaignUI().getCurrentCoreTab()) {
-                            case CARGO -> {
-                                var tradeUi = TradeUiReflector.TryGet(coreui, borderedPanel);
-                                if (tradeUi != null) {
-                                    InputScreenManager.getInstance().transitionToScreen(TradeScreen.ID, tradeUi);
-                                    return;
-                                }
-                            }
-                            case CHARACTER -> {
-                                var charUi = CharacterSheetReflector.TryGet(coreui, borderedPanel);
-                                if (charUi != null) {
-                                    InputScreenManager.getInstance().transitionDelayed(CharacterTabUI.ID, charUi);
-                                    return;
-                                }
-                            }
-                            case FLEET -> {
-                                var fleetUi = FleetTabReflector.TryGet(coreui, borderedPanel);
-                                if (fleetUi != null) {
-                                    InputScreenManager.getInstance().transitionDelayed(FleetTabUI.ID, fleetUi);
-                                    return;
-                                }
-                            }
-
-                            case MAP -> {
-                                var mapUi = MapReflector.TryGet(coreui, borderedPanel);
-                                if(mapUi != null) {
-                                    InputScreenManager.getInstance().transitionDelayed(MapTabUI.ID, mapUi);
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                }
+                if (openScreenForCoreTab()) return;
             }
         }
         var children = UIPanelReflector.getChildItems(getPanelForIndicators());
@@ -248,6 +212,31 @@ public class MainCampaignUI extends InputScreenBase {
         if(handler.isDpadRight()) {
             //Global.getSector().
         }
+    }
+
+    boolean tryOpenScreen(Object screenUi, String screenId) {
+        if (screenUi != null) {
+            return InputScreenManager.getInstance().transitionToScreen(screenId, screenUi);
+        }
+        return false;
+    }
+
+    boolean openScreenForCoreTab() {
+        var coreUI = CampaignStateReflector.GetInstance().getCoreUI();
+        if (coreUI != null) {
+            var borderedPanel = BorderedPanelReflector.TryGet(coreUI);
+            if (borderedPanel != null) {
+                return switch (Global.getSector().getCampaignUI().getCurrentCoreTab()) {
+                    case CARGO ->       tryOpenScreen(TradeUiReflector.TryGet(coreUI, borderedPanel), TradeScreen.ID);
+                    case CHARACTER ->   tryOpenScreen(CharacterSheetReflector.TryGet(coreUI, borderedPanel), CharacterTabUI.ID);
+                    case FLEET ->       tryOpenScreen(FleetTabReflector.TryGet(coreUI, borderedPanel), FleetTabUI.ID);
+                    case INTEL ->       tryOpenScreen(IntelTabReflector.TryGet(coreUI, borderedPanel), IntelTabUI.ID);
+                    case MAP ->         tryOpenScreen(MapReflector.TryGet(coreUI, borderedPanel), MapTabUI.ID);
+                    default ->          false;
+                };
+            }
+        }
+        return false;
     }
 
     @Override
