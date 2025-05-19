@@ -100,8 +100,8 @@ public class InputScreenManager {
             if ( screenAllowsScope(screen, currentScope.getId()) ) {
                 nextScreen = new Transition(id,args);
                 return true;
-            } else Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Screen id \""+id+"\" is not allowed in current scope \""+currentScope.getId()+"\".");
-        } else Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Unregistered sceen id \""+id+"\" ignoring transition.");
+            } else Global.getLogger(SSMSControllerModPluginEx.class).error("Screen id \""+id+"\" is not allowed in current scope \""+currentScope.getId()+"\".");
+        } else Global.getLogger(SSMSControllerModPluginEx.class).error("Unregistered screen id \""+id+"\" ignoring transition.");
         return false;
     }
     
@@ -132,7 +132,7 @@ public class InputScreenManager {
             InputScopeBase scope = scopes.get(scopeId);
             return transitionToScope(scopeId, args, scope.getDefaultScreen(), null);
         } else {
-            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Scope \""+scopeId+"\" is not registered!");
+            Global.getLogger(SSMSControllerModPluginEx.class).error("Scope \""+scopeId+"\" is not registered!");
         }
         return false;
     }
@@ -153,7 +153,7 @@ public class InputScreenManager {
                             currentScope.deactivate();
                         }
                     } catch ( Throwable t ) {
-                        Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Failed to deactivate scope, ignoring: "+currentScope, t);
+                        Global.getLogger(SSMSControllerModPluginEx.class).warn("Failed to deactivate scope, ignoring: "+currentScope, t);
                     }
                     scope.activate();
                     currentScope = scope;
@@ -162,18 +162,18 @@ public class InputScreenManager {
                             currentScreen.deactivate();
                         }
                     } catch ( Throwable t ) {
-                        Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Failed to deactivate screen, ignoring: "+currentScreen, t);
+                        Global.getLogger(SSMSControllerModPluginEx.class).warn("Failed to deactivate screen, ignoring: "+currentScreen, t);
                     }
                     //horizontalAlignment = AlignmentHorizontal.right;
                     screen.activate(screenArgs);
                     currentScreen = screen;
                 } catch ( Throwable t ) {
-                    Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to activate scope skipping transition: " + defaultScope, t);
+                    Global.getLogger(SSMSControllerModPluginEx.class).error("Failed to activate scope skipping transition: " + defaultScope, t);
                     currentScope = oldScope;
                 }
                 return true;
             } else {
-                Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Screen \""+screenId+"\" is not allowed in scope \""+defaultScope+"\"!");
+                Global.getLogger(SSMSControllerModPluginEx.class).error("Screen \""+screenId+"\" is not allowed in scope \""+defaultScope+"\"!");
             }
         } else {
             if ( !screens.containsKey(screenId) ) Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Screen \""+screenId+"\" is not registered!");
@@ -195,7 +195,7 @@ public class InputScreenManager {
                             currentScope.deactivate();
                         }
                     } catch ( Throwable t ) {
-                        Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Failed to deactivate scope, ignoring: "+currentScope, t);
+                        Global.getLogger(SSMSControllerModPluginEx.class).warn("Failed to deactivate scope, ignoring: "+currentScope, t);
                     }
                     scope.activate(scopeArgs);
                     currentScope = scope;
@@ -204,22 +204,22 @@ public class InputScreenManager {
                             currentScreen.deactivate();
                         }
                     } catch ( Throwable t ) {
-                        Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Failed to deactivate screen, ignoring: "+currentScreen, t);
+                        Global.getLogger(SSMSControllerModPluginEx.class).warn("Failed to deactivate screen, ignoring: "+currentScreen, t);
                     }
                     //horizontalAlignment = AlignmentHorizontal.right;
                     screen.activate(screenArgs);
                     currentScreen = screen;
                 } catch ( Throwable t ) {
-                    Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to activate scope skipping transition: "+scopeId, t);
+                    Global.getLogger(SSMSControllerModPluginEx.class).error("Failed to activate scope skipping transition: "+scopeId, t);
                     currentScope = oldScope;
                 }
                 return true;
             } else {
-                Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Screen \""+screenId+"\" is not allowed in scope \""+scopeId+"\"!");
+                Global.getLogger(SSMSControllerModPluginEx.class).error("Screen \""+screenId+"\" is not allowed in scope \""+scopeId+"\"!");
             }
         } else {
-            if ( !screens.containsKey(screenId) ) Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Screen \""+screenId+"\" is not registered!");
-            if ( !scopes.containsKey(scopeId) ) Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Scope \""+scopeId+"\" is not registered!");
+            if ( !screens.containsKey(screenId) ) Global.getLogger(SSMSControllerModPluginEx.class).error("Screen \""+screenId+"\" is not registered!");
+            if ( !scopes.containsKey(scopeId) ) Global.getLogger(SSMSControllerModPluginEx.class).error("Scope \""+scopeId+"\" is not registered!");
         }
         return false;
     }
@@ -242,15 +242,15 @@ public class InputScreenManager {
                 //horizontalAlignment = AlignmentHorizontal.right;
                 screen.activate(nextScreen.args);
                 try {
-                    if ( currentScreen != null ) {
+                    if ( currentScreen!= null ) {
                         currentScreen.deactivate();
                     }
                 } catch ( Throwable t ) {
-                    Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Failed to deactivate screen, ignoring: "+currentScreen);
+                    Global.getLogger(SSMSControllerModPluginEx.class).warn("Failed to deactivate screen, ignoring: "+currentScreen);
                 }
                 currentScreen = screen;
             } catch ( Throwable t ) {
-                Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to activate screen, skipping transition: "+nextScreen.id);
+                Global.getLogger(SSMSControllerModPluginEx.class).error("Failed to activate screen, skipping transition: "+nextScreen.id);
             }
             refreshIndicators();
             nextScreen = null;

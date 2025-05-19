@@ -130,9 +130,9 @@ public class MainCampaignUI extends InputScreenBase {
                     if (borderedPanel != null) {
                         switch (Global.getSector().getCampaignUI().getCurrentCoreTab()) {
                             case CARGO -> {
-                                var tradeui = TradeUiReflector.TryGet(coreui, borderedPanel);
-                                if (tradeui != null) {
-                                    InputScreenManager.getInstance().transitionToScreen(TradeScreen.ID, tradeui);
+                                var tradeUi = TradeUiReflector.TryGet(coreui, borderedPanel);
+                                if (tradeUi != null) {
+                                    InputScreenManager.getInstance().transitionToScreen(TradeScreen.ID, tradeUi);
                                     return;
                                 }
                             }
@@ -147,6 +147,14 @@ public class MainCampaignUI extends InputScreenBase {
                                 var fleetUi = FleetTabReflector.TryGet(coreui, borderedPanel);
                                 if (fleetUi != null) {
                                     InputScreenManager.getInstance().transitionDelayed(FleetTabUI.ID, fleetUi);
+                                    return;
+                                }
+                            }
+
+                            case MAP -> {
+                                var mapUi = MapReflector.TryGet(coreui, borderedPanel);
+                                if(mapUi != null) {
+                                    InputScreenManager.getInstance().transitionDelayed(MapTabUI.ID, mapUi);
                                     return;
                                 }
                             }
