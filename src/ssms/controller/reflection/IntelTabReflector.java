@@ -3,6 +3,7 @@ package ssms.controller.reflection;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUIAPI;
 import com.fs.starfarer.api.ui.ButtonAPI;
+import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.campaign.comms.v2.EventsPanel;
 import com.fs.starfarer.campaign.ui.UITable;
@@ -27,6 +28,7 @@ public class IntelTabReflector {
     static MethodHandle selectPlanetTableRow;
     static Object getList;
     static Object ensurePlanetVisible;
+    static Object planetItemColumnsField;
     static Class<?> tableItemCls;
     static Class<?> tableListCls;
 
@@ -65,7 +67,6 @@ public class IntelTabReflector {
 
             var btn = (ButtonAPI) FieldReflector.GetInstance().GetVariable(buttonField, planetObj);
 
-            ensurePlanetVisible(btn);
             var lst = MethodReflector.GetInstance().invoke(getList, getPlanetList().getTable());
             MethodReflector.GetInstance().invoke(ensurePlanetVisible, lst, btn);
         } catch(Throwable ex) {
@@ -102,6 +103,29 @@ public class IntelTabReflector {
         return planets;
     }
 
+    public List<UIComponentAPI> getPlanetSubItems(UIPanelAPI planetItem) {
+        List<UIComponentAPI> output = new ArrayList<>();
+        try {
+            List<?> columns = (List<?>) FieldReflector.GetInstance().GetVariable(planetItemColumnsField, planetItem);
+            if(columns != null && columns.size() > 5) {
+                output.add((UIComponentAPI) columns.get(0));
+
+                var children = UIPanelReflector.getChildItems((UIPanelAPI) columns.get(1));
+                children = UIPanelReflector.getChildItems((UIPanelAPI) children.get(1));
+
+                for(var child : children) {
+                    output.add((UIComponentAPI) child);
+                }
+
+                output.add((UIComponentAPI) columns.get(2));
+                output.sort((UIComponentAPI left, UIComponentAPI right) -> (int)(left.getPosition().getX() - right.getPosition().getX()));
+            }
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).error("Couldn't get clickable sub-items of planet!", ex);
+        }
+        return output;
+    }
+
     public static IntelTabReflector TryGet(CoreUIAPI coreUIAPI, BorderedPanelReflector borderedPanelReflector) {
         try {
             var intelTabUi = borderedPanelReflector.getPanel();
@@ -127,7 +151,7 @@ public class IntelTabReflector {
 
             tableListCls = MethodReflector.GetInstance().getReturnType(getList);
             ensurePlanetVisible = ClassReflector.GetInstance().findDeclaredMethod(tableListCls, "ensureVisible");
-
+            planetItemColumnsField = ClassReflector.GetInstance().getDeclaredField(tableItemCls, "columns");
             return new IntelTabReflector(coreUIAPI, intelTabUi, eventsPanel, planetPanel, factionIntelPanel);
         } catch(Throwable ex) {
             Global.getLogger(IntelTabReflector.class).error("Couldn't reflect into IntelTab UI!", ex);

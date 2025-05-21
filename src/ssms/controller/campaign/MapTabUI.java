@@ -70,12 +70,14 @@ public class MapTabUI extends InputScreenBase {
             movingMap = !movingMap;
         }
         if(!movingMap) {
-            if (controller.isButtonAPressed() && !mouseDown) {
-                InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
-                mouseDown = true;
-            } else if (!controller.isButtonAPressed() && mouseDown) {
-                InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
-                mouseDown = false;
+            if(desiredMousePos != null) {
+                if (controller.isButtonAPressed() && !mouseDown) {
+                    InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
+                    mouseDown = true;
+                } else if (!controller.isButtonAPressed() && mouseDown) {
+                    InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
+                    mouseDown = false;
+                }
             }
             if (controller.getButtonEvent(HandlerController.Buttons.B) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');

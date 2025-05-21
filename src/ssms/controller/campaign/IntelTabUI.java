@@ -2,19 +2,18 @@ package ssms.controller.campaign;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
-import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.campaign.comm.IntelManagerAPI;
-import com.fs.starfarer.api.ui.ButtonAPI;
+import com.fs.starfarer.api.input.InputEventMouseButton;
+import com.fs.starfarer.api.ui.UIComponentAPI;
+import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.campaign.CampaignEngine;
 import com.fs.starfarer.campaign.comms.IntelTabData;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
-import ssms.controller.reflection.ClassReflector;
-import ssms.controller.reflection.FieldReflector;
 import ssms.controller.reflection.IntelTabReflector;
+import ssms.controller.reflection.UIPanelReflector;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +26,9 @@ public class IntelTabUI extends InputScreenBase {
     int lastFrameSelectedIndex = -1;
     CampaignScope campaignScope;
     HandlerController controller;
-    int planetSelected = -1;
+    int selectedRowIndex = -1;
+    int selectedColumn = -1;
+    boolean selectingPlanetFilters = false;
     @Override
     public String getId() {
         return ID;
@@ -85,8 +86,79 @@ public class IntelTabUI extends InputScreenBase {
         controller = (HandlerController) SSMSControllerModPluginEx.controller;
     }
 
-    void hoverSelectedPlanet() {
+    List<UIPanelAPI> getPlanetsFixIndices() {
+        var planets = intelTabReflector.getPlanetsTableRows();
+        if(planets.isEmpty()) {
+            selectedRowIndex = selectedColumn = -1;
+            return new ArrayList<>();
+        }
 
+        if(selectedRowIndex < 0) selectedRowIndex = 0;
+        else if(selectedRowIndex >= planets.size()) selectedRowIndex = planets.size() - 1;
+
+        return planets;
+    }
+
+    List<UIComponentAPI> getSelectedPlanetSubItems(UIPanelAPI planet) {
+        var subItems = intelTabReflector.getPlanetSubItems(planet);
+
+        if(selectedColumn < 0) selectedColumn = 0;
+        else if(selectedColumn >= subItems.size()) selectedColumn = subItems.size() - 1;
+
+        return subItems;
+    }
+
+    void hoverSelectedItem() {
+        if(selectingPlanetFilters) {
+            var rows = getPlanetsFixIndices();
+            if (rows.isEmpty()) {
+                return;
+            }
+
+            var selectedRow = rows.get(selectedRowIndex);
+            var columns = getSelectedPlanetSubItems(selectedRow);
+            if (columns.isEmpty()) {
+                return;
+            }
+
+            intelTabReflector.ensurePlanetVisible(selectedRow);
+            var pos = columns.get(selectedColumn).getPosition();
+            InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
+        } else {
+            var rows = getPlanetsFixIndices();
+            if (rows.isEmpty()) {
+                return;
+            }
+
+            var selectedRow = rows.get(selectedRowIndex);
+            var columns = getSelectedPlanetSubItems(selectedRow);
+            if (columns.isEmpty()) {
+                return;
+            }
+
+            intelTabReflector.ensurePlanetVisible(selectedRow);
+            var pos = columns.get(selectedColumn).getPosition();
+            InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
+        }
+    }
+
+    void selectSelectedPlanet() {
+        var plants = getPlanetsFixIndices();
+        if(plants.isEmpty()) {
+            return;
+        }
+
+        var subItems = getSelectedPlanetSubItems(plants.get(selectedRowIndex));
+        if(subItems.isEmpty()) {
+            return;
+        }
+
+        var pos = subItems.get(selectedColumn).getPosition();
+        if(selectedColumn == 0 || selectedColumn == subItems.size() - 1) {
+            InputShim.mouseDownUp((int) pos.getCenterX(), (int) pos.getCenterY(), InputEventMouseButton.LEFT);
+        } else {
+            InputShim.keyDownUp(Keyboard.KEY_F2, '\0');
+        }
     }
 
     void preInputIntelTab(float amount) {
@@ -94,31 +166,59 @@ public class IntelTabUI extends InputScreenBase {
     }
 
     void preInputPlanetTab(float amount) {
+
         var planets = intelTabReflector.getPlanetsTableRows();
+        List<List<UIComponentAPI>> buttonRows = new ArrayList<>();
+        var children = UIPanelReflector.getChildItems(intelTabReflector.getPlanetTabData());
+        if(children.size() == 2) {
+            children = UIPanelReflector.getChildItems((UIPanelAPI) children.get(1));
+            if (children.size() == 6) {
+                children = UIPanelReflector.getChildItems((UIPanelAPI) children.get(5));
+                if (children.size() == 2) {
+                    children = UIPanelReflector.getChildItems((UIPanelAPI) children.get(0));
+                    if (children.size() > 1) {
+                        for (int i = 1; i < children.size(); i++) {
+                            for (var grp : UIPanelReflector.getChildItems((UIPanelAPI) children.get(i))) {
+                                if(UIPanelAPI.class.isAssignableFrom(grp.getClass())) {
+                                    for (var rowPanel : UIPanelReflector.getChildItems((UIPanelAPI) grp)) {
+                                        if (UIPanelAPI.class.isAssignableFrom(rowPanel.getClass())) {
+                                            buttonRows.add(new ArrayList<>(UIPanelReflector.getChildButtons((UIPanelAPI) rowPanel)));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         if(!planets.isEmpty()) {
             try {
-                if (controller.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1) {
-                    if (planetSelected == -1 || planetSelected > planets.size()) {
-                        planetSelected = 0;
-                    } else if (planetSelected < (planets.size() - 1)) {
-                        planetSelected++;
-                    }
-
-                    intelTabReflector.ensurePlanetVisible(planets.get(planetSelected));
-                } else if (controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1) {
-                    if (planetSelected == -1 || planetSelected > planets.size()) {
-                        planetSelected = 0;
-                    } else if (planetSelected > 0) {
-                        planetSelected--;
-                    }
-                    intelTabReflector.ensurePlanetVisible(planets.get(planetSelected));
+                if (controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1) {
+                    selectedRowIndex++;
+                    selectedColumn = 0;
+                    hoverSelectedItem();
+                } else if (controller.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1) {
+                    selectedRowIndex--;
+                    selectedColumn = 0;
+                    hoverSelectedItem();
+                } else if (controller.getButtonEvent(HandlerController.Buttons.LeftStickLeft) == 1) {
+                    selectedColumn--;
+                    hoverSelectedItem();
+                } else if (controller.getButtonEvent(HandlerController.Buttons.LeftStickRight) == 1) {
+                    selectedColumn++;
+                    hoverSelectedItem();
+                } if(controller.getButtonEvent(HandlerController.Buttons.LeftStickButton) == 1) {
+                    selectingPlanetFilters = !selectingPlanetFilters;
+                } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
+                    selectSelectedPlanet();
                 }
             } catch(Throwable ex) {
                 Global.getLogger(getClass()).warn("Error!", ex);
             }
             //intelTabReflector.setSelectPlanetTableRow(planets.get(0), null, true);
-        } else planetSelected = -1;
+        } else selectedRowIndex = -1;
     }
 
     void preInputFactionTab(float amount) {
