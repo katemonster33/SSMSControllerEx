@@ -36,6 +36,27 @@ public class UIPanelReflector {
         }
     }
 
+    public static List<UIPanelAPI> getChildPanels(UIPanelAPI panel, int ... args) {
+        try {
+            List<?> childrenTmp = getChildItems(panel);
+            for(int i = 0; i < args.length; i++) {
+                if(childrenTmp.size() > args[i] && UIPanelAPI.class.isAssignableFrom(childrenTmp.get(args[i]).getClass()) ) {
+                    childrenTmp = getChildItems((UIPanelAPI) childrenTmp.get(args[i]));
+                } else return new ArrayList<>();
+            }
+            List<UIPanelAPI> output = new ArrayList<>();
+            for(Object child : childrenTmp) {
+                if((UIPanelAPI.class.isAssignableFrom(child.getClass()))) {
+                    output.add((UIPanelAPI) child);
+                }
+            }
+            return output;
+        } catch(Throwable ex) {
+            Global.getLogger(UIPanelReflector.class).fatal("Could not get nested child panels of UIPanel! ", ex);
+            return new ArrayList<>();
+        }
+    }
+
     public static List<ButtonAPI> getChildButtons(UIPanelAPI panel) {
         ArrayList<ButtonAPI> output = new ArrayList<>();
         List<?> childItems = getChildItems(panel);

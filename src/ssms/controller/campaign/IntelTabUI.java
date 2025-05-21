@@ -83,78 +83,65 @@ public class IntelTabUI extends InputScreenBase {
         intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
         lastFrameSelectedIndex = intelTabData.getSelectedTabIndex();
         campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
-        controller = (HandlerController) SSMSControllerModPluginEx.controller;
+        controller = SSMSControllerModPluginEx.controller;
     }
 
-    List<UIPanelAPI> getPlanetsFixIndices() {
-        var planets = intelTabReflector.getPlanetsTableRows();
-        if(planets.isEmpty()) {
+    UIPanelAPI getSelectedPlanetRow() {
+        var rows = intelTabReflector.getPlanetsTableRows();
+        if(rows.isEmpty()) {
             selectedRowIndex = selectedColumn = -1;
-            return new ArrayList<>();
+            return null;
         }
 
         if(selectedRowIndex < 0) selectedRowIndex = 0;
-        else if(selectedRowIndex >= planets.size()) selectedRowIndex = planets.size() - 1;
+        else if(selectedRowIndex >= rows.size()) selectedRowIndex = rows.size() - 1;
 
-        return planets;
+        return rows.get(selectedRowIndex);
     }
 
-    List<UIComponentAPI> getSelectedPlanetSubItems(UIPanelAPI planet) {
-        var subItems = intelTabReflector.getPlanetSubItems(planet);
+    List<UIComponentAPI> getPlanetColumns(UIPanelAPI planet) {
+        var rowColumns = intelTabReflector.getPlanetSubItems(planet);
 
         if(selectedColumn < 0) selectedColumn = 0;
-        else if(selectedColumn >= subItems.size()) selectedColumn = subItems.size() - 1;
+        else if(selectedColumn >= rowColumns.size()) selectedColumn = rowColumns.size() - 1;
 
-        return subItems;
+        return rowColumns;
+    }
+
+    UIComponentAPI getSelectedCell() {
+
+        var rows = getPlanetRows();
+        if (rows.isEmpty()) {
+            return;
+        }
+
+        var selectedRow = rows.get(selectedRowIndex);
+        intelTabReflector.ensurePlanetVisible(selectedRow);
+        var columns = getPlanetColumns(selectedRow);
+        if (columns.isEmpty()) {
+            return;
+        }
     }
 
     void hoverSelectedItem() {
-        if(selectingPlanetFilters) {
-            var rows = getPlanetsFixIndices();
-            if (rows.isEmpty()) {
-                return;
-            }
 
-            var selectedRow = rows.get(selectedRowIndex);
-            var columns = getSelectedPlanetSubItems(selectedRow);
-            if (columns.isEmpty()) {
-                return;
-            }
-
-            intelTabReflector.ensurePlanetVisible(selectedRow);
-            var pos = columns.get(selectedColumn).getPosition();
-            InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
-        } else {
-            var rows = getPlanetsFixIndices();
-            if (rows.isEmpty()) {
-                return;
-            }
-
-            var selectedRow = rows.get(selectedRowIndex);
-            var columns = getSelectedPlanetSubItems(selectedRow);
-            if (columns.isEmpty()) {
-                return;
-            }
-
-            intelTabReflector.ensurePlanetVisible(selectedRow);
-            var pos = columns.get(selectedColumn).getPosition();
-            InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
-        }
+        var pos = columns.get(selectedColumn).getPosition();
+        InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
     }
 
-    void selectSelectedPlanet() {
-        var plants = getPlanetsFixIndices();
-        if(plants.isEmpty()) {
+    void performActionOnHoveredItem() {
+        var rows = getPlanetRows();
+        if(rows.isEmpty()) {
             return;
         }
 
-        var subItems = getSelectedPlanetSubItems(plants.get(selectedRowIndex));
-        if(subItems.isEmpty()) {
+        var columns = getRowColumns(rows.get(selectedRowIndex));
+        if(columns.isEmpty()) {
             return;
         }
 
-        var pos = subItems.get(selectedColumn).getPosition();
-        if(selectedColumn == 0 || selectedColumn == subItems.size() - 1) {
+        var pos = columns.get(selectedColumn).getPosition();
+        if(selectingPlanetFilters || selectedColumn == 0 || selectedColumn == columns.size() - 1) {
             InputShim.mouseDownUp((int) pos.getCenterX(), (int) pos.getCenterY(), InputEventMouseButton.LEFT);
         } else {
             InputShim.keyDownUp(Keyboard.KEY_F2, '\0');
@@ -169,30 +156,36 @@ public class IntelTabUI extends InputScreenBase {
 
         var planets = intelTabReflector.getPlanetsTableRows();
         List<List<UIComponentAPI>> buttonRows = new ArrayList<>();
-        var children = UIPanelReflector.getChildItems(intelTabReflector.getPlanetTabData());
-        if(children.size() == 2) {
-            children = UIPanelReflector.getChildItems((UIPanelAPI) children.get(1));
-            if (children.size() == 6) {
-                children = UIPanelReflector.getChildItems((UIPanelAPI) children.get(5));
-                if (children.size() == 2) {
-                    children = UIPanelReflector.getChildItems((UIPanelAPI) children.get(0));
-                    if (children.size() > 1) {
-                        for (int i = 1; i < children.size(); i++) {
-                            for (var grp : UIPanelReflector.getChildItems((UIPanelAPI) children.get(i))) {
-                                if(UIPanelAPI.class.isAssignableFrom(grp.getClass())) {
-                                    for (var rowPanel : UIPanelReflector.getChildItems((UIPanelAPI) grp)) {
-                                        if (UIPanelAPI.class.isAssignableFrom(rowPanel.getClass())) {
-                                            buttonRows.add(new ArrayList<>(UIPanelReflector.getChildButtons((UIPanelAPI) rowPanel)));
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+//        var children = UIPanelReflector.getChildItems(intelTabReflector.getPlanetTabData());
+//        if(children.size() == 2) {
+//            children = UIPanelReflector.getChildItems((UIPanelAPI) children.get(1));
+//            if (children.size() == 6) {
+//                children = UIPanelReflector.getChildItems((UIPanelAPI) children.get(5));
+//                if (children.size() == 2) {
+//                    children = UIPanelReflector.getChildItems((UIPanelAPI) children.get(0));
+//                    if (children.size() > 1) {
+//                        for (int i = 1; i < children.size(); i++) {
+//                            for (var grp : UIPanelReflector.getChildItems((UIPanelAPI) children.get(i))) {
+//                                if(UIPanelAPI.class.isAssignableFrom(grp.getClass())) {
+//                                    for (var rowPanel : UIPanelReflector.getChildItems((UIPanelAPI) grp)) {
+//                                        if (UIPanelAPI.class.isAssignableFrom(rowPanel.getClass())) {
+//                                            buttonRows.add(new ArrayList<>(UIPanelReflector.getChildButtons((UIPanelAPI) rowPanel)));
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+
+        for(UIPanelAPI buttonGroup : UIPanelReflector.getChildPanels(intelTabReflector.getPlanetTabData(), 1, 5, 0).stream().flatMap((UIPanelAPI child) -> UIPanelReflector.getChildPanels(child).stream()).toList()) {
+            for(UIPanelAPI buttonRow : UIPanelReflector.getChildPanels(buttonGroup)) {
+                var btnList = UIPanelReflector.getChildButtons(buttonRow);
+                if(!btnList.isEmpty()) buttonRows.add(btnList);
             }
         }
-
         if(!planets.isEmpty()) {
             try {
                 if (controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1) {
@@ -212,7 +205,7 @@ public class IntelTabUI extends InputScreenBase {
                 } if(controller.getButtonEvent(HandlerController.Buttons.LeftStickButton) == 1) {
                     selectingPlanetFilters = !selectingPlanetFilters;
                 } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
-                    selectSelectedPlanet();
+                    performActionOnHoveredItem();
                 }
             } catch(Throwable ex) {
                 Global.getLogger(getClass()).warn("Error!", ex);

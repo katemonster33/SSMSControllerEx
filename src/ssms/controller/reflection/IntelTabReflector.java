@@ -70,15 +70,7 @@ public class IntelTabReflector {
             var lst = MethodReflector.GetInstance().invoke(getList, getPlanetList().getTable());
             MethodReflector.GetInstance().invoke(ensurePlanetVisible, lst, btn);
         } catch(Throwable ex) {
-            Global.getLogger(getClass()).error("Couldn't ensure that the desired planet is visible in the scroller!");
-        }
-    }
-
-    public void selectPlanetTableRow(Object row, Object arg, boolean b) {
-        try {
-            selectPlanetTableRow.invoke(getPlanetList().getTable(), row, arg, b);
-        } catch(Throwable ex) {
-            Global.getLogger(getClass()).error("Failed to select row of planet list table!");
+            Global.getLogger(getClass()).error("Couldn't ensure that the desired planet is visible in the scroller!", ex);
         }
     }
 
@@ -145,7 +137,6 @@ public class IntelTabReflector {
 
             var getSelected = ClassReflector.GetInstance().getDeclaredMethod(UITable.class, "getSelected");
             tableItemCls = MethodReflector.GetInstance().getReturnType(getSelected);
-            selectPlanetTableRow = MethodHandles.lookup().findVirtual(UITable.class, "select", MethodType.methodType(void.class, tableItemCls, Object.class, boolean.class));
 
             getList = ClassReflector.GetInstance().getDeclaredMethod(UITable.class, "getList");
 
