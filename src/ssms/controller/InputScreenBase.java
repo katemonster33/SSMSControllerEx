@@ -44,7 +44,7 @@ public class InputScreenBase {
     public void deactivate() {
     }
 
-    public void activate(Object ...args) {
+    public void activate(Object ...args) throws Throwable {
     }
 
     public void renderInWorld(ViewportAPI viewport) {

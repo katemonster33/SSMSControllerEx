@@ -57,7 +57,10 @@ public class InputScreenManager {
         screens = new HashMap<>();
         scopes = new HashMap<>();
         currentScope = new InputScopeBase(); currentScope.activate();
-        currentScreen = new InputScreenBase(); currentScreen.activate();
+        currentScreen = new InputScreenBase();
+        try {
+            currentScreen.activate();
+        } catch(Throwable ex) { }
     }
 
     public IndicatorDisplayPanel getDisplayPanel() {
