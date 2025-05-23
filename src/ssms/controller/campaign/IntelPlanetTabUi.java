@@ -130,14 +130,9 @@ public class IntelPlanetTabUi extends InputScreenBase {
 
     @Override
     public void preInput(float amount) {
-        if(Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.INTEL) {
-            InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
-            return;
-        }
-        switch(intelTabData.getSelectedTabIndex()) {
-            case 0 -> InputScreenManager.getInstance().transitionDelayed(IntelTabUI.ID, intelTabReflector);
-            case 2 -> InputScreenManager.getInstance().transitionDelayed(IntelFactionTabUi.ID, intelTabReflector);
-        }
+        if(Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.INTEL) InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
+        else if(intelTabData.getSelectedTabIndex() == 0) InputScreenManager.getInstance().transitionDelayed(IntelTabUI.ID, intelTabReflector);
+        else if(intelTabData.getSelectedTabIndex() == 2) InputScreenManager.getInstance().transitionDelayed(IntelFactionTabUi.ID, intelTabReflector);
         if (controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1) {
             selectedRowIndex++;
             selectedColumn = 0;

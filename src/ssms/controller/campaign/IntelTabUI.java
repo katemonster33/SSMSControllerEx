@@ -57,21 +57,10 @@ public class IntelTabUI extends InputScreenBase {
         controller = SSMSControllerModPluginEx.controller;
     }
 
-
-    void preInputIntelTab(float amount) {
-
-    }
-
-    void preInputFactionTab(float amount) {
-
-    }
-
     @Override
     public void preInput(float amount) {
-        if(Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.INTEL) {
-            InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
-            return;
-        } else if(intelTabData.getSelectedTabIndex() == 1) InputScreenManager.getInstance().transitionDelayed(IntelPlanetTabUi.ID, intelTabReflector);
+        if(Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.INTEL) InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
+        else if(intelTabData.getSelectedTabIndex() == 1) InputScreenManager.getInstance().transitionDelayed(IntelPlanetTabUi.ID, intelTabReflector);
         else if(intelTabData.getSelectedTabIndex() == 2) InputScreenManager.getInstance().transitionDelayed(IntelFactionTabUi.ID, intelTabReflector);
         lastFrameSelectedIndex = intelTabData.getSelectedTabIndex();
         if(controller.getButtonEvent(HandlerController.Buttons.B) == 1) {

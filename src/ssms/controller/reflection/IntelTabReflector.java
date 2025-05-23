@@ -19,47 +19,58 @@ import java.util.List;
 public class IntelTabReflector {
     CoreUIAPI coreUIAPI;
     UIPanelAPI intelUiParent;
-    EventsPanel eventsPanel;
-    UIPanelAPI planetTabData;
-    FactionIntelPanel factionIntelPanel;
+    static Class<?> intelTabCls;
+    static Object getFactionPanel;
+    static Object getEventsPanel;
+    static Object getPlanetsPanel;
 
-
-    private IntelTabReflector(CoreUIAPI coreUIAPI, UIPanelAPI intelUiParent, EventsPanel eventsPanel, UIPanelAPI planetTabData, FactionIntelPanel factionIntelPanel) {
+    private IntelTabReflector(CoreUIAPI coreUIAPI, UIPanelAPI intelUiParent) {
         this.coreUIAPI = coreUIAPI;
         this.intelUiParent = intelUiParent;
-        this.eventsPanel = eventsPanel;
-        this.planetTabData = planetTabData;
-        this.factionIntelPanel = factionIntelPanel;
     }
 
     public EventsPanel getEventsPanel() {
-        return eventsPanel;
+        try {
+            return (EventsPanel) MethodReflector.GetInstance().invoke(getEventsPanel, intelUiParent);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).error("Couldn't reflect IntelTab UI getEventsPanel");
+            return null;
+        }
     }
 
     public FactionIntelPanel getFactionIntelPanel() {
-        return factionIntelPanel;
+        try {
+            return (FactionIntelPanel) MethodReflector.GetInstance().invoke(getFactionPanel, intelUiParent);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).error("Couldn't reflect IntelTab UI getFactionIntelPanel");
+            return null;
+        }
     }
 
     public UIPanelAPI getPlanetTabData() {
-        return planetTabData;
+        try {
+            return (UIPanelAPI) MethodReflector.GetInstance().invoke(getPlanetsPanel, intelUiParent);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).error("Couldn't reflect IntelTab UI getPlanetsPanel");
+            return null;
+        }
     }
 
     public static IntelTabReflector TryGet(CoreUIAPI coreUIAPI, BorderedPanelReflector borderedPanelReflector) {
-        try {
-            var intelTabUi = borderedPanelReflector.getPanel();
+        if(intelTabCls == null) {
+            try {
+                var intelTabUi = borderedPanelReflector.getPanel();
 
-            var getFactionPanel = ClassReflector.GetInstance().getDeclaredMethod(intelTabUi.getClass(), "getFactionPanel");
-            FactionIntelPanel factionIntelPanel = (FactionIntelPanel) MethodReflector.GetInstance().invoke(getFactionPanel, intelTabUi);
-
-            var getEventsPanel = ClassReflector.GetInstance().getDeclaredMethod(intelTabUi.getClass(), "getEventsPanel");
-            EventsPanel eventsPanel = (EventsPanel) MethodReflector.GetInstance().invoke(getEventsPanel, intelTabUi);
-
-            var getPlanetsPanel = ClassReflector.GetInstance().getDeclaredMethod(intelTabUi.getClass(), "getPlanetsPanel");
-            UIPanelAPI planetPanel = (UIPanelAPI) MethodReflector.GetInstance().invoke(getPlanetsPanel, intelTabUi);
-
-            return new IntelTabReflector(coreUIAPI, intelTabUi, eventsPanel, planetPanel, factionIntelPanel);
-        } catch(Throwable ex) {
-            Global.getLogger(IntelTabReflector.class).error("Couldn't reflect into IntelTab UI!", ex);
+                getFactionPanel = ClassReflector.GetInstance().getDeclaredMethod(intelTabUi.getClass(), "getFactionPanel");
+                getEventsPanel = ClassReflector.GetInstance().getDeclaredMethod(intelTabUi.getClass(), "getEventsPanel");
+                getPlanetsPanel = ClassReflector.GetInstance().getDeclaredMethod(intelTabUi.getClass(), "getPlanetsPanel");
+                intelTabCls = intelTabUi.getClass();
+                return new IntelTabReflector(coreUIAPI, intelTabUi);
+            } catch (Throwable ex) {
+                Global.getLogger(IntelTabReflector.class).error("Couldn't reflect into IntelTab UI!", ex);
+            }
+        } else if(intelTabCls.isAssignableFrom(borderedPanelReflector.getPanel().getClass())) {
+            return new IntelTabReflector(coreUIAPI, borderedPanelReflector.getPanel());
         }
         return null;
     }
