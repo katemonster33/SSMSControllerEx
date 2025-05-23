@@ -40,6 +40,7 @@ import ssms.controller.InputScreenBase;
 import ssms.controller.InputScreenManager;
 import ssms.controller.reflection.ClassReflector;
 import ssms.controller.reflection.MethodReflector;
+import ssms.controller.reflection.TitleScreenStateReflector;
 import ssms.controller.reflection.UIPanelReflector;
 
 /**
@@ -72,8 +73,7 @@ public class TitleScreenUI extends InputScreenBase {
     @Override
     public void activate(Object ...args) {
         controller = SSMSControllerModPluginEx.controller.controller;
-        TitleScreenState titlescreen  = (TitleScreenState) AppDriver.getInstance().getCurrentState();
-        UIPanelAPI panel = titlescreen.getScreenPanel();
+        UIPanelAPI panel = TitleScreenStateReflector.GetInstance().getScreenPanel();;
         UIPanelReflector.initialize(panel.getClass());
         var widgets = UIPanelReflector.getChildItems(panel);
         if(!widgets.isEmpty() && UIPanelAPI.class.isAssignableFrom(widgets.get(0).getClass())) {

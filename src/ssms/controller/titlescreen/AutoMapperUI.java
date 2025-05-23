@@ -249,6 +249,10 @@ public class AutoMapperUI extends InputScreenBase {
     float timeSinceButtonPressed = 0;
     @Override
     public void preInput(float advance) {
+        if(calibrationIndex >= buttons.length) {
+            Global.getLogger(getClass()).warn("we reached preInput with a calibration index greater than the max. how?!");
+            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TitleScreenUI.ID, new Object[]{});
+        }
         HandlerController.Buttons btn = buttons[calibrationIndex];
         if(!isControllerInRestingState()) {
             parsedBtn = true;
