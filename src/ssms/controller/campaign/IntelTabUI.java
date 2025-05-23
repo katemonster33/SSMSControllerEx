@@ -9,8 +9,10 @@ import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.campaign.CampaignEngine;
 import com.fs.starfarer.campaign.comms.IntelTabData;
+import com.fs.starfarer.campaign.comms.v2.EventsPanel;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
+import ssms.controller.reflection.ClassReflector;
 import ssms.controller.reflection.IntelTabReflector;
 import ssms.controller.reflection.UIPanelReflector;
 
@@ -67,5 +69,26 @@ public class IntelTabUI extends InputScreenBase {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
         }
         campaignScope.handleInput(amount, true);
+    }
+
+    public static class IntelIntelTabReflector
+    {
+        EventsPanel eventsPanel;
+        static Object getList;
+        static Object ensurePlanetVisible;
+        public IntelIntelTabReflector(EventsPanel eventsPanel) {
+            this.eventsPanel = eventsPanel;
+
+            if(ensurePlanetVisible == null) {
+                try {
+                    getList = ClassReflector.GetInstance().getDeclaredMethod(EventsPanel.class, "getList");
+
+                    ensurePlanetVisible = ClassReflector.GetInstance().findDeclaredMethod(EventsPanel.class, "ensureVisible");
+                } catch(Throwable ex) {
+                    Global.getLogger(getClass()).error("Couldn't reflect methods of EventsPanel!", ex);
+                }
+            }
+
+        }
     }
 }
