@@ -22,6 +22,7 @@ public class MapTabUI extends InputScreenBase {
     List<Pair<Indicators, String>> indicators = null;
     boolean mouseDown = false;
     boolean movingMap = false;
+    CampaignScope campaignScope;
 
     MapReflector mapReflector;
     Vector2f desiredMousePos;
@@ -43,6 +44,7 @@ public class MapTabUI extends InputScreenBase {
         mapReflector = (MapReflector) args[0];
         desiredMousePos = null;
         mouseDown = movingMap = false;
+        campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
     }
 
     @Override
@@ -87,7 +89,7 @@ public class MapTabUI extends InputScreenBase {
                 InputShim.keyDownUp(Keyboard.KEY_W, 'w');
             }
         }
-
+        campaignScope.handleInput(amount, true);
     }
 
     @Override

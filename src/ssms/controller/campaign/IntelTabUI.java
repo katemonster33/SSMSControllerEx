@@ -28,7 +28,6 @@ public class IntelTabUI extends InputScreenBase {
     public static final String ID = "IntelTab";
     IntelTabReflector intelTabReflector;
     IntelTabData intelTabData;
-    IntelManagerAPI intelManagerAPI;
     List<Pair<Indicators, String>> indicators = null;
     int lastFrameSelectedIndex = -1;
     CampaignScope campaignScope;
@@ -36,7 +35,6 @@ public class IntelTabUI extends InputScreenBase {
     EventsTabReflector eventsTabReflector;
     int selectedIndex = -1;
     Vector2f desiredMousePos = null;
-    boolean mouseDown = false, movingMap = false;
     float mouseMoveFactor = 4.f;
 
     enum IntelTabFocusMode {
@@ -44,6 +42,12 @@ public class IntelTabUI extends InputScreenBase {
         Map,
         FilterButtons
     };
+    enum MapMode {
+        MoveCursor,
+        MoveMap,
+        Zoom
+    };
+    MapMode currentMapMode = MapMode.MoveCursor;
     IntelTabFocusMode currentTabFocus = IntelTabFocusMode.IntelList;
     @Override
     public String getId() {
@@ -60,11 +64,23 @@ public class IntelTabUI extends InputScreenBase {
         if(indicators == null) {
             indicators = new ArrayList<>();
             indicators.add(new Pair<>(Indicators.LeftStick, "Navigate"));
-            indicators.add(new Pair<>(Indicators.LeftStickButton, "Toggle free look (map only)"));
+            if(currentTabFocus == IntelTabFocusMode.Map) {
+                switch(currentMapMode) {
+                    case MoveCursor -> indicators.add(new Pair<>(Indicators.LeftStickButton, "Toggle move map"));
+                    case MoveMap -> indicators.add(new Pair<>(Indicators.LeftStickButton, "Toggle zoom map"));
+                    case Zoom -> indicators.add(new Pair<>(Indicators.LeftStickButton, "Toggle move cursor"));
+                }
+            }
             indicators.add(new Pair<>(Indicators.RightStickUp, "Focus map"));
             indicators.add(new Pair<>(Indicators.RightStickLeft, "Focus intel list"));
             indicators.add(new Pair<>(Indicators.RightStickDown, "Focus intel tag buttons"));
             indicators.add(new Pair<>(Indicators.RightTrigger, "Select planet tab"));
+            if(currentTabFocus == IntelTabFocusMode.IntelList) {
+                indicators.add(new Pair<>(Indicators.Y, "Show on map"));
+            } else if(currentTabFocus == IntelTabFocusMode.Map) {
+                indicators.add(new Pair<>(Indicators.X, "Toggle sector/system view"));
+                indicators.add(new Pair<>(Indicators.Y, "Show fuel range"));
+            }
             indicators.add(new Pair<>(Indicators.B, "Return to campaign view"));
             indicators.addAll(campaignScope.getIndicators());
         }
@@ -80,6 +96,7 @@ public class IntelTabUI extends InputScreenBase {
         desiredMousePos = null;
         campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
         controller = SSMSControllerModPluginEx.controller;
+        currentMapMode = MapMode.MoveCursor;
         // this can throw an exception, we will just pass the exception upstream so that the screen doesn't get activated
         eventsTabReflector = new EventsTabReflector(intelTabReflector.getEventsPanel());
     }
@@ -108,30 +125,47 @@ public class IntelTabUI extends InputScreenBase {
     }
 
     void preInputMap(float amount) {
-        ReadableVector2f leftStick = controller.getLeftStick();
-        var map = eventsTabReflector.getMap();
-        if (leftStick.getX() != 0 || leftStick.getY() != 0) {
-            if (desiredMousePos == null) desiredMousePos = new Vector2f((int) map.getPosition().getCenterX(), (int) map.getPosition().getCenterY());
-            else desiredMousePos.set(desiredMousePos.getX() + (leftStick.getX() * mouseMoveFactor), desiredMousePos.getY() + (leftStick.getY() * mouseMoveFactor));
+        if(currentMapMode == MapMode.Zoom) {
+            if(controller.isLeftStickUp()) {
+                InputShim.mouseWheel((int) desiredMousePos.getX(), (int)desiredMousePos.getY(), 1);
+                //InputShim.mouseDownUp((int) desiredMousePos.getX(), (int)desiredMousePos.getY(), InputEventMouseButton.);
+            } else if(controller.isLeftStickDown()) {
+                InputShim.mouseWheel((int) desiredMousePos.getX(), (int)desiredMousePos.getY(), -1);
+            }
+        } else {
+            ReadableVector2f leftStick = controller.getLeftStick();
+            var map = eventsTabReflector.getMap();
+            if (leftStick.getX() != 0 || leftStick.getY() != 0) {
+                if (desiredMousePos == null)
+                    desiredMousePos = new Vector2f((int) map.getPosition().getCenterX(), (int) map.getPosition().getCenterY());
+                else
+                    desiredMousePos.set(desiredMousePos.getX() + (leftStick.getX() * mouseMoveFactor), desiredMousePos.getY() + (leftStick.getY() * mouseMoveFactor));
 
-            InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
+                InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
+            }
         }
-        if(!mouseDown && controller.getButtonEvent(HandlerController.Buttons.LeftStickButton) == 1) {
-            if(!movingMap) InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
-            else InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
+        if (controller.getButtonEvent(HandlerController.Buttons.LeftStickButton) == 1) {
+            if (currentMapMode == MapMode.MoveCursor) InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
+            else if(currentMapMode == MapMode.MoveMap) InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
 
-            movingMap = !movingMap;
+            currentMapMode = switch(currentMapMode) {
+                case MoveCursor -> MapMode.MoveMap;
+                case MoveMap -> MapMode.Zoom;
+                case Zoom -> MapMode.MoveCursor;
+            };
+            indicators = null;
+            InputScreenManager.getInstance().refreshIndicators();
         }
-        if(!movingMap) {
-            if(desiredMousePos != null) {
-                if (controller.isButtonAPressed() && !mouseDown) {
-                    InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
-                    mouseDown = true;
-                } else if (!controller.isButtonAPressed() && mouseDown) {
-                    InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
-                    mouseDown = false;
+        if (currentMapMode == MapMode.MoveCursor) {
+            if (desiredMousePos != null) {
+                if (controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
+                    InputShim.mouseDownUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
                 }
             }
+        }
+
+        if (controller.getButtonEvent(HandlerController.Buttons.Y) == 1) {
+            InputShim.keyDownUp(Keyboard.KEY_W, 'w');
         }
     }
 
@@ -145,6 +179,8 @@ public class IntelTabUI extends InputScreenBase {
             selectedIndex--;
             navigateButton(lst);
             if(selectedIndex != -1) eventsTabReflector.ensureIntelButtonVisible(lst.get(selectedIndex));
+        } else if(controller.getButtonEvent(HandlerController.Buttons.Y) == 1) {
+            InputShim.keyDownUp(Keyboard.KEY_S, 's');
         }
     }
 
@@ -161,22 +197,30 @@ public class IntelTabUI extends InputScreenBase {
         }
         if(controller.getButtonEvent(HandlerController.Buttons.B) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
+        } else if(controller.getButtonEvent(HandlerController.Buttons.RightTrigger) == 1) {
+            InputShim.keyDownUp(Keyboard.KEY_2, '2');
         } else if(controller.getButtonEvent(HandlerController.Buttons.RightStickLeft) == 1) {
             var lst = eventsTabReflector.getIntelButtons();
             selectedIndex = 0;
             navigateButton(lst);
             currentTabFocus = IntelTabFocusMode.IntelList;
+            indicators = null;
+            InputScreenManager.getInstance().refreshIndicators();
         } else if(controller.getButtonEvent(HandlerController.Buttons.RightStickDown) == 1) {
             var lst = eventsTabReflector.getIntelFilters();
             selectedIndex = 0;
             navigateButton(lst);
             currentTabFocus = IntelTabFocusMode.FilterButtons;
+            indicators = null;
+            InputScreenManager.getInstance().refreshIndicators();
         } else if(controller.getButtonEvent(HandlerController.Buttons.RightStickUp) == 1) {
             var map = eventsTabReflector.getMap();
-            movingMap = mouseDown = false;
+            currentMapMode = MapMode.MoveCursor;
             desiredMousePos = new Vector2f((int) map.getPosition().getCenterX(), (int) map.getPosition().getCenterY());
             InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
             currentTabFocus = IntelTabFocusMode.Map;
+            indicators = null;
+            InputScreenManager.getInstance().refreshIndicators();
         }
         campaignScope.handleInput(amount, true);
     }

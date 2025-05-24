@@ -19,6 +19,7 @@ import java.util.ArrayList;
 public class InputShim implements InputImplementation {
     private static InputShim instance;
     static Integer mouseX, mouseY;
+    static Integer mouseDWheel;
     static List<InputEvent> pendingEvents = new ArrayList<>();
     static HashSet<Integer> keysDown = new HashSet<>();
     static HashSet<Integer> mouseBtnsDown = new HashSet<>();
@@ -91,8 +92,7 @@ public class InputShim implements InputImplementation {
         mouseUp(x, y, btn);
     }
 
-    public static void mouseDown(int x, int y, int btn)
-    {
+    public static void mouseDown(int x, int y, int btn) {
         pendingEvents.add(new InputEvent(x, y, btn, true));
         mouseBtnsDown.add(btn);
     }
@@ -102,14 +102,16 @@ public class InputShim implements InputImplementation {
         pendingEvents.add(new InputEvent(x, y, btn, false));
     }
 
-    public static void keyDownUp(int keyCode, char keyChar)
-    {
+    public static void mouseWheel(int x, int y, int dwheel) {
+        pendingEvents.add(new InputEvent(x, y, dwheel));
+    }
+
+    public static void keyDownUp(int keyCode, char keyChar) {
         keyDown(keyCode, keyChar);
         keyUp(keyCode, keyChar);
     }
 
-    public static void keyDown(int keyCode, char keyChar)
-    {
+    public static void keyDown(int keyCode, char keyChar) {
         pendingEvents.add(new InputEvent(keyCode, keyChar, true));
         keysDown.add(keyCode & 255);
     }
@@ -133,12 +135,12 @@ public class InputShim implements InputImplementation {
         }
     }
 
-    public static void clearAll()
-    {
+    public static void clearAll() {
         pendingEvents.clear();
         keysDown.clear();
         mouseBtnsDown.clear();
         mouseX = mouseY = null;
+        mouseDWheel = null;
     }
 
     InputImplementation realImpl;
@@ -176,6 +178,10 @@ public class InputShim implements InputImplementation {
         if(mouseY != null) {
             intBuffer.put(1, (int)mouseY);
         }
+        if(mouseDWheel != null) {
+            intBuffer.put(2, (int)mouseDWheel);
+            mouseDWheel = null;
+        }
         for(Integer btn : mouseBtnsDown) {
             if(btn != null) {
                 byteBuffer.put((int)btn, (byte)1);
@@ -191,6 +197,7 @@ public class InputShim implements InputImplementation {
             if(byteBuffer.position() != origPos) {
                 // a mouse event has come in from the user's mouse after we have stopped pumping fake events, so we will stop sending our fake position
                 mouseX = mouseY = null;
+                mouseDWheel = null;
             }
         } else {
             if(byteBuffer.remaining() >= 22) {
@@ -199,10 +206,11 @@ public class InputShim implements InputImplementation {
                 byteBuffer.put((byte)(evt.state ? 1 : 0));
                 byteBuffer.putInt(evt.mouseX);
                 byteBuffer.putInt(evt.mouseY);
-                byteBuffer.putInt(0);
+                byteBuffer.putInt(evt.dwheel);
                 byteBuffer.putLong(10000000L);
                 mouseX = evt.mouseX;
                 mouseY = evt.mouseY;
+                mouseDWheel = evt.dwheel;
                 Global.getLogger(getClass()).debug("InputShim sending mouse event, pos:[" + evt.mouseX + "," + evt.mouseY + "], btn:" + evt.mouseBtn + ", state:" + evt.state);
                 evt.sent = true;
             }
@@ -316,6 +324,7 @@ public class InputShim implements InputImplementation {
         EventType eventType;
         int mouseX, mouseY;
         int mouseBtn;
+        int dwheel;
         boolean state;
 
         int keyCode;
@@ -328,6 +337,18 @@ public class InputShim implements InputImplementation {
             this.mouseY = mouseY;
             this.mouseBtn = btn;
             this.state = state;
+            this.dwheel = 0;
+            this.sent = false;
+        }
+
+        public InputEvent(int mouseX, int mouseY, int dwheel)
+        {
+            this.eventType = EventType.MOUSE;
+            this.mouseX = mouseX;
+            this.mouseY = mouseY;
+            this.mouseBtn = 0xFF;
+            this.state = false;
+            this.dwheel = dwheel;
             this.sent = false;
         }
 
