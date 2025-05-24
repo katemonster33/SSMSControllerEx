@@ -19,12 +19,9 @@ package ssms.controller;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
-import com.fs.starfarer.api.ui.Alignment;
-import com.fs.starfarer.api.ui.UIPanelAPI;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.fs.state.AppDriver;
 import org.apache.log4j.Level;
 
 import ssms.controller.reflection.CampaignStateReflector;

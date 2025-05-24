@@ -18,12 +18,9 @@
 package ssms.controller.titlescreen;
 
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.title.TitleScreenState;
-import com.fs.state.AppDriver;
 import org.apache.log4j.Level;
 import ssms.controller.HandlerController;
 import ssms.controller.Indicators;
@@ -51,7 +48,6 @@ public class TitleScreenUI extends InputScreenBase {
     public static final String ID = "TitleScreen";
     protected List<Pair<Indicators, String>> indicators;
     Controller controller = null;
-    TitleScreenState titleScreen = null;
     List<ButtonAPI> titleScreenButtons = null;
     UIPanelAPI mainMenuPanel = null;
     MethodHandle doButtonClick = null;

@@ -24,8 +24,8 @@ import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
-import com.fs.starfarer.combat.CombatState;
 
+import com.fs.starfarer.combat.CombatState;
 import ssms.controller.campaign.CampaignControllerListener;
 import ssms.controller.combat.BattleScope;
 

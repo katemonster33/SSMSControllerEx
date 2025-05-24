@@ -22,9 +22,6 @@ import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ShipCommand;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.combat.CombatState;
-import com.fs.starfarer.prototype.Utils;
-import com.fs.state.AppDriver;
 import java.util.ArrayList;
 import java.util.List;
 import org.lwjgl.opengl.GL11;
@@ -33,6 +30,7 @@ import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.HandlerController;
 import ssms.controller.Util_Steering;
 import ssms.controller.Indicators;
+import ssms.controller.reflection.CombatStateReflector;
 
 /**
  *
@@ -121,9 +119,8 @@ public class SteeringController_FreeFlight extends SteeringController_Base {
         if ( heading.getX() == 0 && heading.getY() == 0 ) {
             heading = Util_Steering.getHeadingFromFacing(ps.getFacing());
         }
-        CombatState cs = (CombatState) AppDriver.getInstance().getState(CombatState.STATE_ID);
-        if ( cs.getWidgetPanel() == null ) return;
-        float zoom = cs.getZoomFactor();
+        if (CombatStateReflector.GetInstance().getWidgetPanel() == null ) return;
+        float zoom = CombatStateReflector.GetInstance().getZoomFactor();
         
         //a pentagon that points in the direction the ship ship wants to head into, useful since the ship turns slowly 
         //and this way the user immediately has feedback on where he is steering.
