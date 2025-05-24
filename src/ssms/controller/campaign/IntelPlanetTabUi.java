@@ -8,6 +8,7 @@ import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.campaign.CampaignEngine;
+import com.fs.starfarer.campaign.StarSystem;
 import com.fs.starfarer.campaign.comms.IntelTabData;
 import com.fs.starfarer.campaign.ui.UITable;
 import com.fs.starfarer.campaign.ui.intel.PlanetListV2;
@@ -176,7 +177,7 @@ public class IntelPlanetTabUi extends InputScreenBase {
             static Object getList;
             static Object ensurePlanetVisible;
             static Object planetItemColumnsField;
-
+            static Object starSystemField;
             static Class<?> tableItemCls;
             static Class<?> tableListCls;
 
@@ -222,6 +223,14 @@ public class IntelPlanetTabUi extends InputScreenBase {
                 return planets;
             }
 
+            public StarSystem getStarSystem() {
+                try {
+                    return (StarSystem) FieldReflector.GetInstance().GetVariable(starSystemField, planetTabData);
+                } catch(Throwable ex) {
+                    Global.getLogger(getClass()).error("Couldn't get star system from planet list panel!", ex);
+                }
+            }
+
             public List<UIComponentAPI> getPlanetSubItems(UIPanelAPI planetItem) {
                 List<UIComponentAPI> output = new ArrayList<>();
                 try {
@@ -256,6 +265,13 @@ public class IntelPlanetTabUi extends InputScreenBase {
 
                             getPlanetListTableRows = MethodHandles.lookup().findVirtual(UITable.class, "getRows", MethodType.methodType(List.class));
 
+                            for(var field : ClassReflector.GetInstance().getDeclaredFields(planetPanel.getClass())) {
+                                var fieldCls = FieldReflector.GetInstance().GetVariableType(field);
+                                if(StarSystem.class.isAssignableFrom(fieldCls)) {
+                                    starSystemField = fieldCls;
+                                    break;
+                                }
+                            }
                             var getSelected = ClassReflector.GetInstance().getDeclaredMethod(UITable.class, "getSelected");
                             tableItemCls = MethodReflector.GetInstance().getReturnType(getSelected);
 
