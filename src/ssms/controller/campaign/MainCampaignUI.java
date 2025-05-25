@@ -1,5 +1,6 @@
 package ssms.controller.campaign;
 
+import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CoreUITabId;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ssms.controller.Indicators;
+import ssms.controller.combat.BattleScope;
 import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.reflection.*;
 
@@ -117,6 +119,10 @@ public class MainCampaignUI extends InputScreenBase {
 
     @Override
     public void preInput(float advance) {
+        if(Global.getCurrentState() == GameState.COMBAT) {
+            InputScreenManager.getInstance().transitionToScope(BattleScope.ID, Global.getCombatEngine());
+            return;
+        }
         float zoom = CampaignStateReflector.GetInstance().getZoomFactor();
         ControllerCrosshairRenderer.getControllerRenderer().setSize((int)(58 / zoom));
         if(Global.getSector().getCampaignUI().isShowingDialog()) {
