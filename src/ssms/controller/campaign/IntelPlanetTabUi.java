@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.ButtonAPI;
+import com.fs.starfarer.api.ui.SectorMapAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
@@ -12,6 +13,7 @@ import com.fs.starfarer.campaign.StarSystem;
 import com.fs.starfarer.campaign.comms.IntelTabData;
 import com.fs.starfarer.campaign.ui.UITable;
 import com.fs.starfarer.campaign.ui.intel.PlanetListV2;
+import com.fs.starfarer.campaign.ui.intel.StarSystemDisplay;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
 import ssms.controller.reflection.*;
@@ -141,6 +143,7 @@ public class IntelPlanetTabUi extends InputScreenBase {
     public void preInput(float amount) {
         if(Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.INTEL) InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
         else if(intelTabData.getSelectedTabIndex() == 0) InputScreenManager.getInstance().transitionDelayed(IntelTabUI.ID, intelTabReflector);
+        else if(intelTabData.getSelectedTabIndex() == 1 && planetTabReflector.getStarSystem() != null) InputScreenManager.getInstance().transitionDelayed(IntelPlanetStarSystemUI.ID, intelTabReflector);
         else if(intelTabData.getSelectedTabIndex() == 2) InputScreenManager.getInstance().transitionDelayed(IntelFactionTabUi.ID, intelTabReflector);
         if (controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1) {
             selectedRowIndex++;
@@ -180,8 +183,11 @@ public class IntelPlanetTabUi extends InputScreenBase {
             static Object starSystemField;
             static Class<?> tableItemCls;
             static Class<?> tableListCls;
+            static Object mapField;
+            static Object starSystemDisplayField;
+            static Object planetInfoPanelField;
 
-        public PlanetListV2 getPlanetList() {
+            public PlanetListV2 getPlanetList() {
                 try {
                     return (PlanetListV2) getPlanetListV2.invoke(planetTabData);
                 } catch (Throwable ex) {
@@ -228,8 +234,18 @@ public class IntelPlanetTabUi extends InputScreenBase {
                     return (StarSystem) FieldReflector.GetInstance().GetVariable(starSystemField, planetTabData);
                 } catch(Throwable ex) {
                     Global.getLogger(getClass()).error("Couldn't get star system from planet list panel!", ex);
+                    return null;
                 }
             }
+
+        public UIComponentAPI getMap() {
+            try {
+                return (UIComponentAPI) FieldReflector.GetInstance().GetVariable(mapField, planetTabData);
+            } catch(Throwable ex) {
+                Global.getLogger(getClass()).error("Couldn't get star system from planet list panel!", ex);
+                return null;
+            }
+        }
 
             public List<UIComponentAPI> getPlanetSubItems(UIPanelAPI planetItem) {
                 List<UIComponentAPI> output = new ArrayList<>();
@@ -256,6 +272,24 @@ public class IntelPlanetTabUi extends InputScreenBase {
                 return output;
             }
 
+        public StarSystemDisplay getStarSystemDisplay() {
+            try {
+                return (StarSystemDisplay) FieldReflector.GetInstance().GetVariable(starSystemDisplayField, planetTabData);
+            } catch(Throwable ex) {
+                Global.getLogger(getClass()).error("Couldn't fetch star system display panel!", ex);
+                return null;
+            }
+        }
+
+        public UIPanelAPI getPlanetInfoPanel() {
+            try {
+                return (UIPanelAPI) FieldReflector.GetInstance().GetVariable(planetInfoPanelField, planetTabData);
+            } catch(Throwable ex) {
+                Global.getLogger(getClass()).error("Couldn't fetch star system display panel!", ex);
+                return null;
+            }
+        }
+
             public static PlanetTabReflector tryGet(IntelTabReflector intelTabReflector) {
                 var planetPanel = intelTabReflector.getPlanetTabData();
                 if (planetPanel != null) {
@@ -268,8 +302,13 @@ public class IntelPlanetTabUi extends InputScreenBase {
                             for(var field : ClassReflector.GetInstance().getDeclaredFields(planetPanel.getClass())) {
                                 var fieldCls = FieldReflector.GetInstance().GetVariableType(field);
                                 if(StarSystem.class.isAssignableFrom(fieldCls)) {
-                                    starSystemField = fieldCls;
-                                    break;
+                                    starSystemField = field;
+                                } else if(SectorMapAPI.class.isAssignableFrom(fieldCls)) {
+                                    mapField = field;
+                                } else if(StarSystemDisplay.class.isAssignableFrom(fieldCls)) {
+                                    starSystemDisplayField = field;
+                                } else if(planetInfoPanelField == null && UIPanelAPI.class.isAssignableFrom(fieldCls)) {
+                                    planetInfoPanelField = field;
                                 }
                             }
                             var getSelected = ClassReflector.GetInstance().getDeclaredMethod(UITable.class, "getSelected");

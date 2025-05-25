@@ -119,6 +119,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         man.registerScreen(new IntelTabUI());
         man.registerScreen(new IntelPlanetTabUi());
         man.registerScreen(new IntelFactionTabUi());
+        man.registerScreen(new IntelPlanetStarSystemUI());
     }
 
     // enum ButtonMapping
