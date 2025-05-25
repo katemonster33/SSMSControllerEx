@@ -58,9 +58,10 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
 
         JSONObject obj = Global.getSettings().loadJSON("data/config/settings.json", "SSMSControllerEx");
         if(obj == null) {
-            Global.getLogger(this.getClass()).log(Level.DEBUG, "no settings!!!");
+            Global.getLogger(getClass()).error("no settings!!!");
             return;
         }
+        Global.getLogger(InputShim.class).setLevel(Level.ERROR);
 
         controllerMappings = configureControllerMappings(obj.getJSONObject("controllerMappings"));
         //controllerMappings = configureControllerMappingEx();
@@ -120,6 +121,8 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         man.registerScreen(new IntelPlanetTabUi());
         man.registerScreen(new IntelFactionTabUi());
         man.registerScreen(new IntelPlanetStarSystemUI());
+        man.registerScreen(new RefitTabUI());
+        man.registerScreen(new CommandTabUI());
     }
 
     // enum ButtonMapping

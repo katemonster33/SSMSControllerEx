@@ -32,6 +32,7 @@ public class CharacterTabUI extends InputScreenBase {
         indicators.add(new Pair<>(Indicators.Start, "Confirm"));
         indicators.add(new Pair<>(Indicators.Y, "Reset"));
         indicators.add(new Pair<>(Indicators.Select, "Re-assign skills"));
+        indicators.add(new Pair<>(Indicators.BumperRight, "Select fleet tab"));
     }
 
     @Override
@@ -113,8 +114,9 @@ public class CharacterTabUI extends InputScreenBase {
             }
         } else if(controller.getButtonEvent(HandlerController.Buttons.B) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
+        } else if(controller.getButtonEvent(HandlerController.Buttons.BumperRight) == 1) {
+            InputShim.keyDownUp(Keyboard.KEY_F, 'f');
         }
-        campaignScope.handleInput(advance, true);
     }
 
     @Override
@@ -124,9 +126,7 @@ public class CharacterTabUI extends InputScreenBase {
 
     @Override
     public List<Pair<Indicators, String>> getIndicators() {
-        List<Pair<Indicators, String>> output = new ArrayList<>(indicators);
-        output.addAll(campaignScope.getIndicators());
-        return output;
+        return indicators;
     }
 
     @Override

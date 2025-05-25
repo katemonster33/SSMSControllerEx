@@ -1,6 +1,7 @@
 package ssms.controller.campaign;
 
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.UIPanelAPI;
@@ -27,8 +28,13 @@ public class TradeScreen extends InputScreenBase {
     int selectedRow = -1, selectedCol = -1;
     HandlerController controller;
     int lastFrameChildCount = 0;
+    boolean isCargoTab = false;
 
-    public TradeScreen() {
+    @Override
+    public void activate(Object ... args) {
+        if(args.length > 0) {
+            tradeUiReflector = (TradeUiReflector) args[0];
+        }
         indicators = new ArrayList<>();
         indicators.add(new Pair<>(Indicators.LeftStick, "Navigate list"));
         indicators.add(new Pair<>(Indicators.X, "Pick up stack"));
@@ -37,14 +43,12 @@ public class TradeScreen extends InputScreenBase {
         indicators.add(new Pair<>(Indicators.A, "Confirm"));
         indicators.add(new Pair<>(Indicators.Select, "Toggle hangar"));
         indicators.add(new Pair<>(Indicators.Start, "Close"));
-        controller = SSMSControllerModPluginEx.controller;
-    }
-
-    @Override
-    public void activate(Object ... args) {
-        if(args.length > 0) {
-            tradeUiReflector = (TradeUiReflector) args[0];
+        isCargoTab = Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.CARGO;
+        if(isCargoTab) {
+            indicators.add(new Pair<>(Indicators.BumperLeft, "Select refit tab"));
+            indicators.add(new Pair<>(Indicators.BumperRight, "Select map tab"));
         }
+        controller = SSMSControllerModPluginEx.controller;
 
         playerDataGrid = tradeUiReflector.getPlayerCargoView();
         otherDataGrid = tradeUiReflector.getOtherCargoView();
@@ -117,7 +121,7 @@ public class TradeScreen extends InputScreenBase {
                 InputScreenManager.getInstance().transitionToScreen(CargoStackPickerScreen.ID, tradeUiReflector);
             }
         }
-        if(!Global.getSector().getCampaignUI().isShowingDialog()) {
+        if(!Global.getSector().getCampaignUI().isShowingDialog() || (isCargoTab && Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.CARGO)) {
             InputScreenManager.getInstance().transitionToScope(CampaignScope.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
         } else if(tradeUiReflector.getCoreUIAPI().getTradeMode() != null && interactionDialogAPI != null){
             var tradePanelChildren = UIPanelReflector.getChildItems((UIPanelAPI) interactionDialogAPI);
@@ -169,6 +173,14 @@ public class TradeScreen extends InputScreenBase {
             selectedRow = selectedCol = -1;
         } else if(controller.getButtonEvent(HandlerController.Buttons.Start) == 1 && controller.isButtonStartPressed()) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
+        }
+
+        if(isCargoTab) {
+            if(controller.getButtonEvent(HandlerController.Buttons.BumperLeft) == 1) {
+                InputShim.keyDownUp(Keyboard.KEY_R, 'r');
+            } else if(controller.getButtonEvent(HandlerController.Buttons.BumperRight) == 1) {
+                InputShim.keyDownUp(Keyboard.KEY_TAB, '\0');
+            }
         }
     }
 

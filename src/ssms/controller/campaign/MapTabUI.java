@@ -87,9 +87,12 @@ public class MapTabUI extends InputScreenBase {
                 InputShim.keyDownUp(Keyboard.KEY_Q, 'q');
             } else if (controller.getButtonEvent(HandlerController.Buttons.RightTrigger) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_W, 'w');
+            } else if (controller.getButtonEvent(HandlerController.Buttons.BumperLeft) == 1) {
+                InputShim.keyDownUp(Keyboard.KEY_I, 'i');
+            } else if (controller.getButtonEvent(HandlerController.Buttons.BumperRight) == 1) {
+                InputShim.keyDownUp(Keyboard.KEY_E, 'e');
             }
         }
-        campaignScope.handleInput(amount, true);
     }
 
     @Override
@@ -102,6 +105,8 @@ public class MapTabUI extends InputScreenBase {
             indicators.add(new Pair<>(Indicators.B, "Close dialog"));
             indicators.add(new Pair<>(Indicators.LeftTrigger, "Open sector view"));
             indicators.add(new Pair<>(Indicators.B, "Open system view"));
+            indicators.add(new Pair<>(Indicators.BumperLeft, "Select cargo tab"));
+            indicators.add(new Pair<>(Indicators.BumperRight, "Select intel tab"));
         }
         return indicators;
     }

@@ -82,7 +82,9 @@ public class IntelTabUI extends InputScreenBase {
                 indicators.add(new Pair<>(Indicators.Y, "Show fuel range"));
             }
             indicators.add(new Pair<>(Indicators.B, "Return to campaign view"));
-            indicators.addAll(campaignScope.getIndicators());
+            indicators.add(new Pair<>(Indicators.A, "Select"));
+            indicators.add(new Pair<>(Indicators.BumperLeft, "Select map tab"));
+            indicators.add(new Pair<>(Indicators.BumperRight, "Select command tab"));
         }
         return indicators;
     }
@@ -109,8 +111,8 @@ public class IntelTabUI extends InputScreenBase {
         else if(selectedIndex < 0) selectedIndex = 0;
         else if(selectedIndex >= eventsButtons.size()) selectedIndex = eventsButtons.size() - 1;
 
-        var pos = eventsButtons.get(selectedIndex).getPosition();
-        InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
+        desiredMousePos = new Vector2f(eventsButtons.get(selectedIndex).getPosition().getCenterX(), eventsButtons.get(selectedIndex).getPosition().getCenterY());
+        InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
     }
 
     void preInputFilterButtons(float amount) {
@@ -197,6 +199,8 @@ public class IntelTabUI extends InputScreenBase {
         }
         if(controller.getButtonEvent(HandlerController.Buttons.B) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
+        } else if(currentTabFocus != IntelTabFocusMode.Map && desiredMousePos != null && controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
+            InputShim.mouseDownUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
         } else if(controller.getButtonEvent(HandlerController.Buttons.RightTrigger) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_2, '2');
         } else if(controller.getButtonEvent(HandlerController.Buttons.RightStickLeft) == 1) {
@@ -221,8 +225,11 @@ public class IntelTabUI extends InputScreenBase {
             currentTabFocus = IntelTabFocusMode.Map;
             indicators = null;
             InputScreenManager.getInstance().refreshIndicators();
+        } else if(controller.getButtonEvent(HandlerController.Buttons.BumperLeft) == 1) {
+            InputShim.keyDownUp(Keyboard.KEY_TAB, '\0');
+        } else if(controller.getButtonEvent(HandlerController.Buttons.BumperRight) == 1) {
+            InputShim.keyDownUp(Keyboard.KEY_D, 'd');
         }
-        campaignScope.handleInput(amount, true);
     }
 
     public static class EventsTabReflector

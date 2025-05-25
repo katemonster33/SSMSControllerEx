@@ -80,8 +80,9 @@ public class FleetTabUI extends InputScreenBase {
             indicators.add(new Pair<>(Indicators.Y, "Mothball ship"));
             indicators.add(new Pair<>(Indicators.Y, "(hold) Scuttle ship"));
             indicators.add(new Pair<>(Indicators.Select, "Refit"));
+            indicators.add(new Pair<>(Indicators.BumperLeft, "Select character tab"));
+            indicators.add(new Pair<>(Indicators.BumperRight, "Select refit tab"));
 
-            indicators.addAll(campaignScope.getIndicators());
         }
         return indicators;
     }
@@ -245,6 +246,10 @@ public class FleetTabUI extends InputScreenBase {
             }
             buttonYDownTime = 0.f;
         }
-        campaignScope.handleInput(amount, true);
+        if(controller.getButtonEvent(HandlerController.Buttons.BumperLeft) == 1) {
+            InputShim.keyDownUp(Keyboard.KEY_C, 'c');
+        } else if(controller.getButtonEvent(HandlerController.Buttons.BumperRight) == 1) {
+            InputShim.keyDownUp(Keyboard.KEY_R, 'r');
+        }
     }
 }

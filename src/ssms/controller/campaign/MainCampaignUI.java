@@ -113,8 +113,7 @@ public class MainCampaignUI extends InputScreenBase {
 
     @Override
     public List<Pair<Indicators, String>> getIndicators() {
-        var output = new ArrayList<>(indicators);
-        return output;
+        return indicators;
     }
 
     @Override
@@ -238,7 +237,8 @@ public class MainCampaignUI extends InputScreenBase {
                     case FLEET ->       tryOpenScreen(FleetTabReflector.TryGet(coreUI, borderedPanel), FleetTabUI.ID);
                     case INTEL ->       tryOpenScreen(IntelTabReflector.TryGet(coreUI, borderedPanel), IntelTabUI.ID);
                     case MAP ->         tryOpenScreen(MapReflector.TryGet(coreUI, borderedPanel), MapTabUI.ID);
-                    default ->          false;
+                    case REFIT ->       tryOpenScreen(borderedPanel.getPanel(), RefitTabUI.ID);
+                    case OUTPOSTS ->    tryOpenScreen(borderedPanel.getPanel(), CommandTabUI.ID);
                 };
             }
         }
