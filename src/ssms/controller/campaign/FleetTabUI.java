@@ -14,7 +14,6 @@ import ssms.controller.reflection.UIPanelReflector;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Handler;
 
 public class FleetTabUI extends InputScreenBase {
     public static final String ID = "FleetTab";
@@ -138,7 +137,7 @@ public class FleetTabUI extends InputScreenBase {
             InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
         }
 
-        if (controller.getButtonEvent(HandlerController.Buttons.LeftStickLeft) == 1) {
+        if (controller.getButtonEvent(Buttons.LeftStickLeft) == 1) {
             if (curCol == -1 || curRow == -1) {
                 curCol = curRow = 0;
             } else if (curCol > 0) {
@@ -146,7 +145,7 @@ public class FleetTabUI extends InputScreenBase {
             }
             itemInfoOffset = -1;
             hoverCurrentItem();
-        } else if (controller.getButtonEvent(HandlerController.Buttons.LeftStickRight) == 1) {
+        } else if (controller.getButtonEvent(Buttons.LeftStickRight) == 1) {
             if (curCol == -1 || curRow == -1) {
                 curCol = curRow = 0;
             } else if (curCol < (numCols - 1) && ((curRow * numCols) + curCol) < (itemCount - 1)) {
@@ -154,7 +153,7 @@ public class FleetTabUI extends InputScreenBase {
             }
             itemInfoOffset = -1;
             hoverCurrentItem();
-        } else if (controller.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1) {
+        } else if (controller.getButtonEvent(Buttons.LeftStickUp) == 1) {
             if (curCol == -1 || curRow == -1) {
                 curCol = curRow = 0;
             } else if (curRow > 0) {
@@ -162,7 +161,7 @@ public class FleetTabUI extends InputScreenBase {
             }
             itemInfoOffset = -1;
             hoverCurrentItem();
-        } else if (controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1) {
+        } else if (controller.getButtonEvent(Buttons.LeftStickDown) == 1) {
             if (curCol == -1 || curRow == -1) {
                 curCol = curRow = 0;
             } else if ((((curRow + 1) * numCols) + curCol) < itemCount) {
@@ -170,17 +169,17 @@ public class FleetTabUI extends InputScreenBase {
             }
             itemInfoOffset = -1;
             hoverCurrentItem();
-        } else if (controller.getButtonEvent(HandlerController.Buttons.B) == 1) {
+        } else if (controller.getButtonEvent(Buttons.B) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-        } else if (controller.getButtonEvent(HandlerController.Buttons.Select) == 1) {
+        } else if (controller.getButtonEvent(Buttons.Select) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_R, 'r');
         }
         if(itemInfoOffset == -1) {
-            if (controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
+            if (controller.getButtonEvent(Buttons.A) == 1) {
                 InputShim.mouseDownUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
             }
         } else if(itemInfoOffset == 0) {
-            if (controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
+            if (controller.getButtonEvent(Buttons.A) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_F2, '\0');
             }
         } else if(itemInfoOffset == 1) {
@@ -199,11 +198,11 @@ public class FleetTabUI extends InputScreenBase {
                 buttonADownTime = 0.f;
             }
         } else if(itemInfoOffset == 2) {
-            if (controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
+            if (controller.getButtonEvent(Buttons.A) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_F1, '\0');
             }
         }
-        if (controller.getButtonEvent(HandlerController.Buttons.LeftStickButton) == 1) {
+        if (controller.getButtonEvent(Buttons.LeftStickButton) == 1) {
             if(itemInfoOffset != -1 && itemInfoOffset < (itemInfoOffsets.size() - 1)) {
                 itemInfoOffset++;
             } else {
@@ -246,9 +245,9 @@ public class FleetTabUI extends InputScreenBase {
             }
             buttonYDownTime = 0.f;
         }
-        if(controller.getButtonEvent(HandlerController.Buttons.BumperLeft) == 1) {
+        if(controller.getButtonEvent(Buttons.BumperLeft) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_C, 'c');
-        } else if(controller.getButtonEvent(HandlerController.Buttons.BumperRight) == 1) {
+        } else if(controller.getButtonEvent(Buttons.BumperRight) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_R, 'r');
         }
     }

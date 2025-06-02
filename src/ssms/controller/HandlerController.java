@@ -17,7 +17,6 @@
  */
 package ssms.controller;
 
-import com.fs.starfarer.api.Global;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,11 +39,11 @@ public class HandlerController {
     protected Vector2f dpad = new Vector2f();
     protected boolean[] btnStates;
     protected int[] btnEvents;
-    public enum Buttons {
-        A,B,X,Y,BumperLeft,BumperRight,Start,Select,LeftStickButton,RightStickButton,RightStickUp,RightStickDown,RightStickLeft,RightStickRight,
-        LeftStickUp,LeftStickDown,LeftStickLeft,LeftStickRight,LeftTrigger,RightTrigger,DpadLeft,DpadRight,DpadUp,DpadDown
-    }
-    
+    protected boolean[] axisStates;
+    protected int[] axisEvents;
+    protected boolean[] povStates = new boolean[4];
+    protected int[] povEvents = new int[4];
+
     protected int axisLeftStickX, axisLeftStickY, axisRightStickX, axisRightStickY, axisTrigger, axisRTrigger, axisDpadX, axisDpadY,
             btnA, btnB, btnX, btnY, btnBumperLeft, btnBumperRight, btnStart, btnSelect, btnLeftStick, btnRightStick;
 
@@ -160,11 +159,17 @@ public class HandlerController {
         // if ( axisTrigger >= 0 ) {
         //     controller.setDeadZone(axisTrigger, 0f);
         // }
-        
-        btnStates = new boolean[controller.getButtonCount()+controller.getAxisCount()*2];
+        btnStates = new boolean[controller.getButtonCount()+controller.getAxisCount()];
         Arrays.fill(btnStates, false);
         btnEvents = new int[btnStates.length];
         Arrays.fill(btnEvents, 0);
+        axisStates = new boolean[controller.getAxisCount()*2];
+        Arrays.fill(axisStates, false);
+        axisEvents = new int[axisStates.length];
+        Arrays.fill(axisEvents, 0);
+
+        Arrays.fill(povStates, false);
+        Arrays.fill(povEvents, 0);
     }
     
     protected final int getIndexCoercingNull(Integer value, int below) {
@@ -175,63 +180,42 @@ public class HandlerController {
     
     public void poll() {
         this.controller.poll();
-        
-        for ( int i = 0; i < controller.getButtonCount(); i++ ) {
+        int i = 0, j = 0;
+        for ( i = 0; i < controller.getButtonCount(); i++ ) {
             boolean pressed = this.controller.isButtonPressed(i);
-            if ( pressed ) {
-                if ( !btnStates[i] ) {
-                    btnStates[i] = true;
-                    btnEvents[i] = 1;
-                } else if ( btnEvents[i] != 0 ) {
-                    btnEvents[i] = 0;
-                }
-            } else {
-                if ( btnStates[i] ) {
-                    btnStates[i] = false;
-                    btnEvents[i] = -1;
-                } else if ( btnEvents[i] != 0 ) {
-                    btnEvents[i] = 0;
-                }
-            }
+            setStateAndEvent(btnStates, btnEvents, pressed, i);
         }
         
-        for ( int j = 0, i = controller.getButtonCount(); j < controller.getAxisCount(); j++, i++ ) {
-            boolean pressed = this.controller.getAxisValue(j) <= -axisBtnConversionDeadzone;
-            if ( pressed ) {
-                if ( !btnStates[i] ) {
-                    btnStates[i] = true;
-                    btnEvents[i] = 1;
-                } else if ( btnEvents[i] != 0 ) {
-                    btnEvents[i] = 0;
-                }
-            } else {
-                if ( btnStates[i] ) {
-                    btnStates[i] = false;
-                    btnEvents[i] = -1;
-                } else if ( btnEvents[i] != 0 ) {
-                    btnEvents[i] = 0;
-                }
-            }
-            pressed = this.controller.getAxisValue(j) >= axisBtnConversionDeadzone;
-            i++;
-            if ( pressed ) {
-                if ( !btnStates[i] ) {
-                    btnStates[i] = true;
-                    btnEvents[i] = 1;
-                } else if ( btnEvents[i] != 0 ) {
-                    btnEvents[i] = 0;
-                }
-            } else {
-                if ( btnStates[i] ) {
-                    btnStates[i] = false;
-                    btnEvents[i] = -1;
-                } else if ( btnEvents[i] != 0 ) {
-                    btnEvents[i] = 0;
-                }
-            }
+        for ( i = 0, j = 0; i < controller.getAxisCount(); i++, j += 2 ) {
+            boolean pressed = this.controller.getAxisValue(i) <= -axisBtnConversionDeadzone;
+            setStateAndEvent(axisStates, axisEvents, pressed, j);
+            pressed = this.controller.getAxisValue(i) >= axisBtnConversionDeadzone;
+            setStateAndEvent(axisStates, axisEvents, pressed, j + 1);
+        }
+        if(axisDpadX == 0xFF) {
+            float povX = this.controller.getPovX();
+            setStateAndEvent(povStates, povEvents,povX == -1.f, 0);
+            setStateAndEvent(povStates, povEvents,povX == 1.f, 1);
+        }
+        if(axisDpadY == 0xFF) {
+            float povY = this.controller.getPovY();
+            setStateAndEvent(povStates, povEvents,povY == -1.f, 2);
+            setStateAndEvent(povStates, povEvents,povY == 1.f, 3);
         }
     }
-    
+
+    void setStateAndEvent(boolean[] states, int[] events, boolean pressed, int btnIndex) {
+        if(pressed && !states[btnIndex]) {
+            states[btnIndex] = true;
+            events[btnIndex] = 1;
+        } else if(!pressed && states[btnIndex]) {
+            states[btnIndex] = false;
+            events[btnIndex] = -1;
+        } else {
+            events[btnIndex] = 0;
+        }
+    }
+
     public int getButtonEvent(Buttons btn) {
         return switch (btn) {
             case A -> getBtnEvent(btnA);
@@ -244,36 +228,36 @@ public class HandlerController {
             case BumperRight -> getBtnEvent(btnBumperRight);
             case LeftStickButton -> getBtnEvent(btnLeftStick);
             case RightStickButton -> getBtnEvent(btnRightStick);
-            case RightStickDown -> getBtnEvent(axisRightStickY, controller.getButtonCount() + 1);
-            case RightStickUp -> getBtnEvent(axisRightStickY, controller.getButtonCount());
-            case RightStickLeft -> getBtnEvent(axisRightStickX, controller.getButtonCount());
-            case RightStickRight -> getBtnEvent(axisRightStickX, controller.getButtonCount() + 1);
-            case LeftStickDown -> getBtnEvent(axisLeftStickY, controller.getButtonCount() + 1);
-            case LeftStickUp -> getBtnEvent(axisLeftStickY, controller.getButtonCount());
-            case LeftStickLeft -> getBtnEvent(axisLeftStickX, controller.getButtonCount());
-            case LeftStickRight -> getBtnEvent(axisLeftStickX, controller.getButtonCount() + 1);
-            case LeftTrigger -> axisRTrigger >= 0 ? getBtnEvent(axisTrigger, controller.getButtonCount() + 1) : getBtnEvent(axisTrigger, controller.getButtonCount());
-            case RightTrigger -> axisRTrigger >= 0 ? getBtnEvent(axisRTrigger, controller.getButtonCount() + 1) : getBtnEvent(axisTrigger, controller.getButtonCount() + 1);
-            case DpadUp -> getBtnEvent(axisDpadY, controller.getButtonCount());
-            case DpadDown -> getBtnEvent(axisDpadY, controller.getButtonCount() + 1);
-            case DpadLeft -> getBtnEvent(axisDpadX, controller.getButtonCount());
-            case DpadRight -> getBtnEvent(axisDpadX, controller.getButtonCount() + 1);
+            case RightStickDown -> getAxisEvent(axisRightStickY, 1);
+            case RightStickUp -> getAxisEvent(axisRightStickY, 0);
+            case RightStickLeft -> getAxisEvent(axisRightStickX, 0);
+            case RightStickRight -> getAxisEvent(axisRightStickX, 1);
+            case LeftStickDown -> getAxisEvent(axisLeftStickY, 1);
+            case LeftStickUp -> getAxisEvent(axisLeftStickY, 0);
+            case LeftStickLeft -> getAxisEvent(axisLeftStickX, 0);
+            case LeftStickRight -> getAxisEvent(axisLeftStickX, 1);
+            case LeftTrigger -> axisRTrigger >= 0 ? getAxisEvent(axisTrigger, 1) : getAxisEvent(axisTrigger, 0);
+            case RightTrigger -> axisRTrigger >= 0 ? getAxisEvent(axisRTrigger, 1) : getAxisEvent(axisTrigger, 1);
+            case DpadUp -> axisDpadY == 0xFF ? getPovEvent(2) : axisDpadY >= 0 ? getAxisEvent(axisDpadY, 0) : 0;
+            case DpadDown -> axisDpadY == 0xFF ? getPovEvent(3) : axisDpadY >= 0 ? getAxisEvent(axisDpadY, 1) : 0;
+            case DpadLeft -> axisDpadX == 0xFF ? getPovEvent(0) : axisDpadX >= 0 ? getAxisEvent(axisDpadX, 0) : 0;
+            case DpadRight -> axisDpadX == 0xFF ? getPovEvent(1) : axisDpadX >= 0 ? getAxisEvent(axisDpadX, 1) : 0;
         };
     }
     
-    public int getBtnEvent(int i) {
+    int getBtnEvent(int i) {
         if ( i < 0 ) return 0;
         return btnEvents[i];
     }
 
-    public boolean getBtnState(int i) {
-        if ( i < 0 ) return false;
-        return btnStates[i];
+    int getAxisEvent(int axisIndex, int axisOffset) {
+        if ( axisIndex < 0 ) return 0;
+        return axisEvents[axisIndex * 2 + axisOffset];
     }
-    
-    private int getBtnEvent(int i, int j) {
+
+    int getPovEvent(int i) {
         if ( i < 0 ) return 0;
-        return btnEvents[i*2+j];
+        return povEvents[i];
     }
     
     public ReadableVector2f getLeftStick() {
@@ -290,19 +274,19 @@ public class HandlerController {
     }
     
     public boolean isLeftStickLeft() {
-        return axisLeftStickX >= 0 ? controller.getAxisValue(axisLeftStickX) <= -axisBtnConversionDeadzone : false;
+        return axisLeftStickX >= 0 && controller.getAxisValue(axisLeftStickX) <= -axisBtnConversionDeadzone;
     }
     
     public boolean isLeftStickRight() {
-        return axisLeftStickX >= 0 ? controller.getAxisValue(axisLeftStickX) >= axisBtnConversionDeadzone : false;
+        return axisLeftStickX >= 0 && controller.getAxisValue(axisLeftStickX) >= axisBtnConversionDeadzone;
     }
     
     public boolean isLeftStickUp() {
-        return axisLeftStickY >= 0 ? controller.getAxisValue(axisLeftStickY) <= -axisBtnConversionDeadzone : false;
+        return axisLeftStickY >= 0 && controller.getAxisValue(axisLeftStickY) <= -axisBtnConversionDeadzone;
     }
     
     public boolean isLeftStickDown() {
-        return axisLeftStickY >= 0 ? controller.getAxisValue(axisLeftStickY) >= axisBtnConversionDeadzone : false;
+        return axisLeftStickY >= 0 && controller.getAxisValue(axisLeftStickY) >= axisBtnConversionDeadzone;
     }
     
     public ReadableVector2f getRightStick() {
@@ -316,22 +300,21 @@ public class HandlerController {
     }
     
     public boolean isRightStickLeft() {
-        return axisRightStickX >= 0 ? controller.getAxisValue(axisRightStickX) <= -axisBtnConversionDeadzone : false;
+        return axisRightStickX >= 0 && controller.getAxisValue(axisRightStickX) <= -axisBtnConversionDeadzone;
     }
     
     public boolean isRightStickRight() {
-        return axisRightStickX >= 0 ? controller.getAxisValue(axisRightStickX) >= axisBtnConversionDeadzone : false;
+        return axisRightStickX >= 0 && controller.getAxisValue(axisRightStickX) >= axisBtnConversionDeadzone;
     }
     
     public boolean isRightStickUp() {
-        return axisRightStickY >= 0 ? controller.getAxisValue(axisRightStickY) >= axisBtnConversionDeadzone : false;
+        return axisRightStickY >= 0 && controller.getAxisValue(axisRightStickY) >= axisBtnConversionDeadzone;
     }
     
     public boolean isRightStickDown() {
-        return axisRightStickY >= 0 ? controller.getAxisValue(axisRightStickY) <= -axisBtnConversionDeadzone : false;
+        return axisRightStickY >= 0 && controller.getAxisValue(axisRightStickY) <= -axisBtnConversionDeadzone;
     }
 
-    
     public ReadableVector2f getDpad() {
         //TODO we could clamp the steering to something like 120 distinct values so that the directional input is more stable.
         //custom deadzone that takes into account the length of the vector to determine if it should be zero. That way we can steer with full precision in 360° 
@@ -346,9 +329,7 @@ public class HandlerController {
             if(axisDpadY == 0xFF) dpad.y = controller.getPovY();
             else dpad.y = controller.getAxisValue(axisDpadY);
         }
-        dpad.x = axisLeftStickX >= 0 ? controller.getAxisValue(axisLeftStickX) : 0f;
-        dpad.y = axisLeftStickY >= 0 ? -controller.getAxisValue(axisLeftStickY) : 0f;
-        return leftStick;
+        return dpad;
     }
     
     public boolean isDpadLeft() {
@@ -361,7 +342,7 @@ public class HandlerController {
         return dpadVal.getX() > 0;
     }
     
-    public boolean isDpadkUp() {
+    public boolean isDpadUp() {
         var dpadVal = getDpad();
         return dpadVal.getY() > 0;
     }
@@ -376,54 +357,54 @@ public class HandlerController {
     }
     
     public boolean isTriggerLeft() {
-        return axisTrigger >= 0 ? controller.getAxisValue(axisTrigger) >= axisBtnConversionDeadzone : false;
+        return axisTrigger >= 0 && controller.getAxisValue(axisTrigger) >= axisBtnConversionDeadzone;
     }
     
     public boolean isTriggerRight() {
         if(axisRTrigger >= 0) {
             return controller.getAxisValue(axisRTrigger) >= axisBtnConversionDeadzone;
         } else {
-            return axisTrigger >= 0 ? controller.getAxisValue(axisTrigger) <= -axisBtnConversionDeadzone : false;
+            return axisTrigger >= 0 && controller.getAxisValue(axisTrigger) <= -axisBtnConversionDeadzone;
         }
     }
     
     public boolean isButtonAPressed() {
-        return btnA >= 0 ? controller.isButtonPressed(btnA) : false;
+        return btnA >= 0 && controller.isButtonPressed(btnA);
     }
 
     public boolean isButtonBPressed() {
-        return btnB >= 0 ? controller.isButtonPressed(btnB) : false;
+        return btnB >= 0 && controller.isButtonPressed(btnB);
     }
     
     public boolean isButtonXPressed() {
-        return btnX >= 0 ? controller.isButtonPressed(btnX) : false;
+        return btnX >= 0 && controller.isButtonPressed(btnX);
     }
     
     public boolean isButtonYPressed() {
-        return btnY >= 0 ? controller.isButtonPressed(btnY) : false;
+        return btnY >= 0 && controller.isButtonPressed(btnY);
     }
     
     public boolean isButtonBumperLeftPressed() {
-        return btnBumperLeft >= 0 ? controller.isButtonPressed(btnBumperLeft) : false;
+        return btnBumperLeft >= 0 && controller.isButtonPressed(btnBumperLeft);
     }
     
     public boolean isButtonBumperRightPressed() {
-        return btnBumperRight >= 0 ? controller.isButtonPressed(btnBumperRight) : false;
+        return btnBumperRight >= 0 && controller.isButtonPressed(btnBumperRight);
     }
     
     public boolean isButtonStartPressed() {
-        return btnStart >= 0 ? controller.isButtonPressed(btnStart) : false;
+        return btnStart >= 0 && controller.isButtonPressed(btnStart);
     }
     
     public boolean isButtonSelectPressed() {
-        return btnSelect >= 0 ? controller.isButtonPressed(btnSelect) : false;
+        return btnSelect >= 0 && controller.isButtonPressed(btnSelect);
     }
     
     public boolean isButtonLeftStickPressed() {
-        return btnLeftStick >= 0 ? controller.isButtonPressed(btnLeftStick) : false;
+        return btnLeftStick >= 0 && controller.isButtonPressed(btnLeftStick);
     }
     
     public boolean isButtonRightStickPressed() {
-        return btnRightStick >= 0 ? controller.isButtonPressed(btnRightStick) : false;
+        return btnRightStick >= 0 && controller.isButtonPressed(btnRightStick);
     }
 }

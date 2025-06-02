@@ -1,6 +1,5 @@
 package ssms.controller.combat;
 
-import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
@@ -208,13 +207,13 @@ public class BattleDeploymentScreen extends InputScreenBase {
                     }
                 }
             }
-            if (controller.getButtonEvent(HandlerController.Buttons.LeftStickRight) == 1) {
+            if (controller.getButtonEvent(Buttons.LeftStickRight) == 1) {
                 selectNextShip(ships);
-            } else if (controller.getButtonEvent(HandlerController.Buttons.LeftStickLeft) == 1) {
+            } else if (controller.getButtonEvent(Buttons.LeftStickLeft) == 1) {
                 selectPrevShip(ships);
-            } else if (controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
+            } else if (controller.getButtonEvent(Buttons.A) == 1) {
                 clickShip(ships);
-            } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1) {
+            } else if(controller.getButtonEvent(Buttons.LeftStickDown) == 1) {
                 selectingShips = false;
                 if(selectedShip != -1 && selectedShip < ships.size()) {
                     ships.get(selectedShip).unhighlight();
@@ -225,13 +224,13 @@ public class BattleDeploymentScreen extends InputScreenBase {
             }
         } else {
             if(!dialogOptions.isEmpty()) {
-                if (controller.getButtonEvent(HandlerController.Buttons.LeftStickRight) == 1) {
+                if (controller.getButtonEvent(Buttons.LeftStickRight) == 1) {
                     selectNextButton();
-                } else if (controller.getButtonEvent(HandlerController.Buttons.LeftStickLeft) == 1) {
+                } else if (controller.getButtonEvent(Buttons.LeftStickLeft) == 1) {
                     selectPrevButton();
-                } else if (controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
+                } else if (controller.getButtonEvent(Buttons.A) == 1) {
                     clickButton();
-                } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1) {
+                } else if(controller.getButtonEvent(Buttons.LeftStickUp) == 1) {
                     selectingShips = true;
                     selectedShip = -1;
                     if(selectedButton != -1 && selectedButton < dialogOptions.size()) {

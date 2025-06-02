@@ -80,18 +80,18 @@ public class IntelFactionTabUi extends InputScreenBase {
         else if(intelTabData.getSelectedTabIndex() == 0) InputScreenManager.getInstance().transitionDelayed(IntelTabUI.ID, intelTabReflector);
         else if(intelTabData.getSelectedTabIndex() == 1) InputScreenManager.getInstance().transitionDelayed(IntelPlanetTabUi.ID, intelTabReflector);
 
-        if(controller.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1) {
+        if(controller.getButtonEvent(Buttons.LeftStickUp) == 1) {
             selectedIndex--;
             navigateButton();
             if(selectedIndex != -1) intelFactionTabReflector.ensureVisible(factionButtons.get(selectedIndex));
-        } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1) {
+        } else if(controller.getButtonEvent(Buttons.LeftStickDown) == 1) {
             selectedIndex++;
             navigateButton();
             if(selectedIndex != -1) intelFactionTabReflector.ensureVisible(factionButtons.get(selectedIndex));
-        } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1 && selectedIndex != -1 && selectedIndex < factionButtons.size()) {
+        } else if(controller.getButtonEvent(Buttons.A) == 1 && selectedIndex != -1 && selectedIndex < factionButtons.size()) {
             var pos = factionButtons.get(selectedIndex).getPosition();
             InputShim.mouseDownUp((int) pos.getCenterX(), (int) pos.getCenterY(), InputEventMouseButton.LEFT);
-        } else if(controller.getButtonEvent(HandlerController.Buttons.LeftTrigger) == 1) {
+        } else if(controller.getButtonEvent(Buttons.LeftTrigger) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_2, '2');
         }
     }

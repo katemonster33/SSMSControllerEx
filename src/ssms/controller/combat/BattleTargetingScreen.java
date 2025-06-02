@@ -21,7 +21,6 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.FogOfWarAPI;
 import com.fs.starfarer.api.combat.ShipAPI;
-import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.combat.entities.Ship;
 import java.util.ArrayList;
@@ -135,22 +134,22 @@ public class BattleTargetingScreen extends InputScreenBase {
             closeTargeting();
             return;
         }
-        if ( handler.getButtonEvent(HandlerController.Buttons.BumperRight) == 1 ) {
+        if ( handler.getButtonEvent(Buttons.BumperRight) == 1 ) {
             if ( targeting.hasTargets() ) {
                 ps.setShipTarget((Ship) targeting.next());
                 psCache.steeringController.onTargetSelected();
             }
-        } else if ( handler.getButtonEvent(HandlerController.Buttons.BumperLeft) == 1 ) {
+        } else if ( handler.getButtonEvent(Buttons.BumperLeft) == 1 ) {
             if ( targeting.hasTargets() ) {
                 ps.setShipTarget((Ship) targeting.previous());
                 psCache.steeringController.onTargetSelected();
             }
-        } else if ( handler.getButtonEvent(HandlerController.Buttons.Start) == 1 ) {
+        } else if ( handler.getButtonEvent(Buttons.Start) == 1 ) {
             if ( targeting != null ) targeting.discard();
             targeting = null;
             ps.setShipTarget(null);
             closeTargeting();
-        } else if ( handler.getButtonEvent(HandlerController.Buttons.Select) == 1 ) {
+        } else if ( handler.getButtonEvent(Buttons.Select) == 1 ) {
             if ( targeting != null ) targeting.discard();
             targeting = null;
             closeTargeting();

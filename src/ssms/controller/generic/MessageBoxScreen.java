@@ -125,15 +125,15 @@ public class MessageBoxScreen extends InputScreenBase {
                 InputScreenManager.getInstance().transitionToScreen(uiToReturnTo);
             }
         }
-        if(controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1) {
+        if(controller.getButtonEvent(Buttons.LeftStickDown) == 1) {
             selectNextButton();
-        } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1) {
+        } else if(controller.getButtonEvent(Buttons.LeftStickUp) == 1) {
             selectPrevButton();
-        } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
+        } else if(controller.getButtonEvent(Buttons.A) == 1) {
             clickButton();
-        } else if(controller.getButtonEvent(HandlerController.Buttons.B) == 1) {
+        } else if(controller.getButtonEvent(Buttons.B) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-        } else if(controller.getButtonEvent(HandlerController.Buttons.Y) == 1) {
+        } else if(controller.getButtonEvent(Buttons.Y) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_RETURN, '\0');
         }
     }

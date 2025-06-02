@@ -137,11 +137,11 @@ public class DialogUI extends InputScreenBase {
                 selectNextButton();
             }
         }
-        if(controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1) {
+        if(controller.getButtonEvent(Buttons.LeftStickDown) == 1) {
             selectNextButton();
-        } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1) {
+        } else if(controller.getButtonEvent(Buttons.LeftStickUp) == 1) {
             selectPrevButton();
-        } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
+        } else if(controller.getButtonEvent(Buttons.A) == 1) {
             clickButton();
             dialogOptions = null;
         }

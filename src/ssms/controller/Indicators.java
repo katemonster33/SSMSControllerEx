@@ -23,5 +23,5 @@ package ssms.controller;
  */
 public enum Indicators {
     A,B,X,Y,BumperLeft,BumperRight,Start,Select,LeftStickButton,RightStickButton,RightStickUp,RightStickDown,RightStickLeft,RightStickRight,
-    LeftStickUp,LeftStickDown,LeftStickLeft,LeftStickRight,LeftStick,RightStick, LeftTrigger, RightTrigger
+    LeftStickUp,LeftStickDown,LeftStickLeft,LeftStickRight,LeftStick,RightStick, LeftTrigger, RightTrigger, DPadUp, DPadDown, DPadLeft, DPadRight, DPad
 }

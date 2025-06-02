@@ -2,7 +2,6 @@ package ssms.controller.campaign;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
-import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
@@ -76,7 +75,7 @@ public class CharacterTabUI extends InputScreenBase {
                 selectedBtn.highlight();
             }
         }
-        if(controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1) {
+        if(controller.getButtonEvent(Buttons.LeftStickDown) == 1) {
             if(rowSelected < buttonRows.size() - 1) {
                 rowSelected++;
             }
@@ -84,7 +83,7 @@ public class CharacterTabUI extends InputScreenBase {
                 buttonSelected = buttonRows.get(rowSelected).size() - 1;
             }
             selectNewBtn();
-        } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1) {
+        } else if(controller.getButtonEvent(Buttons.LeftStickUp) == 1) {
             if(rowSelected > 0) {
                 rowSelected--;
             }
@@ -92,29 +91,29 @@ public class CharacterTabUI extends InputScreenBase {
                 buttonSelected = buttonRows.get(rowSelected).size() - 1;
             }
             selectNewBtn();
-        } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickLeft) == 1) {
+        } else if(controller.getButtonEvent(Buttons.LeftStickLeft) == 1) {
             if(buttonSelected > 0) {
                 buttonSelected--;
             }
             selectNewBtn();
-        } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickRight) == 1) {
+        } else if(controller.getButtonEvent(Buttons.LeftStickRight) == 1) {
             if(buttonSelected < (buttonRows.get(rowSelected).size() - 1)) {
                 buttonSelected++;
             }
             selectNewBtn();
-        } else if(controller.getButtonEvent(HandlerController.Buttons.Y) == 1) {
+        } else if(controller.getButtonEvent(Buttons.Y) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_G, 'G');
-        } else if(controller.getButtonEvent(HandlerController.Buttons.X) == 1) {
+        } else if(controller.getButtonEvent(Buttons.X) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_T, 'T');
-        } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1) {
+        } else if(controller.getButtonEvent(Buttons.A) == 1) {
             if(selectedBtn != null) {
                 float mouseX = selectedBtn.getPosition().getCenterX(), mouseY = selectedBtn.getPosition().getCenterY();
                 InputShim.mouseMove((int) mouseX, (int) mouseY);
                 InputShim.mouseDownUp((int) mouseX, (int) mouseY, InputEventMouseButton.LEFT);
             }
-        } else if(controller.getButtonEvent(HandlerController.Buttons.B) == 1) {
+        } else if(controller.getButtonEvent(Buttons.B) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-        } else if(controller.getButtonEvent(HandlerController.Buttons.BumperRight) == 1) {
+        } else if(controller.getButtonEvent(Buttons.BumperRight) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_F, 'f');
         }
     }

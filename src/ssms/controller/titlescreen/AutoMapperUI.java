@@ -7,15 +7,8 @@ import com.fs.starfarer.api.ui.CustomPanelAPI;
 import com.fs.starfarer.api.ui.TooltipMakerAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
-import com.fs.state.AppDriver;
 import lunalib.lunaUI.panel.LunaBaseCustomPanelPlugin;
-import ssms.controller.ControllerMapping;
-import ssms.controller.HandlerController;
-import ssms.controller.Indicators;
-import ssms.controller.SSMSControllerModPluginEx;
-import ssms.controller.InputScopeBase;
-import ssms.controller.InputScreenBase;
-import ssms.controller.InputScreenManager;
+import ssms.controller.*;
 import ssms.controller.reflection.TitleScreenStateReflector;
 
 import java.awt.*;
@@ -23,14 +16,16 @@ import java.util.List;
 
 public class AutoMapperUI extends InputScreenBase {
     public static final String ID = "AutoMapper";
-    HandlerController.Buttons[] buttons = HandlerController.Buttons.values();
+    Buttons[] buttons = Buttons.values();
     int calibrationIndex = -1;
     int btnCount = -1;
     boolean[] buttonsChanged;
     boolean[] axesChanged;
     boolean[] btnRestingState;
+    boolean povXChanged, povYChanged;
 
     float[] axisRestingState;
+    float povXRestingState, povYRestingState;
     ControllerMapping tempMapping = null;
     boolean parsedBtn = false;
     AutoMapperPanel autoMapperPanel;
@@ -78,7 +73,7 @@ public class AutoMapperUI extends InputScreenBase {
     }
 
 
-    Indicators getIndicatorForButton(HandlerController.Buttons btn)
+    Indicators getIndicatorForButton(Buttons btn)
     {
         return switch (btn) {
             case A -> Indicators.A;
@@ -101,6 +96,10 @@ public class AutoMapperUI extends InputScreenBase {
             case RightTrigger -> Indicators.RightTrigger;
             case BumperLeft -> Indicators.BumperLeft;
             case BumperRight -> Indicators.BumperRight;
+            case DpadUp -> Indicators.DPadUp;
+            case DpadDown -> Indicators.DPadDown;
+            case DpadLeft -> Indicators.DPadLeft;
+            case DpadRight -> Indicators.DPadRight;
             default -> null;
         };
     }
@@ -130,6 +129,9 @@ public class AutoMapperUI extends InputScreenBase {
         for(int i = 0; i < axisRestingState.length; i++) {
             axisRestingState[i] = SSMSControllerModPluginEx.controller.controller.getAxisValue(i);
         }
+        povXChanged = povYChanged = false;
+        povXRestingState = SSMSControllerModPluginEx.controller.controller.getPovX();
+        povYRestingState = SSMSControllerModPluginEx.controller.controller.getPovY();
         if(Global.getCurrentState() == GameState.TITLE) {
             var panel = TitleScreenStateReflector.GetInstance().getScreenPanel();
             autoMapperPanel = new AutoMapperPanel(panel);
@@ -161,6 +163,12 @@ public class AutoMapperUI extends InputScreenBase {
                 retval = axesChanged[i] = true;
             }
         }
+        if(SSMSControllerModPluginEx.controller.controller.getPovX() != povXRestingState) {
+            retval = povXChanged = true;
+        }
+        if(SSMSControllerModPluginEx.controller.controller.getPovY() != povYRestingState) {
+            retval = povYChanged = true;
+        }
         return !retval;
     }
 
@@ -171,14 +179,15 @@ public class AutoMapperUI extends InputScreenBase {
         for(int i = 0; i < SSMSControllerModPluginEx.controller.controller.getAxisCount(); i++) {
             axesChanged[i] = false;
         }
+        povXChanged = false;
+        povYChanged = false;
     }
 
     void setMappingIndices() {
-        HandlerController.Buttons btn = buttons[calibrationIndex];
+        Buttons btn = buttons[calibrationIndex];
         for(int i = 0; i < SSMSControllerModPluginEx.controller.controller.getButtonCount(); i++) {
             if(buttonsChanged[i]) {
-                switch(btn)
-                {
+                switch(btn) {
                     case A ->                   tempMapping.btnA = i;
                     case B ->                   tempMapping.btnB = i;
                     case X ->                   tempMapping.btnX = i;
@@ -197,8 +206,7 @@ public class AutoMapperUI extends InputScreenBase {
         }
         for(int i = 0; i < SSMSControllerModPluginEx.controller.controller.getAxisCount(); i++) {
             if(axesChanged[i]) {
-                switch(btn)
-                {
+                switch(btn) {
                     case LeftStickLeft, LeftStickRight ->   tempMapping.axisIndexLX = i;
                     case LeftStickUp, LeftStickDown ->      tempMapping.axisIndexLY = i;
                     case RightStickLeft, RightStickRight -> tempMapping.axisIndexRX = i;
@@ -211,6 +219,12 @@ public class AutoMapperUI extends InputScreenBase {
                 break;
             }
         }
+        if(povXChanged) {
+            tempMapping.axisIndexDpadX = 0xFF;
+        }
+        if(povYChanged) {
+            tempMapping.axisIndexDpadY = 0xFF;
+        }
     }
 
     void moveNextButton() {
@@ -219,7 +233,7 @@ public class AutoMapperUI extends InputScreenBase {
         calibrationIndex++;
         if(calibrationIndex < buttons.length) {
             switch (buttons[calibrationIndex]) {
-                case LeftStickRight, LeftStickDown, RightStickRight, RightStickDown -> calibrationIndex++;
+                case LeftStickRight, LeftStickDown, RightStickRight, RightStickDown, DpadRight, DpadDown -> calibrationIndex++;
                 default -> {
                     break;
                 }
@@ -253,7 +267,6 @@ public class AutoMapperUI extends InputScreenBase {
             Global.getLogger(getClass()).warn("we reached preInput with a calibration index greater than the max. how?!");
             InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TitleScreenUI.ID, new Object[]{});
         }
-        HandlerController.Buttons btn = buttons[calibrationIndex];
         if(!isControllerInRestingState()) {
             parsedBtn = true;
             timeSinceButtonPressed += advance;

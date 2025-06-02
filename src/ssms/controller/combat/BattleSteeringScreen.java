@@ -127,13 +127,13 @@ public class BattleSteeringScreen extends InputScreenBase {
         if ( processShipInputs(ps) ) {
             //autopilot flag is inverted!
             if ( engine.isUIAutopilotOn() && !engine.isPaused() && amount > 0f ) {
-                if ( handler.getButtonEvent(HandlerController.Buttons.Select) == 1 ) {
+                if ( handler.getButtonEvent(Buttons.Select) == 1 ) {
                     InputScreenManager.getInstance().transitionDelayed(BattleTargetingScreen.ID);
                 }
-                if ( handler.getButtonEvent(HandlerController.Buttons.Start) == 1 ) {
+                if ( handler.getButtonEvent(Buttons.Start) == 1 ) {
                     InputScreenManager.getInstance().transitionDelayed(BattleMenuScreen.ID);
                 }
-                if ( handler.getButtonEvent(HandlerController.Buttons.LeftStickButton) == 1 ) {
+                if ( handler.getButtonEvent(Buttons.LeftStickButton) == 1 ) {
                     isAlternateSteering = !isAlternateSteering;
                     if ( isAlternateSteering ) {
                         psCache.setSteeringController(new SteeringController_OrbitTarget(), handler, engine);
@@ -168,13 +168,13 @@ public class BattleSteeringScreen extends InputScreenBase {
                 }
 
                 //start venting
-                if ( handler.getButtonEvent(HandlerController.Buttons.Y) == 1 ) {
+                if ( handler.getButtonEvent(Buttons.Y) == 1 ) {
                     ps.giveCommand(ShipCommand.VENT_FLUX, null, -1);
                 }
 
                 //TODO maybe adjust shield facing in the after input processed method if it got turned on this frame
                 //shield/cloak on/off
-                if ( handler.getButtonEvent(HandlerController.Buttons.B) == 1 ) {
+                if ( handler.getButtonEvent(Buttons.B) == 1 ) {
                     if ( ps.getShield() != null ) {
                         if ( ps.getShield().getType() == ShieldAPI.ShieldType.OMNI) {
                             CombatStateReflector.GetInstance().setAutoOmniShield();
@@ -203,7 +203,7 @@ public class BattleSteeringScreen extends InputScreenBase {
                 }
 
                 //activate system
-                if ( handler.getButtonEvent(HandlerController.Buttons.X) == 1 ) {
+                if ( handler.getButtonEvent(Buttons.X) == 1 ) {
                     if ( ps.getShipTarget() != null ) {
                         //due to a bug in vanilla coding the getAI method must return not null in order for the minestrike to use the override
                         //replacing the script with a corrected version that skips the AI check
@@ -221,16 +221,16 @@ public class BattleSteeringScreen extends InputScreenBase {
 
                 //second joystick cycles fighter modes and weapon groups if not held down. up fighter mode, left right weapon groups, down autofire
                 //toggle fighter mode
-                if ( psCache.hasFighters && handler.getButtonEvent(HandlerController.Buttons.RightStickUp) == 1 ) {
+                if ( psCache.hasFighters && handler.getButtonEvent(Buttons.RightStickUp) == 1 ) {
                     ps.setPullBackFighters(true);
                     //ps.giveCommand(ShipCommand.PULL_BACK_FIGHTERS, null, -1);
                 }
                 //toggle autofire
-                if ( handler.getButtonEvent(HandlerController.Buttons.RightStickDown) == 1 ) {
+                if ( handler.getButtonEvent(Buttons.RightStickDown) == 1 ) {
                     ps.giveCommand(ShipCommand.TOGGLE_AUTOFIRE, null, ps.getWeaponGroupsCopy().indexOf(ps.getSelectedGroupAPI()));
                 }
                 //select weapon group
-                if ( handler.getButtonEvent(HandlerController.Buttons.RightStickRight) == 1 ) {
+                if ( handler.getButtonEvent(Buttons.RightStickRight) == 1 ) {
                     List<WeaponGroupAPI> wgs = ps.getWeaponGroupsCopy();
                     int indx = wgs.indexOf(ps.getSelectedGroupAPI()) + 1;
                     if ( indx >= wgs.size() ) {
@@ -238,7 +238,7 @@ public class BattleSteeringScreen extends InputScreenBase {
                     }
                     ps.giveCommand(ShipCommand.SELECT_GROUP, null, indx);
                 }
-                if ( handler.getButtonEvent(HandlerController.Buttons.RightStickLeft) == 1 ) {
+                if ( handler.getButtonEvent(Buttons.RightStickLeft) == 1 ) {
                     List<WeaponGroupAPI> wgs = ps.getWeaponGroupsCopy();
                     int indx = wgs.indexOf(ps.getSelectedGroupAPI()) - 1;
                     if ( indx < 0 ) {

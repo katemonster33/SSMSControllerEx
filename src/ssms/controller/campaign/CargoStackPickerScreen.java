@@ -1,24 +1,11 @@
 package ssms.controller.campaign;
 
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.campaign.CargoTransferHandlerAPI;
-import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
-import com.fs.starfarer.api.ui.PositionAPI;
-import com.fs.starfarer.api.ui.UIComponentAPI;
-import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.campaign.fleet.CargoData;
-import com.fs.starfarer.campaign.ui.trade.CargoDataGridView;
-import com.fs.starfarer.campaign.ui.trade.CargoItemStack;
-import com.fs.starfarer.campaign.ui.trade.CargoStackView;
-import com.fs.starfarer.coreui.P;
 import ssms.controller.*;
 import ssms.controller.reflection.*;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -91,24 +78,24 @@ public class CargoStackPickerScreen  extends InputScreenBase {
             mouseX = (int) scrollbar.getPrivateObj().getPosition().getX();
             mouseY = (int) scrollbar.getPrivateObj().getPosition().getCenterY();
         }
-        if(controller.getButtonEvent(HandlerController.Buttons.LeftStickLeft) == 1 && controller.isLeftStickLeft()) {
+        if(controller.getButtonEvent(Buttons.LeftStickLeft) == 1 && controller.isLeftStickLeft()) {
             // the 10 is hard-coded in the scrollbar source code
             mouseX -= 10;
             mouseX = Math.max((int) scrollbar.getPrivateObj().getPosition().getX(), mouseX);
             updateMousePos();
-        } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickRight) == 1 && controller.isLeftStickRight()) {
+        } else if(controller.getButtonEvent(Buttons.LeftStickRight) == 1 && controller.isLeftStickRight()) {
             mouseX += 10;
             mouseX = Math.min((int)(scrollbar.getPrivateObj().getPosition().getX() + scrollbar.getPrivateObj().getPosition().getWidth()), mouseX);
             updateMousePos();
-        } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1 && controller.isLeftStickDown()) {
+        } else if(controller.getButtonEvent(Buttons.LeftStickDown) == 1 && controller.isLeftStickDown()) {
             mouseX = (int)scrollbar.getPrivateObj().getPosition().getX();
             updateMousePos();
-        } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1 && controller.isLeftStickUp()) {
+        } else if(controller.getButtonEvent(Buttons.LeftStickUp) == 1 && controller.isLeftStickUp()) {
             mouseX = (int)(scrollbar.getPrivateObj().getPosition().getX() + scrollbar.getPrivateObj().getPosition().getWidth());
             updateMousePos();
-        } else if(controller.getButtonEvent(HandlerController.Buttons.B) == 1 && controller.isButtonBPressed()) {
+        } else if(controller.getButtonEvent(Buttons.B) == 1 && controller.isButtonBPressed()) {
             cancel();
-        } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1 && controller.isButtonAPressed()) {
+        } else if(controller.getButtonEvent(Buttons.A) == 1 && controller.isButtonAPressed()) {
             confirm();
         }
     }

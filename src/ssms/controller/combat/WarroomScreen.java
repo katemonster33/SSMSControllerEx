@@ -1,23 +1,17 @@
 package ssms.controller.combat;
 
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.combat.CombatFleetManagerAPI;
-import com.fs.starfarer.api.combat.CombatTaskManagerAPI;
-import com.fs.starfarer.api.combat.DeployedFleetMemberAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
-import com.fs.starfarer.api.mission.FleetSide;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
-import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.reflection.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 public class WarroomScreen extends InputScreenBase {
     public static final String ID = "Warroom";
@@ -100,7 +94,7 @@ public class WarroomScreen extends InputScreenBase {
             InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
         }
         if(desiredMousePos != null) {
-            if(controller.getButtonEvent(HandlerController.Buttons.LeftStickButton) == 1 && controller.isButtonLeftStickPressed()) {
+            if(controller.getButtonEvent(Buttons.LeftStickButton) == 1 && controller.isButtonLeftStickPressed()) {
                 if(!isMovingMap) {
                     InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
                 } else {
@@ -115,16 +109,16 @@ public class WarroomScreen extends InputScreenBase {
                 InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
                 isLeftMouseDown = false;
             }
-            if(controller.getButtonEvent(HandlerController.Buttons.X) == 1) {
+            if(controller.getButtonEvent(Buttons.X) == 1) {
                 InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
                 InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
             }
         }
 
-        if(controller.getButtonEvent(HandlerController.Buttons.BumperLeft) == 1 ||
-                controller.getButtonEvent(HandlerController.Buttons.BumperRight) == 1 ||
-                controller.getButtonEvent(HandlerController.Buttons.LeftTrigger) == 1 ||
-                controller.getButtonEvent(HandlerController.Buttons.RightTrigger) == 1) {
+        if(controller.getButtonEvent(Buttons.BumperLeft) == 1 ||
+                controller.getButtonEvent(Buttons.BumperRight) == 1 ||
+                controller.getButtonEvent(Buttons.LeftTrigger) == 1 ||
+                controller.getButtonEvent(Buttons.RightTrigger) == 1) {
             selectingButton = true;
             var buttonGroups = warroomReflector.getButtonGroups();
             if((selectedButtonGroup != -1 && selectedButton != -1) &&
@@ -139,15 +133,15 @@ public class WarroomScreen extends InputScreenBase {
                     InputShim.mouseMove((int) btnPos.getCenterX(), (int) btnPos.getCenterY());
                 }
             } else {
-                if(controller.getButtonEvent(HandlerController.Buttons.BumperLeft) == 1) {
+                if(controller.getButtonEvent(Buttons.BumperLeft) == 1) {
                     if(selectedButton > 0) selectedButton--;
-                } else if(controller.getButtonEvent(HandlerController.Buttons.BumperRight) == 1) {
+                } else if(controller.getButtonEvent(Buttons.BumperRight) == 1) {
                     if(selectedButton < buttonGroups.get(selectedButtonGroup).size() - 1) selectedButton++;
-                } else if(controller.getButtonEvent(HandlerController.Buttons.LeftTrigger) == 1 &&
+                } else if(controller.getButtonEvent(Buttons.LeftTrigger) == 1 &&
                         controller.isTriggerLeft()) {
                     if(selectedButtonGroup > 0) selectedButtonGroup--;
                     selectedButton = 0;
-                } else if(controller.getButtonEvent(HandlerController.Buttons.RightTrigger) == 1 &&
+                } else if(controller.getButtonEvent(Buttons.RightTrigger) == 1 &&
                         controller.isTriggerRight()) {
                     if(selectedButtonGroup < buttonGroups.size() - 1) selectedButtonGroup++;
                     selectedButton = 0;
@@ -158,13 +152,13 @@ public class WarroomScreen extends InputScreenBase {
             }
         }
 
-        if(controller.getButtonEvent(HandlerController.Buttons.Start) == 1) {
+        if(controller.getButtonEvent(Buttons.Start) == 1) {
             Global.getCombatEngine().setPaused(!Global.getCombatEngine().isPaused());
-        } else if(controller.getButtonEvent(HandlerController.Buttons.Select) == 1) {
+        } else if(controller.getButtonEvent(Buttons.Select) == 1) {
             csr.HideWarroom();
             csr.SetVideoFeedToPlayerShip();
             //Global.getCombatEngine().sho
-        } else if(controller.getButtonEvent(HandlerController.Buttons.Y) == 1) {
+        } else if(controller.getButtonEvent(Buttons.Y) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_G, 'G');
         }
 

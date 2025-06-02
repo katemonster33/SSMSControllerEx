@@ -50,12 +50,12 @@ public class CampaignScope extends InputScopeBase {
     }
 
     public void handleInput(float advance, boolean autoNavigate) {
-        if(controller.getButtonEvent(HandlerController.Buttons.BumperLeft) == 1) {
+        if(controller.getButtonEvent(Buttons.BumperLeft) == 1) {
             highlightPrevTab(autoNavigate);
             if(autoNavigate) {
                 selectTab();
             }
-        } else if(controller.getButtonEvent(HandlerController.Buttons.BumperRight) == 1) {
+        } else if(controller.getButtonEvent(Buttons.BumperRight) == 1) {
             highlightNextTab(autoNavigate);
             if(autoNavigate) {
                 selectTab();

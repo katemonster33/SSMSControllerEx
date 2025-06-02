@@ -22,9 +22,7 @@ import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.apache.log4j.Level;
-import ssms.controller.HandlerController;
-import ssms.controller.Indicators;
-import ssms.controller.SSMSControllerModPluginEx;
+import ssms.controller.*;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -32,9 +30,6 @@ import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
 import org.lwjgl.input.Controller;
-import ssms.controller.InputScopeBase;
-import ssms.controller.InputScreenBase;
-import ssms.controller.InputScreenManager;
 import ssms.controller.reflection.ClassReflector;
 import ssms.controller.reflection.MethodReflector;
 import ssms.controller.reflection.TitleScreenStateReflector;
@@ -147,14 +142,18 @@ public class TitleScreenUI extends InputScreenBase {
     @Override
     public void preInput(float advance) {
         var handler = SSMSControllerModPluginEx.controller;
-        if ( handler.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1 ) {
+        if ( handler.getButtonEvent(Buttons.LeftStickDown) == 1 ) {
             selectNextButton();
-        } else if ( handler.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1 ) {
+        } else if ( handler.getButtonEvent(Buttons.LeftStickUp) == 1 ) {
             selectPrevButton();
-        } else if ( handler.getButtonEvent(HandlerController.Buttons.A) == 1 ) {
+        } else if ( handler.getButtonEvent(Buttons.A) == 1 ) {
             clickButton();
-        } else if ( handler.getButtonEvent(HandlerController.Buttons.Select) == 1 ) {
+        } else if ( handler.getButtonEvent(Buttons.Select) == 1 ) {
             InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, AutoMapperUI.ID, new Object[]{});
+        } else if (handler.getButtonEvent(Buttons.DpadDown) == 1) {
+            selectNextButton();
+        } else if (handler.getButtonEvent(Buttons.DpadUp) == 1) {
+            selectPrevButton();
         }
     }
 

@@ -4,7 +4,6 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
-import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.ReadableVector2f;
@@ -63,7 +62,7 @@ public class MapTabUI extends InputScreenBase {
             }
             InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
         }
-        if(!mouseDown && controller.getButtonEvent(HandlerController.Buttons.LeftStickButton) == 1) {
+        if(!mouseDown && controller.getButtonEvent(Buttons.LeftStickButton) == 1) {
             if(!movingMap) {
                 InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
             } else {
@@ -81,15 +80,15 @@ public class MapTabUI extends InputScreenBase {
                     mouseDown = false;
                 }
             }
-            if (controller.getButtonEvent(HandlerController.Buttons.B) == 1) {
+            if (controller.getButtonEvent(Buttons.B) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-            } else if (controller.getButtonEvent(HandlerController.Buttons.LeftTrigger) == 1) {
+            } else if (controller.getButtonEvent(Buttons.LeftTrigger) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_Q, 'q');
-            } else if (controller.getButtonEvent(HandlerController.Buttons.RightTrigger) == 1) {
+            } else if (controller.getButtonEvent(Buttons.RightTrigger) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_W, 'w');
-            } else if (controller.getButtonEvent(HandlerController.Buttons.BumperLeft) == 1) {
+            } else if (controller.getButtonEvent(Buttons.BumperLeft) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_I, 'i');
-            } else if (controller.getButtonEvent(HandlerController.Buttons.BumperRight) == 1) {
+            } else if (controller.getButtonEvent(Buttons.BumperRight) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_E, 'e');
             }
         }

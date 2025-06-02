@@ -150,35 +150,35 @@ public class TradeScreen extends InputScreenBase {
             selectedCol = selectedRow = 0;
             mouseOverGrid(curGrid);
         }
-        if(controller.getButtonEvent(HandlerController.Buttons.LeftStickUp) == 1 && controller.isLeftStickUp()) {
+        if(controller.getButtonEvent(Buttons.LeftStickUp) == 1 && controller.isLeftStickUp()) {
             moveGridSelection(curGrid, -1, 0);
-        } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickDown) == 1 && controller.isLeftStickDown()) {
+        } else if(controller.getButtonEvent(Buttons.LeftStickDown) == 1 && controller.isLeftStickDown()) {
             moveGridSelection(curGrid, 1, 0);
-        } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickLeft) == 1 && controller.isLeftStickLeft()) {
+        } else if(controller.getButtonEvent(Buttons.LeftStickLeft) == 1 && controller.isLeftStickLeft()) {
             //selectStack(curGrid, 0, -1);
             moveGridSelection(curGrid, 0, -1);
-        } else if(controller.getButtonEvent(HandlerController.Buttons.LeftStickRight) == 1 && controller.isLeftStickRight()) {
+        } else if(controller.getButtonEvent(Buttons.LeftStickRight) == 1 && controller.isLeftStickRight()) {
             //selectStack(curGrid, 0, 1);
             moveGridSelection(curGrid, 0, 1);
-        } else if(controller.getButtonEvent(HandlerController.Buttons.X) == 1 && controller.isButtonXPressed()) {
+        } else if(controller.getButtonEvent(Buttons.X) == 1 && controller.isButtonXPressed()) {
             clickStack(curGrid);
-        } else if(controller.getButtonEvent(HandlerController.Buttons.Y) == 1 && controller.isButtonYPressed()) {
+        } else if(controller.getButtonEvent(Buttons.Y) == 1 && controller.isButtonYPressed()) {
             InputShim.keyDownUp(Keyboard.KEY_R, 'r');
-        } else if(controller.getButtonEvent(HandlerController.Buttons.A) == 1 && controller.isButtonAPressed()) {
+        } else if(controller.getButtonEvent(Buttons.A) == 1 && controller.isButtonAPressed()) {
             InputShim.keyDownUp(Keyboard.KEY_G, 'g');
-        } else if(controller.getButtonEvent(HandlerController.Buttons.B) == 1 && controller.isButtonBPressed()) {
+        } else if(controller.getButtonEvent(Buttons.B) == 1 && controller.isButtonBPressed()) {
             InputShim.keyDownUp(Keyboard.KEY_T, 't');
-        } else if(controller.getButtonEvent(HandlerController.Buttons.Select) == 1 && controller.isButtonSelectPressed()) {
+        } else if(controller.getButtonEvent(Buttons.Select) == 1 && controller.isButtonSelectPressed()) {
             playerGridSelected = !playerGridSelected;
             selectedRow = selectedCol = -1;
-        } else if(controller.getButtonEvent(HandlerController.Buttons.Start) == 1 && controller.isButtonStartPressed()) {
+        } else if(controller.getButtonEvent(Buttons.Start) == 1 && controller.isButtonStartPressed()) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
         }
 
         if(isCargoTab) {
-            if(controller.getButtonEvent(HandlerController.Buttons.BumperLeft) == 1) {
+            if(controller.getButtonEvent(Buttons.BumperLeft) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_R, 'r');
-            } else if(controller.getButtonEvent(HandlerController.Buttons.BumperRight) == 1) {
+            } else if(controller.getButtonEvent(Buttons.BumperRight) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_TAB, '\0');
             }
         }

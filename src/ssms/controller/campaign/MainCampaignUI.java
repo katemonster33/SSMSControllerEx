@@ -3,7 +3,6 @@ package ssms.controller.campaign;
 import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
-import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.UIPanelAPI;
@@ -157,7 +156,7 @@ public class MainCampaignUI extends InputScreenBase {
                 isMouseDown = false;
             }
         }
-        if(handler.getButtonEvent(HandlerController.Buttons.LeftStickButton) == 1) {
+        if(handler.getButtonEvent(Buttons.LeftStickButton) == 1) {
             if(mousePos.x == -1.f || mousePos.y == -1.f) {
                 if(Global.getSector().getPlayerFleet() != null) {
                     var shipLoc = Global.getSector().getPlayerFleet().getLocation();
@@ -172,14 +171,14 @@ public class MainCampaignUI extends InputScreenBase {
             CampaignFleetAPI playerFleet = Global.getSector().getPlayerFleet();
             playerFleet.goSlowOneFrame();
         }
-        if(handler.getButtonEvent(HandlerController.Buttons.Start) == 1) {
+        if(handler.getButtonEvent(Buttons.Start) == 1) {
             Global.getSector().setPaused(!Global.getSector().isPaused());
         }
-        if(handler.getButtonEvent(HandlerController.Buttons.Select) == 1) {
+        if(handler.getButtonEvent(Buttons.Select) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-        } else if(handler.getButtonEvent(HandlerController.Buttons.LeftTrigger) == 1) {
+        } else if(handler.getButtonEvent(Buttons.LeftTrigger) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_C, 'c');
-        } else if(handler.getButtonEvent(HandlerController.Buttons.RightStickUp) == 1) {
+        } else if(handler.getButtonEvent(Buttons.RightStickUp) == 1) {
             if(currentHotkeyGroup > 0) {
                 currentHotkeyGroup--;
                 InputShim.keyDown(Keyboard.KEY_LCONTROL, '\0');
@@ -187,7 +186,7 @@ public class MainCampaignUI extends InputScreenBase {
                 InputShim.keyUp(Keyboard.KEY_LCONTROL, '\0');
                 InputShim.keyUp(Keyboard.KEY_1 + currentHotkeyGroup, (char)('0' + currentHotkeyGroup));
             }
-        } else if(handler.getButtonEvent(HandlerController.Buttons.RightStickDown) == 1) {
+        } else if(handler.getButtonEvent(Buttons.RightStickDown) == 1) {
             if(currentHotkeyGroup < 4) {
                 currentHotkeyGroup++;
                 InputShim.keyDown(Keyboard.KEY_LCONTROL, '\0');
@@ -195,15 +194,15 @@ public class MainCampaignUI extends InputScreenBase {
                 InputShim.keyUp(Keyboard.KEY_LCONTROL, '\0');
                 InputShim.keyUp(Keyboard.KEY_1 + currentHotkeyGroup, (char)('1' + currentHotkeyGroup));
             }
-        } else if(handler.getButtonEvent(HandlerController.Buttons.RightStickLeft) == 1) {
+        } else if(handler.getButtonEvent(Buttons.RightStickLeft) == 1) {
             if(currentHotkey > 0) {
                 currentHotkey--;
             }
-        } else if(handler.getButtonEvent(HandlerController.Buttons.RightStickRight) == 1) {
+        } else if(handler.getButtonEvent(Buttons.RightStickRight) == 1) {
             if(currentHotkey < 9) {
                 currentHotkey++;
             }
-        } else if(handler.getButtonEvent(HandlerController.Buttons.B) == 1) {
+        } else if(handler.getButtonEvent(Buttons.B) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_1 + currentHotkey, (char)('1' + currentHotkey));
         }
         if(!isShiftDown && handler.isButtonBumperRightPressed()) {
@@ -212,10 +211,6 @@ public class MainCampaignUI extends InputScreenBase {
         } else if(isShiftDown && !handler.isButtonBumperRightPressed()) {
             InputShim.keyUp(Keyboard.KEY_LSHIFT, '\0');
             isShiftDown = false;
-        }
-
-        if(handler.isDpadRight()) {
-            //Global.getSector().
         }
     }
 
