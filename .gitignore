@@ -3,3 +3,6 @@
 /out
 /.vs
 *.class
+/.gradle/
+/build/
+/SSMSControllerEx.version

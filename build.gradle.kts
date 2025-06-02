@@ -176,10 +176,6 @@ tasks {
     // If enabled, will copy your mod to the /mods directory when run (and whenever gradle syncs).
     // Disabled by default, as it is not needed if your mod directory is symlinked into your /mods folder.
     register<Copy>("install-mod") {
-        val enabled = false;
-
-        if (!enabled) return@register
-
         println("Installing mod into Starsector mod folder...")
 
         val destinations = listOf(modInModsFolder)
@@ -188,7 +184,8 @@ tasks {
             copy {
                 from(projectDir)
                 into(dest)
-                exclude(".git", ".github", ".gradle", ".idea", ".run", "gradle")
+                include("data", "graphics", "jars", "src", "mod_info.json", "SSMSControllerEx.version")
+                //exclude(".git", ".github", ".gradle", ".idea", ".run", "gradle")
             }
         }
     }

@@ -1,4 +1,4 @@
-set MODS_PATH=C:\Users\pn1711\starsector\mods\SSMSControllerEx
+set MODS_PATH=C:\Program Files (x86)\Fractal Softworks\Starsector\mods\SSMSControllerEx
 set SSMSC_PATH=.\
 
 del /S /Q "%MODS_PATH%\*"
