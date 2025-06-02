@@ -60,4 +60,12 @@ public class FieldReflector {
 
         return getMethod.invoke(field, thingToGetFrom);
     }
+
+    public Object GetVariableByName(String fieldName, Object thingToGetFrom) throws Throwable {
+        Object field = ClassReflector.GetInstance().getDeclaredField(thingToGetFrom.getClass(), fieldName);
+
+        setAccessMethod.invoke(field, true);
+
+        return getMethod.invoke(field, thingToGetFrom);
+    }
 }
