@@ -18,6 +18,7 @@
 package ssms.controller;
 
 import com.fs.starfarer.api.ui.UIPanelAPI;
+import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.campaign.ui.trade.CargoDataGridView;
 import net.java.games.input.ControllerEnvironment;
 import ssms.controller.campaign.*;
@@ -31,9 +32,7 @@ import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.HashMap;
+import java.util.*;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -395,7 +394,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
             }
             logger.info(axesInfo);
             StringBuilder buttonsInfo = new StringBuilder(" with buttons: ");
-            for ( int j = 0; j < con.getAxisCount(); j++ ) {
+            for ( int j = 0; j < con.getButtonCount(); j++ ) {
                 if(j != 0) buttonsInfo.append(", ");
                 buttonsInfo.append(con.getButtonName(j));
             }
@@ -410,6 +409,9 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         if ( controllerMappings != null || controllerMappingsByGuid != null ) {
             for ( int i = 0; i < Controllers.getControllerCount(); i++ ) {
                 Controller con = Controllers.getController(i);
+                if(con.getButtonCount() == 0) {
+                    continue;
+                }
                 ControllerMapping conMap = null;
                 String guid = getControllerGuid(con);
                 if (guid != null) {
@@ -417,6 +419,9 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                         controllerMappingsByGuid = configureControllerMappingEx();
                     }
                     conMap = controllerMappingsByGuid.get(guid);
+                    if(conMap != null && System.getProperty("os.name").contains("Windows")) {
+                        convertAxisInstanceToIdx(conMap, con);
+                    }
                 }
                 if(conMap == null) {
                     //String conName = con.getName(); //new StringBuilder(con.getName()).append("(").append(con.getAxisCount()).append(",").append(con.getButtonCount()).append(")").toString();
@@ -446,6 +451,40 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         } 
     }
 
+    static int fixAxisIndex(int axisIdx, List<Pair<Integer, Integer>> realIndices) {
+        if(axisIdx >= 0 && realIndices.size() > axisIdx && axisIdx != 0xFF) return realIndices.get(axisIdx).two;
+        return axisIdx;
+    }
+
+    static void convertAxisInstanceToIdx(ControllerMapping conMap, Controller con) {
+        if(con.getAxisCount() == 0) return;
+        try {
+            List<Pair<Integer, Integer>> instances = new ArrayList<>();
+            var axes = (List<?>) FieldReflector.GetInstance().GetVariableByName("axes", con);
+            for(int axisIdx = 0; axisIdx < axes.size(); axisIdx++) {
+                var axis = axes.get(axisIdx);
+                var obj = FieldReflector.GetInstance().GetVariableByName("object", axis);
+                instances.add(new Pair<>((int) FieldReflector.GetInstance().GetVariableByName("instance", obj), axisIdx));
+            }
+            instances.sort(new Comparator<Pair<Integer, Integer>>() {
+                @Override
+                public int compare(Pair<Integer, Integer> o1, Pair<Integer, Integer> o2) {
+                    return o1.one - o2.one;
+                }
+            });
+            conMap.axisIndexLX = fixAxisIndex(conMap.axisIndexLX, instances);
+            conMap.axisIndexLY = fixAxisIndex(conMap.axisIndexLY, instances);
+            conMap.axisIndexRX = fixAxisIndex(conMap.axisIndexRX, instances);
+            conMap.axisIndexRY = fixAxisIndex(conMap.axisIndexRY, instances);
+            conMap.axisIndexLT = fixAxisIndex(conMap.axisIndexLT, instances);
+            conMap.axisIndexRT = fixAxisIndex(conMap.axisIndexRT, instances);
+            conMap.axisIndexDpadX = fixAxisIndex(conMap.axisIndexDpadX, instances);
+            conMap.axisIndexDpadY = fixAxisIndex(conMap.axisIndexDpadY, instances);
+        } catch(Throwable ex) {
+            Global.getLogger(SSMSControllerModPluginEx.class).error("Couldn't reflect instance ID of controller axes!");
+        }
+    }
+
     //implementation of SDL_Swap16LE
     static String asLittleEndian(int i) {
          return String.format("%02x%02x", i & 0xFF, (i >> 8) & 0xFF);
@@ -469,12 +508,13 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         String platform = System.getProperty("os.name");
         try {
             if(platform.contains("Windows")) {
-                var privateDevField = ClassReflector.GetInstance().getDeclaredField(con.getClass(), "target");
-                var privateDev = FieldReflector.GetInstance().GetVariable(privateDevField, con);
-                var field = ClassReflector.GetInstance().getDeclaredField(privateDev.getClass(), "device");
-                var device = FieldReflector.GetInstance().GetVariable(field, privateDev);
-                var guidField = ClassReflector.GetInstance().getDeclaredField(device.getClass(), "guid");
-                return (String) FieldReflector.GetInstance().GetVariable(guidField, device);
+                var privateDev = FieldReflector.GetInstance().GetVariableByName("target", con);
+                var device = FieldReflector.GetInstance().GetVariableByName("device", privateDev);
+                var address = (long) FieldReflector.GetInstance().GetVariableByName("address", device);
+                var vidpid = DirectInputDeviceEx.GetVidPid(address);
+                if(vidpid != 0) {
+                    return makeControllerGuid((int)(vidpid & 0xFFFF), (int)((vidpid >> 16) & 0xFFFF), 0);
+                }
             } else if(platform.contains("Mac OS X")) {
                 return null;
             } else if(platform.contains("Linux")) {
@@ -488,7 +528,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                 return makeControllerGuid(vendor, product, version);
             }
         } catch(Throwable ex) {
-            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.FATAL, "Failed to reflect controller GUID! " + ex);
+            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.FATAL, "Failed to reflect controller GUID! ", ex);
         }
         return null;
     }

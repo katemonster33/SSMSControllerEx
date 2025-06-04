@@ -1,3 +1,4 @@
+import org.gradle.internal.jvm.Jvm
 //
 // ==============
 // ==== SECTION A: RECOMMENDED VARIABLES TO CHANGE ====
@@ -11,7 +12,7 @@ val modName = rootDir.name
  * Where your Starsector game is installed to.
  * Note: On Linux, if you installed Starsector into your home directory, you have to write /home/<user>/ instead of ~/
  */
-val starsectorDirectory = "C:/Users/pn1711/starsector"
+val starsectorDirectory = "C:/Program Files (x86)/Fractal Softworks/Starsector"
 
 /** Defaults to the name of your mod, with spaces replaced by hyphens. */
 val modFolderName = modName.replace(" ", "-")
@@ -84,6 +85,7 @@ dependencies {
     // Get kotlin sdk from LazyLib during runtime, only use it here during compile time
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersionInLazyLib")
     compileOnly("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersionInLazyLib")
+
 }
 
 // ==============
@@ -189,16 +191,6 @@ tasks {
             }
         }
     }
-
-    register<CppCompile>("compileVariantCpp") {
-        source {
-
-        }
-
-    }
-    named<CppSharedLibrary>("linkVariantCpp") {
-
-    }
 }
 
 //
@@ -208,7 +200,6 @@ sourceSets.main {
     // Add new folder names here, with the path, if your Java source code isn't in /src.
     java.setSrcDirs(listOf("src"))
 
-
 }
 
 
@@ -217,7 +208,6 @@ sourceSets.main {
 // -----DON'T TOUCH STUFF BELOW THIS LINE UNLESS YOU KNOW WHAT YOU'RE DOING  -------------------
 plugins {
     java
-    `cpp-library`
 }
 
 version = modVersion
@@ -225,6 +215,12 @@ version = modVersion
 repositories {
     maven(url = uri("$projectDir/libs"))
     mavenCentral()
+}
+
+subprojects {
+    repositories {
+        mavenCentral()
+    }
 }
 
 // Compile Java to Java 7 bytecode so that Starsector can use it

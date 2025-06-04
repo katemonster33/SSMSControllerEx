@@ -5,5 +5,5 @@
 *.class
 /.gradle/
 /.idea/
-/build/
+build/
 /SSMSControllerEx.version
