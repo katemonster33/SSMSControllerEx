@@ -11,6 +11,8 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.generic.MessageBoxScreen;
+import ssms.controller.inputhelper.ButtonInputHandler;
+import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.*;
 
 import java.util.ArrayList;
@@ -27,7 +29,6 @@ public class TradeScreen extends InputScreenBase {
     int selectedRow = -1, selectedCol = -1;
     HandlerController controller;
     int lastFrameChildCount = 0;
-    boolean isCargoTab = false;
 
     @Override
     public void activate(Object ... args) {
@@ -36,16 +37,26 @@ public class TradeScreen extends InputScreenBase {
         }
         indicators = new ArrayList<>();
         indicators.add(new Pair<>(Indicators.LeftStick, "Navigate list"));
-        indicators.add(new Pair<>(Indicators.X, "Pick up stack"));
-        indicators.add(new Pair<>(Indicators.Y, "Take all"));
-        indicators.add(new Pair<>(Indicators.B, "Abort"));
-        indicators.add(new Pair<>(Indicators.A, "Confirm"));
-        indicators.add(new Pair<>(Indicators.Select, "Toggle hangar"));
-        indicators.add(new Pair<>(Indicators.Start, "Close"));
-        isCargoTab = Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.CARGO;
-        if(isCargoTab) {
-            indicators.add(new Pair<>(Indicators.BumperLeft, "Select refit tab"));
-            indicators.add(new Pair<>(Indicators.BumperRight, "Select map tab"));
+
+        addHandler("Pick up stack", new ButtonInputHandler(Buttons.X, (float advance) ->
+                clickStack(playerGridSelected ? playerDataGrid : otherDataGrid)));
+
+        addHandler("Take all", new KeySender(Buttons.Y, Keyboard.KEY_R, 'r'));
+
+        addHandler("Abort", new KeySender(Buttons.B, Keyboard.KEY_T, 't'));
+
+        addHandler("Confirm", new KeySender(Buttons.A, Keyboard.KEY_G, 'g'));
+
+        addHandler("Toggle hangar", new ButtonInputHandler(Buttons.Select, (float advance) -> {
+            playerGridSelected = !playerGridSelected;
+            selectedRow = selectedCol = -1;
+        }));
+
+        addHandler("Close", new KeySender(Buttons.Start, Keyboard.KEY_ESCAPE));
+
+        if(Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.CARGO) {
+            addHandler("Select refit tab", new KeySender(Buttons.BumperLeft, Keyboard.KEY_R, 'r'));
+            addHandler("Select map tab", new KeySender(Buttons.BumperRight, Keyboard.KEY_TAB));
         }
         controller = SSMSControllerModPluginEx.controller;
 
@@ -159,33 +170,10 @@ public class TradeScreen extends InputScreenBase {
         } else if(controller.getButtonEvent(Buttons.LeftStickRight) == 1 && controller.isLeftStickRight()) {
             //selectStack(curGrid, 0, 1);
             moveGridSelection(curGrid, 0, 1);
-        } else if(controller.getButtonEvent(Buttons.X) == 1 && controller.isButtonXPressed()) {
-            clickStack(curGrid);
-        } else if(controller.getButtonEvent(Buttons.Y) == 1 && controller.isButtonYPressed()) {
-            InputShim.keyDownUp(Keyboard.KEY_R, 'r');
-        } else if(controller.getButtonEvent(Buttons.A) == 1 && controller.isButtonAPressed()) {
-            InputShim.keyDownUp(Keyboard.KEY_G, 'g');
-        } else if(controller.getButtonEvent(Buttons.B) == 1 && controller.isButtonBPressed()) {
-            InputShim.keyDownUp(Keyboard.KEY_T, 't');
-        } else if(controller.getButtonEvent(Buttons.Select) == 1 && controller.isButtonSelectPressed()) {
+        } else if(controller.getButtonEvent(Buttons.Select) == 1) {
             playerGridSelected = !playerGridSelected;
             selectedRow = selectedCol = -1;
-        } else if(controller.getButtonEvent(Buttons.Start) == 1 && controller.isButtonStartPressed()) {
-            InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
         }
-
-        if(isCargoTab) {
-            if(controller.getButtonEvent(Buttons.BumperLeft) == 1) {
-                InputShim.keyDownUp(Keyboard.KEY_R, 'r');
-            } else if(controller.getButtonEvent(Buttons.BumperRight) == 1) {
-                InputShim.keyDownUp(Keyboard.KEY_TAB, '\0');
-            }
-        }
-    }
-
-    @Override
-    public List<Pair<Indicators, String>> getIndicators() {
-        return indicators;
     }
 
     @Override

@@ -22,12 +22,14 @@ import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
+import ssms.controller.inputhelper.AbstractButtonInputHandler;
 import ssms.controller.inputhelper.ButtonInputHandler;
 import ssms.controller.reflection.CampaignStateReflector;
 import ssms.controller.reflection.CombatStateReflector;
 import ssms.controller.reflection.TitleScreenStateReflector;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -39,7 +41,7 @@ public class InputScreenBase {
     public static final String ID = "NoScreen";
     public static final String SCOPES = InputScopeBase.ID;
     protected List<Pair<Indicators, String>> indicators;
-    protected List<ButtonInputHandler> handlers;
+    protected HashMap<Indicators, AbstractButtonInputHandler> handlers;
 
     public InputScreenBase() {
         handlers = new ArrayList<>();
@@ -63,6 +65,9 @@ public class InputScreenBase {
     }
 
     public void preInput(float advance) {
+        for(var btnHandler : handlers.values()) {
+            btnHandler.advance(advance);
+        }
     }
 
     public void postInput(float advance) {
@@ -72,13 +77,24 @@ public class InputScreenBase {
 
     public String[] getScopes() { return new String[]{ SCOPES }; }
 
-    protected void addHandler(String msg, ButtonInputHandler handler) {
-        handlers.add(handler);
-        //indicators.add(new Pair<>(handler.))
+    //protected void addJoystickHandler(String msg, Indicators joystickIndicator, )
+
+//    protected void addButtonHandler(String msg, AbstractButtonInputHandler handler) {
+//
+//    }
+
+    protected void addHandler(String msg, AbstractButtonInputHandler handler) {
+        var indicator = Indicators.fromButton(handler.getButtons());
+        if(indicator == null) {
+            Global.getLogger(getClass()).warn("given button doesn't translate to indicator! " + handler.getButtons());
+            return;
+        }
+        handlers.put(indicator, handler);
+        indicators.add(new Pair<>(indicator, msg));
     }
 
     protected void clearHandlers() {
-
+        handlers.clear();
     }
 
     public UIPanelAPI getPanelForIndicators() {

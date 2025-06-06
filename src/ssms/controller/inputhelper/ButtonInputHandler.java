@@ -1,36 +1,27 @@
 package ssms.controller.inputhelper;
 
 import ssms.controller.Buttons;
-import ssms.controller.SSMSControllerModPluginEx;
 
-public abstract class ButtonInputHandler {
-    Buttons buttons;
-    ButtonMode buttonMode;
-    boolean buttonState = false;
-    public ButtonInputHandler(Buttons buttons, ButtonMode buttonMode) {
-        this.buttons = buttons;
-        this.buttonMode = buttonMode;
+public class ButtonInputHandler extends AbstractButtonInputHandler {
+    Callback callback;
+    public ButtonInputHandler(Buttons buttons, Callback callback) {
+        super(buttons);
+        this.callback = callback;
     }
 
-    void handleDownHold(float advance) {
-
+    public ButtonInputHandler(Buttons buttons, ButtonMode buttonMode, Callback callback) {
+        super(buttons, buttonMode);
+        this.callback = callback;
     }
 
-    public void advance(float advance) {
-        switch(buttonMode) {
-            case Up: if(SSMSControllerModPluginEx.controller.getButtonEvent(buttons) == -1) performAction(); break;
-            case Down: if(SSMSControllerModPluginEx.controller.getButtonEvent(buttons) == 1) performAction(); break;
-            case UpOrDown: if(SSMSControllerModPluginEx.controller.getButtonEvent(buttons) != 0) performAction(); break;
-            case DownAndHold: handleDownHold(advance);
+    @Override
+    public void performAction(float advance) {
+        if(callback != null) {
+            callback.performAction(advance);
         }
     }
 
-    public abstract void performAction();
-
-    public enum ButtonMode {
-        Down,
-        Up,
-        UpOrDown,
-        DownAndHold
+    public static interface Callback {
+        void performAction(float advance);
     }
 }

@@ -62,8 +62,9 @@ public class FleetTabUI extends InputScreenBase {
         if (indicators == null) {
             indicators = new ArrayList<>();
             indicators.add(new Pair<>(Indicators.LeftStick, "Navigate ships"));
-            indicators.add(new Pair<>(Indicators.LeftStickButton, "Cycle ship info"));
+            addHandler("Cycle ship info", Buttons.LeftStickButton, () -> incrementItemInfoOffset());
             if(itemInfoOffset == -1) {
+                //addHandler("Move ship");
                 indicators.add(new Pair<>(Indicators.A, "Move ship"));
             } else if(itemInfoOffset == 0) {
                 indicators.add(new Pair<>(Indicators.A, "Open codex"));
@@ -203,14 +204,7 @@ public class FleetTabUI extends InputScreenBase {
             }
         }
         if (controller.getButtonEvent(Buttons.LeftStickButton) == 1) {
-            if(itemInfoOffset != -1 && itemInfoOffset < (itemInfoOffsets.size() - 1)) {
-                itemInfoOffset++;
-            } else {
-                itemInfoOffset = 0;
-            }
-            indicators = null;
-            InputScreenManager.getInstance().refreshIndicators();
-            hoverCurrentItem();
+            incrementItemInfoOffset();
         }
         if(controller.isButtonXPressed()) {
             if(buttonXDownTime != -1.f) {
@@ -250,5 +244,16 @@ public class FleetTabUI extends InputScreenBase {
         } else if(controller.getButtonEvent(Buttons.BumperRight) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_R, 'r');
         }
+    }
+
+    private void incrementItemInfoOffset() {
+        if(itemInfoOffset != -1 && itemInfoOffset < (itemInfoOffsets.size() - 1)) {
+            itemInfoOffset++;
+        } else {
+            itemInfoOffset = 0;
+        }
+        indicators = null;
+        InputScreenManager.getInstance().refreshIndicators();
+        hoverCurrentItem();
     }
 }
