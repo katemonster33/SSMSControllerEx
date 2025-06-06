@@ -62,23 +62,29 @@ public abstract class DirectionalUINavigator {
         if(SSMSControllerModPluginEx.controller.getButtonEvent(Buttons.DpadLeft) == 1) {
             moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
                     (int)((o1.getPosition().getX() - o2.getPosition().getX()) *
-                            getDeltaOrOne(o1.getPosition().getY(), o2.getPosition().getY()));
+                            getDeltaOrOne(o1.getPosition().getY(), o2.getPosition().getY())));
+            return true;
         } else if(SSMSControllerModPluginEx.controller.getButtonEvent(Buttons.DpadRight) == 1) {
             moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
                     (int)((o2.getPosition().getX() - o1.getPosition().getX()) *
-                            getDeltaOrOne((o1.getPosition().getY(), o2.getPosition().getY())));
+                            getDeltaOrOne(o1.getPosition().getY(), o2.getPosition().getY())));
+            return true;
         } else if(SSMSControllerModPluginEx.controller.getButtonEvent(Buttons.DpadUp) == 1) {
             moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
                     (int)((o2.getPosition().getY() - o1.getPosition().getY()) *
-                            getDeltaOrOne((o1.getPosition().getX(), o2.getPosition().getX())));
+                            getDeltaOrOne(o1.getPosition().getX(), o2.getPosition().getX())));
+            return true;
         } else if(SSMSControllerModPluginEx.controller.getButtonEvent(Buttons.DpadDown) == 1) {
             moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
                     (int)((o2.getPosition().getY() - o1.getPosition().getY()) *
-                            getDeltaOrOne((o1.getPosition().getX(), o2.getPosition().getX())));
+                            getDeltaOrOne(o1.getPosition().getX(), o2.getPosition().getX())));
+            return true;
         } else if(SSMSControllerModPluginEx.controller.getButtonEvent(Buttons.A) == 1) {
             if(curIndex != -1) {
                 onConfirm(navigationObjects.get(curIndex));
             }
+            return true;
         }
+        return false;
     }
 }

@@ -18,7 +18,6 @@ import java.util.List;
 
 public class TradeScreen extends InputScreenBase {
     public static final String ID = "Trade";
-    List<Pair<Indicators, String>> indicators;
     TradeUiReflector tradeUiReflector;
     InteractionDialogAPI interactionDialogAPI;
     CargoDataGridViewReflector playerDataGrid;

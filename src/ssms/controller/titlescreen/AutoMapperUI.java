@@ -72,38 +72,6 @@ public class AutoMapperUI extends InputScreenBase {
         }
     }
 
-
-    Indicators getIndicatorForButton(Buttons btn)
-    {
-        return switch (btn) {
-            case A -> Indicators.A;
-            case B -> Indicators.B;
-            case X -> Indicators.X;
-            case Y -> Indicators.Y;
-            case Select -> Indicators.Select;
-            case Start -> Indicators.Start;
-            case LeftStickButton -> Indicators.LeftStickButton;
-            case RightStickButton -> Indicators.RightStickButton;
-            case LeftStickLeft -> Indicators.LeftStickLeft;
-            case LeftStickDown -> Indicators.LeftStickDown;
-            case LeftStickRight -> Indicators.LeftStickRight;
-            case LeftStickUp -> Indicators.LeftStickUp;
-            case LeftTrigger -> Indicators.LeftTrigger;
-            case RightStickDown -> Indicators.RightStickDown;
-            case RightStickLeft -> Indicators.RightStickLeft;
-            case RightStickRight -> Indicators.RightStickRight;
-            case RightStickUp -> Indicators.RightStickUp;
-            case RightTrigger -> Indicators.RightTrigger;
-            case BumperLeft -> Indicators.BumperLeft;
-            case BumperRight -> Indicators.BumperRight;
-            case DpadUp -> Indicators.DPadUp;
-            case DpadDown -> Indicators.DPadDown;
-            case DpadLeft -> Indicators.DPadLeft;
-            case DpadRight -> Indicators.DPadRight;
-            default -> null;
-        };
-    }
-
     @Override
     public void deactivate() {
         if(autoMapperPanel != null) {
@@ -136,7 +104,7 @@ public class AutoMapperUI extends InputScreenBase {
             var panel = TitleScreenStateReflector.GetInstance().getScreenPanel();
             autoMapperPanel = new AutoMapperPanel(panel);
 
-            var indicatorEnum = getIndicatorForButton(buttons[calibrationIndex]);
+            var indicatorEnum = Indicators.fromButton(buttons[calibrationIndex]);
             if(indicatorEnum != null) {
                 var spritePath = SSMSControllerModPluginEx.defaultIndicators.get(indicatorEnum);
                 if (spritePath != null) {
@@ -245,7 +213,7 @@ public class AutoMapperUI extends InputScreenBase {
             }
             InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TitleScreenUI.ID, new Object[]{});
         } else {
-            var indicatorEnum = getIndicatorForButton(buttons[calibrationIndex]);
+            var indicatorEnum = Indicators.fromButton(buttons[calibrationIndex]);
             if (indicatorEnum != null) {
                 var spritePath = SSMSControllerModPluginEx.defaultIndicators.get(indicatorEnum);
                 if (spritePath != null) {

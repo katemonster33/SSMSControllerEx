@@ -23,5 +23,36 @@ package ssms.controller;
  */
 public enum Indicators {
     A,B,X,Y,BumperLeft,BumperRight,Start,Select,LeftStickButton,RightStickButton,RightStickUp,RightStickDown,RightStickLeft,RightStickRight,
-    LeftStickUp,LeftStickDown,LeftStickLeft,LeftStickRight,LeftStick,RightStick, LeftTrigger, RightTrigger, DPadUp, DPadDown, DPadLeft, DPadRight, DPad
+    LeftStickUp,LeftStickDown,LeftStickLeft,LeftStickRight,LeftStick,RightStick, LeftTrigger, RightTrigger, DPadUp, DPadDown, DPadLeft, DPadRight, DPad;
+
+    public static Indicators fromButton(Buttons btn)
+    {
+        return switch (btn) {
+            case A -> Indicators.A;
+            case B -> Indicators.B;
+            case X -> Indicators.X;
+            case Y -> Indicators.Y;
+            case Select -> Indicators.Select;
+            case Start -> Indicators.Start;
+            case LeftStickButton -> Indicators.LeftStickButton;
+            case RightStickButton -> Indicators.RightStickButton;
+            case LeftStickLeft -> Indicators.LeftStickLeft;
+            case LeftStickDown -> Indicators.LeftStickDown;
+            case LeftStickRight -> Indicators.LeftStickRight;
+            case LeftStickUp -> Indicators.LeftStickUp;
+            case LeftTrigger -> Indicators.LeftTrigger;
+            case RightStickDown -> Indicators.RightStickDown;
+            case RightStickLeft -> Indicators.RightStickLeft;
+            case RightStickRight -> Indicators.RightStickRight;
+            case RightStickUp -> Indicators.RightStickUp;
+            case RightTrigger -> Indicators.RightTrigger;
+            case BumperLeft -> Indicators.BumperLeft;
+            case BumperRight -> Indicators.BumperRight;
+            case DpadUp -> Indicators.DPadUp;
+            case DpadDown -> Indicators.DPadDown;
+            case DpadLeft -> Indicators.DPadLeft;
+            case DpadRight -> Indicators.DPadRight;
+            default -> null;
+        };
+    }
 }

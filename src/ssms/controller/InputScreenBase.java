@@ -22,10 +22,12 @@ import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
+import ssms.controller.inputhelper.ButtonInputHandler;
 import ssms.controller.reflection.CampaignStateReflector;
 import ssms.controller.reflection.CombatStateReflector;
 import ssms.controller.reflection.TitleScreenStateReflector;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,9 +38,16 @@ public class InputScreenBase {
 
     public static final String ID = "NoScreen";
     public static final String SCOPES = InputScopeBase.ID;
+    protected List<Pair<Indicators, String>> indicators;
+    protected List<ButtonInputHandler> handlers;
+
+    public InputScreenBase() {
+        handlers = new ArrayList<>();
+        indicators = new ArrayList<>();
+    }
 
     public List<Pair<Indicators, String>> getIndicators() {
-        return null;
+        return indicators;
     }
 
     public void deactivate() {
@@ -62,6 +71,15 @@ public class InputScreenBase {
     public String getId() { return ID; }
 
     public String[] getScopes() { return new String[]{ SCOPES }; }
+
+    protected void addHandler(String msg, ButtonInputHandler handler) {
+        handlers.add(handler);
+        //indicators.add(new Pair<>(handler.))
+    }
+
+    protected void clearHandlers() {
+
+    }
 
     public UIPanelAPI getPanelForIndicators() {
         return switch (Global.getCurrentState()) {

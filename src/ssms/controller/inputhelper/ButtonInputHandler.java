@@ -21,7 +21,7 @@ public abstract class ButtonInputHandler {
             case Up: if(SSMSControllerModPluginEx.controller.getButtonEvent(buttons) == -1) performAction(); break;
             case Down: if(SSMSControllerModPluginEx.controller.getButtonEvent(buttons) == 1) performAction(); break;
             case UpOrDown: if(SSMSControllerModPluginEx.controller.getButtonEvent(buttons) != 0) performAction(); break;
-            case DownAndHold:
+            case DownAndHold: handleDownHold(advance);
         }
     }
 
