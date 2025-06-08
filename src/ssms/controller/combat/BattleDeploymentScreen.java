@@ -15,7 +15,6 @@ public class BattleDeploymentScreen extends InputScreenBase {
     public static final String ID = "BattleDeployment";
     List<Pair<Indicators, String>> indicators = null;
     DeploymentUiReflector dui; // hehe, dui
-    HandlerController controller;
     int selectedButton = -1;
     List<ButtonAPI> dialogOptions;
     int selectedShip = -1;
@@ -37,7 +36,6 @@ public class BattleDeploymentScreen extends InputScreenBase {
 
     @Override
     public void activate(Object ...args) {
-        controller = SSMSControllerModPluginEx.controller;
         CombatStateReflector csr = (CombatStateReflector) args[0];
         dui = new DeploymentUiReflector(csr.getDeploymentDialog());
         dialogOptions = dui.getAllButtons();

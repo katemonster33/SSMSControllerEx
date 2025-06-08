@@ -26,10 +26,8 @@ public class IntelTabUI extends InputScreenBase {
     public static final String ID = "IntelTab";
     IntelTabReflector intelTabReflector;
     IntelTabData intelTabData;
-    List<Pair<Indicators, String>> indicators = null;
     int lastFrameSelectedIndex = -1;
     CampaignScope campaignScope;
-    HandlerController controller;
     EventsTabReflector eventsTabReflector;
     int selectedIndex = -1;
     Vector2f desiredMousePos = null;
@@ -95,7 +93,6 @@ public class IntelTabUI extends InputScreenBase {
         currentTabFocus = IntelTabFocusMode.IntelList;
         desiredMousePos = null;
         campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
-        controller = SSMSControllerModPluginEx.controller;
         currentMapMode = MapMode.MoveCursor;
         // this can throw an exception, we will just pass the exception upstream so that the screen doesn't get activated
         eventsTabReflector = new EventsTabReflector(intelTabReflector.getEventsPanel());

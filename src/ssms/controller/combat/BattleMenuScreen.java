@@ -39,10 +39,8 @@ import ssms.controller.reflection.CombatStateReflector;
 public class BattleMenuScreen extends InputScreenBase {
     public static final String ID = "BattleMenu";
     public static final String SCOPES = "Battle";
-    protected HandlerController handler;
     protected BattleScope scope;
     protected CombatEngineAPI engine;
-    protected List<Pair<Indicators, String>> indicators;
     BattleMenuUI currentMenu;
 
     public abstract static class BattleMenuUI extends LunaBaseCustomPanelPlugin {
@@ -145,8 +143,7 @@ public class BattleMenuScreen extends InputScreenBase {
 //            engine.getCombatUI().addMessage(0, "error: "+t.getMessage());
 //            Global.getLogger(SSMSControllerModPluginEx.class).error("Failed to hide HUD!", t);
 //        }
-        
-        handler = null;
+
         scope = null;
         engine = null;
         if(currentMenu != null) {
@@ -156,7 +153,6 @@ public class BattleMenuScreen extends InputScreenBase {
 
     @Override
     public void activate(Object ... args) {
-        handler = SSMSControllerModPluginEx.controller;
         scope = (BattleScope) InputScreenManager.getInstance().getCurrentScope();
         engine = scope.engine;
         
@@ -175,29 +171,15 @@ public class BattleMenuScreen extends InputScreenBase {
     @Override
     public void preInput(float advance) {
         if(currentMenu != null) {
-            currentMenu.handleInput(handler);
+            currentMenu.handleInput(controller);
         }
     }
 
-    @Override
-    public void postInput(float advance) {
-        
-    }
-
-    @Override
-    public void renderInWorld(ViewportAPI viewport) {
-    }
-    
     @Override
     public void renderUI(ViewportAPI viewport) {
         if(currentMenu == null) {
             currentMenu = assembleMenu();
         }
-    }
-
-    @Override
-    public List<Pair<Indicators, String>> getIndicators() {
-        return indicators;
     }
     
     protected void closeMenu() {

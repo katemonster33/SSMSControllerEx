@@ -26,7 +26,6 @@ public class MainCampaignUI extends InputScreenBase {
     CampaignScope campaignScope;
     Vector2f lastHeading = null;
     Vector2f mousePos = new Vector2f(-1.f, -1.f);
-    HandlerController handler;
     boolean isShiftDown = false;
     boolean isMouseDown = false;
     boolean isMoving = false;
@@ -34,7 +33,6 @@ public class MainCampaignUI extends InputScreenBase {
     int currentHotkeyGroup = 0, currentHotkey = 0;
     int lastFrameNumChildren = -1;
 
-    ArrayList<Pair<Indicators, String>> indicators;
     int selectedHotkey, selectedHotkeyGroup;
     int selectedTab;
 
@@ -56,7 +54,6 @@ public class MainCampaignUI extends InputScreenBase {
 
     @Override
     public void activate(Object... args) {
-        handler = SSMSControllerModPluginEx.controller;
         campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
         campaignScope.refreshSelectedIndex();
         selectedHotkey = selectedHotkeyGroup = selectedTab = -1;
@@ -76,7 +73,7 @@ public class MainCampaignUI extends InputScreenBase {
         if(pf == null) {
             return;
         }
-        ReadableVector2f desiredHeading = handler.getLeftStick();
+        ReadableVector2f desiredHeading = controller.getLeftStick();
         if ( desiredHeading.getX() == 0 && desiredHeading.getY() == 0) {
             if(lastHeading != null && (desiredHeading.getX() != lastHeading.getX() || desiredHeading.getY() != lastHeading.getY())) {
                 mousePos.x = pf.getLocation().getX();
@@ -108,11 +105,6 @@ public class MainCampaignUI extends InputScreenBase {
         }
         mousePos.y = viewport.convertWorldYtoScreenY(ypos);
         InputShim.mouseMove((int)mousePos.x, (int)mousePos.y);
-    }
-
-    @Override
-    public List<Pair<Indicators, String>> getIndicators() {
-        return indicators;
     }
 
     @Override
@@ -148,15 +140,15 @@ public class MainCampaignUI extends InputScreenBase {
         lastFrameNumChildren = numChildren;
 
         if(mousePos.x != -1.f && mousePos.y != -1.f) {
-            if (handler.isButtonAPressed() && !isMouseDown) {
+            if (controller.isButtonAPressed() && !isMouseDown) {
                 InputShim.mouseDown((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
                 isMouseDown = true;
-            } else if (!handler.isButtonAPressed() && isMouseDown) {
+            } else if (!controller.isButtonAPressed() && isMouseDown) {
                 InputShim.mouseUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
                 isMouseDown = false;
             }
         }
-        if(handler.getButtonEvent(Buttons.LeftStickButton) == 1) {
+        if(controller.getButtonEvent(Buttons.LeftStickButton) == 1) {
             if(mousePos.x == -1.f || mousePos.y == -1.f) {
                 if(Global.getSector().getPlayerFleet() != null) {
                     var shipLoc = Global.getSector().getPlayerFleet().getLocation();
@@ -167,18 +159,18 @@ public class MainCampaignUI extends InputScreenBase {
             InputShim.mouseMove((int) mousePos.x, (int) mousePos.y);
             InputShim.mouseDownUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.RIGHT);
         }
-        if(handler.isTriggerRight()) {
+        if(controller.isTriggerRight()) {
             CampaignFleetAPI playerFleet = Global.getSector().getPlayerFleet();
             playerFleet.goSlowOneFrame();
         }
-        if(handler.getButtonEvent(Buttons.Start) == 1) {
+        if(controller.getButtonEvent(Buttons.Start) == 1) {
             Global.getSector().setPaused(!Global.getSector().isPaused());
         }
-        if(handler.getButtonEvent(Buttons.Select) == 1) {
+        if(controller.getButtonEvent(Buttons.Select) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-        } else if(handler.getButtonEvent(Buttons.LeftTrigger) == 1) {
+        } else if(controller.getButtonEvent(Buttons.LeftTrigger) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_C, 'c');
-        } else if(handler.getButtonEvent(Buttons.RightStickUp) == 1) {
+        } else if(controller.getButtonEvent(Buttons.RightStickUp) == 1) {
             if(currentHotkeyGroup > 0) {
                 currentHotkeyGroup--;
                 InputShim.keyDown(Keyboard.KEY_LCONTROL, '\0');
@@ -186,7 +178,7 @@ public class MainCampaignUI extends InputScreenBase {
                 InputShim.keyUp(Keyboard.KEY_LCONTROL, '\0');
                 InputShim.keyUp(Keyboard.KEY_1 + currentHotkeyGroup, (char)('0' + currentHotkeyGroup));
             }
-        } else if(handler.getButtonEvent(Buttons.RightStickDown) == 1) {
+        } else if(controller.getButtonEvent(Buttons.RightStickDown) == 1) {
             if(currentHotkeyGroup < 4) {
                 currentHotkeyGroup++;
                 InputShim.keyDown(Keyboard.KEY_LCONTROL, '\0');
@@ -194,21 +186,21 @@ public class MainCampaignUI extends InputScreenBase {
                 InputShim.keyUp(Keyboard.KEY_LCONTROL, '\0');
                 InputShim.keyUp(Keyboard.KEY_1 + currentHotkeyGroup, (char)('1' + currentHotkeyGroup));
             }
-        } else if(handler.getButtonEvent(Buttons.RightStickLeft) == 1) {
+        } else if(controller.getButtonEvent(Buttons.RightStickLeft) == 1) {
             if(currentHotkey > 0) {
                 currentHotkey--;
             }
-        } else if(handler.getButtonEvent(Buttons.RightStickRight) == 1) {
+        } else if(controller.getButtonEvent(Buttons.RightStickRight) == 1) {
             if(currentHotkey < 9) {
                 currentHotkey++;
             }
-        } else if(handler.getButtonEvent(Buttons.B) == 1) {
+        } else if(controller.getButtonEvent(Buttons.B) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_1 + currentHotkey, (char)('1' + currentHotkey));
         }
-        if(!isShiftDown && handler.isButtonBumperRightPressed()) {
+        if(!isShiftDown && controller.isButtonBumperRightPressed()) {
             InputShim.keyDown(Keyboard.KEY_LSHIFT, '\0');
             isShiftDown = true;
-        } else if(isShiftDown && !handler.isButtonBumperRightPressed()) {
+        } else if(isShiftDown && !controller.isButtonBumperRightPressed()) {
             InputShim.keyUp(Keyboard.KEY_LSHIFT, '\0');
             isShiftDown = false;
         }

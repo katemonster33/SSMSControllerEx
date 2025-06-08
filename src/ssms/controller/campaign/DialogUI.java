@@ -23,7 +23,6 @@ public class DialogUI extends InputScreenBase {
     List<ButtonAPI> dialogOptions;
     MethodHandle doButtonClick;
     int selectedButton = -1;
-    HandlerController controller;
     InteractionDialogReflector  interactReflector;
     InteractionDialogAPI interactionDialogAPI;
     public static final String ID = "Dialog";
@@ -48,7 +47,6 @@ public class DialogUI extends InputScreenBase {
                 Global.getLogger(getClass()).log(Level.FATAL, "Couldn't get the main menu buttons!");
             }
         }
-        controller = SSMSControllerModPluginEx.controller;
     }
 
     @Override

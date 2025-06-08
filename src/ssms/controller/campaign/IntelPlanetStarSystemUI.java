@@ -23,10 +23,8 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
     public static final String ID = "IntelPlanetStarSystem";
     IntelTabReflector intelTabReflector;
     IntelTabData intelTabData;
-    List<Pair<Indicators, String>> indicators = null;
     int lastFrameSelectedIndex = -1;
     CampaignScope campaignScope;
-    HandlerController controller;
     IntelPlanetTabUi.PlanetTabReflector planetTabReflector;
     int selectedIndex = -1;
     Vector2f desiredMousePos = null;
@@ -93,7 +91,6 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
         currentTabFocus = StarSystemTabFocusMode.PlanetAttributes;
         desiredMousePos = null;
         campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
-        controller = SSMSControllerModPluginEx.controller;
         currentMapMode = MapMode.MoveCursor;
         planetTabReflector = new IntelPlanetTabUi.PlanetTabReflector(intelTabReflector.getPlanetTabData());
     }

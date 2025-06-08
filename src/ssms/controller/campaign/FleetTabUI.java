@@ -9,6 +9,7 @@ import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
+import ssms.controller.inputhelper.ButtonInputHandler;
 import ssms.controller.reflection.FleetTabReflector;
 import ssms.controller.reflection.UIPanelReflector;
 
@@ -18,7 +19,6 @@ import java.util.List;
 public class FleetTabUI extends InputScreenBase {
     public static final String ID = "FleetTab";
     List<Pair<Indicators, String>> indicators;
-    HandlerController controller;
     int numCols = -1;
     int curRow = -1, curCol = -1;
     int itemCount = -1;
@@ -62,7 +62,8 @@ public class FleetTabUI extends InputScreenBase {
         if (indicators == null) {
             indicators = new ArrayList<>();
             indicators.add(new Pair<>(Indicators.LeftStick, "Navigate ships"));
-            addHandler("Cycle ship info", Buttons.LeftStickButton, () -> incrementItemInfoOffset());
+            addHandler("Cycle ship info", new ButtonInputHandler(Buttons.LeftStickButton, (float advance) ->
+                    incrementItemInfoOffset()));
             if(itemInfoOffset == -1) {
                 //addHandler("Move ship");
                 indicators.add(new Pair<>(Indicators.A, "Move ship"));
@@ -92,7 +93,6 @@ public class FleetTabUI extends InputScreenBase {
         this.fleetTabReflector = (FleetTabReflector) args[0];
 
         campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
-        controller = SSMSControllerModPluginEx.controller;
 
         itemSize = new Vector2f(fleetTabReflector.getItemWidth(), fleetTabReflector.getItemHeight());
         numCols = fleetTabReflector.getColumns();

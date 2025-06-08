@@ -11,8 +11,6 @@ import java.util.List;
 
 public class CargoStackPickerScreen  extends InputScreenBase {
     public static final String ID = "CargoStackPicker";
-    List<Pair<Indicators, String>> indicators;
-    HandlerController controller;
     TradeUiReflector tradeUiReflector;
     CargoTransferHandlerReflector cargoTransferHandler;
     int mouseX = -1, mouseY = -1;
@@ -25,7 +23,6 @@ public class CargoStackPickerScreen  extends InputScreenBase {
         indicators.add(new Pair<>(Indicators.LeftStickDown, "Select none"));
         indicators.add(new Pair<>(Indicators.B, "Cancel"));
         indicators.add(new Pair<>(Indicators.A, "Confirm"));
-        controller = SSMSControllerModPluginEx.controller;
     }
 
     @Override

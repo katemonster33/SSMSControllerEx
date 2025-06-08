@@ -48,7 +48,6 @@ import ssms.controller.steering.SteeringController_OrbitTarget;
 public class BattleSteeringScreen extends InputScreenBase {
     public static final String ID = "BattleSteering";
     public static final String SCOPES = "Battle";
-    protected HandlerController handler;
     protected BattleScope scope;
     protected CombatEngineAPI engine;
     protected CombatStateReflector csr;
@@ -56,7 +55,7 @@ public class BattleSteeringScreen extends InputScreenBase {
     protected boolean isAlternateSteering = false;
     private boolean adjustOmniShieldFacing = false;
     private Vector2f v1 = new Vector2f();
-    protected List<Pair<Indicators, String>> screenIndicators, indicators;
+    protected List<Pair<Indicators, String>> screenIndicators;
     protected SteeringController lastSteeringController;
 
     public BattleSteeringScreen() {
@@ -72,11 +71,6 @@ public class BattleSteeringScreen extends InputScreenBase {
         screenIndicators.add(new Pair<>(Indicators.RightStickDown, "Toggle Autofire"));
         screenIndicators.add(new Pair<>(Indicators.RightStickLeft, "Prev Wpn Grp"));
         screenIndicators.add(new Pair<>(Indicators.RightStickRight, "Next Wpn Grp"));
-    }
-
-    @Override
-    public List<Pair<Indicators, String>> getIndicators() {
-        return indicators;
     }
     
     private void updateIndicators(SteeringController currentSteeringController) {
@@ -94,7 +88,6 @@ public class BattleSteeringScreen extends InputScreenBase {
 
     @Override
     public void deactivate() {
-        handler = null;
         scope = null;
         csr = null;
         engine = null;
@@ -103,7 +96,6 @@ public class BattleSteeringScreen extends InputScreenBase {
 
     @Override
     public void activate(Object... args) {
-        handler = SSMSControllerModPluginEx.controller;
         scope = (BattleScope)InputScreenManager.getInstance().getCurrentScope();
         csr = CombatStateReflector.GetInstance();
         engine = scope.engine;
@@ -127,24 +119,24 @@ public class BattleSteeringScreen extends InputScreenBase {
         if ( processShipInputs(ps) ) {
             //autopilot flag is inverted!
             if ( engine.isUIAutopilotOn() && !engine.isPaused() && amount > 0f ) {
-                if ( handler.getButtonEvent(Buttons.Select) == 1 ) {
+                if ( controller.getButtonEvent(Buttons.Select) == 1 ) {
                     InputScreenManager.getInstance().transitionDelayed(BattleTargetingScreen.ID);
                 }
-                if ( handler.getButtonEvent(Buttons.Start) == 1 ) {
+                if ( controller.getButtonEvent(Buttons.Start) == 1 ) {
                     InputScreenManager.getInstance().transitionDelayed(BattleMenuScreen.ID);
                 }
-                if ( handler.getButtonEvent(Buttons.LeftStickButton) == 1 ) {
+                if ( controller.getButtonEvent(Buttons.LeftStickButton) == 1 ) {
                     isAlternateSteering = !isAlternateSteering;
                     if ( isAlternateSteering ) {
-                        psCache.setSteeringController(new SteeringController_OrbitTarget(), handler, engine);
+                        psCache.setSteeringController(new SteeringController_OrbitTarget(), controller, engine);
                     } else {
-                        psCache.setSteeringController(new SteeringController_FreeFlight(), handler, engine);
+                        psCache.setSteeringController(new SteeringController_FreeFlight(), controller, engine);
                     }
                 }
 
                 if ( isAlternateSteering && ( !scope.isValidTarget(ps.getShipTarget()) || !psCache.steeringController.isTargetValid() ) ) {
                     isAlternateSteering = false;
-                    psCache.setSteeringController(new SteeringController_FreeFlight(), handler, engine);
+                    psCache.setSteeringController(new SteeringController_FreeFlight(), controller, engine);
                 }
                 updateIndicators(psCache.steeringController);
                 psCache.steeringController.steer(amount, scope.getOffsetFacingAngle());
@@ -164,17 +156,17 @@ public class BattleSteeringScreen extends InputScreenBase {
 
                         WeaponReflection.AimWeapon(weapon, targetLocation);
                     }
-                    if ( handler.isButtonAPressed() ) ps.giveCommand(ShipCommand.FIRE, v1, -1);
+                    if ( controller.isButtonAPressed() ) ps.giveCommand(ShipCommand.FIRE, v1, -1);
                 }
 
                 //start venting
-                if ( handler.getButtonEvent(Buttons.Y) == 1 ) {
+                if ( controller.getButtonEvent(Buttons.Y) == 1 ) {
                     ps.giveCommand(ShipCommand.VENT_FLUX, null, -1);
                 }
 
                 //TODO maybe adjust shield facing in the after input processed method if it got turned on this frame
                 //shield/cloak on/off
-                if ( handler.getButtonEvent(Buttons.B) == 1 ) {
+                if ( controller.getButtonEvent(Buttons.B) == 1 ) {
                     if ( ps.getShield() != null ) {
                         if ( ps.getShield().getType() == ShieldAPI.ShieldType.OMNI) {
                             CombatStateReflector.GetInstance().setAutoOmniShield();
@@ -203,7 +195,7 @@ public class BattleSteeringScreen extends InputScreenBase {
                 }
 
                 //activate system
-                if ( handler.getButtonEvent(Buttons.X) == 1 ) {
+                if ( controller.getButtonEvent(Buttons.X) == 1 ) {
                     if ( ps.getShipTarget() != null ) {
                         //due to a bug in vanilla coding the getAI method must return not null in order for the minestrike to use the override
                         //replacing the script with a corrected version that skips the AI check
@@ -221,16 +213,16 @@ public class BattleSteeringScreen extends InputScreenBase {
 
                 //second joystick cycles fighter modes and weapon groups if not held down. up fighter mode, left right weapon groups, down autofire
                 //toggle fighter mode
-                if ( psCache.hasFighters && handler.getButtonEvent(Buttons.RightStickUp) == 1 ) {
+                if ( psCache.hasFighters && controller.getButtonEvent(Buttons.RightStickUp) == 1 ) {
                     ps.setPullBackFighters(true);
                     //ps.giveCommand(ShipCommand.PULL_BACK_FIGHTERS, null, -1);
                 }
                 //toggle autofire
-                if ( handler.getButtonEvent(Buttons.RightStickDown) == 1 ) {
+                if ( controller.getButtonEvent(Buttons.RightStickDown) == 1 ) {
                     ps.giveCommand(ShipCommand.TOGGLE_AUTOFIRE, null, ps.getWeaponGroupsCopy().indexOf(ps.getSelectedGroupAPI()));
                 }
                 //select weapon group
-                if ( handler.getButtonEvent(Buttons.RightStickRight) == 1 ) {
+                if ( controller.getButtonEvent(Buttons.RightStickRight) == 1 ) {
                     List<WeaponGroupAPI> wgs = ps.getWeaponGroupsCopy();
                     int indx = wgs.indexOf(ps.getSelectedGroupAPI()) + 1;
                     if ( indx >= wgs.size() ) {
@@ -238,7 +230,7 @@ public class BattleSteeringScreen extends InputScreenBase {
                     }
                     ps.giveCommand(ShipCommand.SELECT_GROUP, null, indx);
                 }
-                if ( handler.getButtonEvent(Buttons.RightStickLeft) == 1 ) {
+                if ( controller.getButtonEvent(Buttons.RightStickLeft) == 1 ) {
                     List<WeaponGroupAPI> wgs = ps.getWeaponGroupsCopy();
                     int indx = wgs.indexOf(ps.getSelectedGroupAPI()) - 1;
                     if ( indx < 0 ) {

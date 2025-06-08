@@ -22,8 +22,6 @@ import java.util.List;
 
 public class IntelFactionTabUi extends InputScreenBase {
     public static final String ID = "IntelFactionTab";
-    List<Pair<Indicators, String>> indicators;
-    HandlerController controller;
     IntelTabReflector intelTabReflector;
     IntelFactionTabReflector intelFactionTabReflector;
     IntelTabData intelTabData;
@@ -42,7 +40,6 @@ public class IntelFactionTabUi extends InputScreenBase {
     @Override
     public void activate(Object ... args) throws Throwable {
         intelTabReflector = (IntelTabReflector) args[0];
-        controller = SSMSControllerModPluginEx.controller;
         intelFactionTabReflector = new IntelFactionTabReflector(intelTabReflector.getFactionIntelPanel());
         factionButtons = intelFactionTabReflector.getFactionButtons();
         intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();

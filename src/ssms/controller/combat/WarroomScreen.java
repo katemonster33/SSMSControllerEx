@@ -16,26 +16,19 @@ import java.util.List;
 public class WarroomScreen extends InputScreenBase {
     public static final String ID = "Warroom";
     CombatStateReflector csr;
-    HandlerController controller;
     boolean isMovingMap = false;
     int selectedButtonGroup = -1, selectedButton = -1;
     boolean selectingButton = false;
     WarroomReflector warroomReflector;
-    List<Pair<Indicators, String>> indicators;
     ViewportAPI viewportAPI;
     Vector2f desiredMousePos = null;
     final float mouseMoveFactor = 4.f;
     boolean isLeftMouseDown = false;
-    @Override
-    public List<Pair<Indicators, String>> getIndicators() {
-        return indicators;
-    }
 
     @Override
     public void activate(Object ... args) {
         csr = CombatStateReflector.GetInstance();
         warroomReflector = new WarroomReflector(csr.getWarroom());
-        controller = SSMSControllerModPluginEx.controller;
         viewportAPI = Global.getCombatEngine().getViewport();
 
         selectedButtonGroup = selectedButton = -1;

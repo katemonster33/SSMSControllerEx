@@ -38,12 +38,10 @@ import ssms.controller.reflection.CombatStateReflector;
 public class BattleTargetingScreen extends InputScreenBase {
     public static final String ID = "BattleTargeting";
     public static final String SCOPES = "Battle";
-    protected HandlerController handler;
     protected BattleScope scope;
     protected Targeting targeting;
     protected ShipAPI ps;
     protected BattleScope.PlayerShipCache psCache;
-    protected List<Pair<Indicators, String>> indicators;
 
     public BattleTargetingScreen() {
         indicators = new ArrayList<>();
@@ -51,11 +49,6 @@ public class BattleTargetingScreen extends InputScreenBase {
         indicators.add(new Pair<>(Indicators.BumperLeft, "Previous"));
         indicators.add(new Pair<>(Indicators.Select, "Select"));
         indicators.add(new Pair<>(Indicators.Start, "Clear"));
-    }
-
-    @Override
-    public List<Pair<Indicators, String>> getIndicators() {
-        return indicators;
     }
     
     /**
@@ -99,8 +92,7 @@ public class BattleTargetingScreen extends InputScreenBase {
         targeting = null;
         scope.timeDilation(false,"TARGETING");
         CombatStateReflector.GetInstance().SetVideoFeedToPlayerShip();
-        
-        handler = null;
+
         scope = null;
         ps = null;
         psCache = null;
@@ -108,7 +100,6 @@ public class BattleTargetingScreen extends InputScreenBase {
 
     @Override
     public void activate(Object... args) {
-        handler = SSMSControllerModPluginEx.controller;
         scope = (BattleScope) InputScreenManager.getInstance().getCurrentScope();
         CombatEngineAPI engine = scope.engine;
         psCache = scope.psCache;
@@ -134,22 +125,22 @@ public class BattleTargetingScreen extends InputScreenBase {
             closeTargeting();
             return;
         }
-        if ( handler.getButtonEvent(Buttons.BumperRight) == 1 ) {
+        if ( controller.getButtonEvent(Buttons.BumperRight) == 1 ) {
             if ( targeting.hasTargets() ) {
                 ps.setShipTarget((Ship) targeting.next());
                 psCache.steeringController.onTargetSelected();
             }
-        } else if ( handler.getButtonEvent(Buttons.BumperLeft) == 1 ) {
+        } else if ( controller.getButtonEvent(Buttons.BumperLeft) == 1 ) {
             if ( targeting.hasTargets() ) {
                 ps.setShipTarget((Ship) targeting.previous());
                 psCache.steeringController.onTargetSelected();
             }
-        } else if ( handler.getButtonEvent(Buttons.Start) == 1 ) {
+        } else if ( controller.getButtonEvent(Buttons.Start) == 1 ) {
             if ( targeting != null ) targeting.discard();
             targeting = null;
             ps.setShipTarget(null);
             closeTargeting();
-        } else if ( handler.getButtonEvent(Buttons.Select) == 1 ) {
+        } else if ( controller.getButtonEvent(Buttons.Select) == 1 ) {
             if ( targeting != null ) targeting.discard();
             targeting = null;
             closeTargeting();

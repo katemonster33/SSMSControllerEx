@@ -42,10 +42,12 @@ public class InputScreenBase {
     public static final String SCOPES = InputScopeBase.ID;
     protected List<Pair<Indicators, String>> indicators;
     protected HashMap<Indicators, AbstractButtonInputHandler> handlers;
+    protected HandlerController controller;
 
     public InputScreenBase() {
-        handlers = new ArrayList<>();
+        handlers = new HashMap<>();
         indicators = new ArrayList<>();
+        controller = SSMSControllerModPluginEx.controller;
     }
 
     public List<Pair<Indicators, String>> getIndicators() {

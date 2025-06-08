@@ -18,7 +18,6 @@ public class CharacterTabUI extends InputScreenBase {
     CharacterSheetReflector characterSheetReflector;
     CampaignScope campaignScope;
     List<List<ButtonAPI>> buttonRows;
-    HandlerController controller;
     int rowSelected = -1, buttonSelected = -1;
     ButtonAPI selectedBtn;
     List<Pair<Indicators, String>> indicators = new ArrayList<>();
@@ -39,8 +38,6 @@ public class CharacterTabUI extends InputScreenBase {
         characterSheetReflector = (CharacterSheetReflector) args[0];
 
         buttonRows = characterSheetReflector.getButtonRows();
-
-        controller = SSMSControllerModPluginEx.controller;
 
         campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
         campaignScope.refreshSelectedIndex();

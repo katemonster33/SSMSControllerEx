@@ -27,8 +27,8 @@ public class TradeScreen extends InputScreenBase {
     CargoTransferHandlerReflector cargoTransferHandler;
     boolean playerGridSelected;
     int selectedRow = -1, selectedCol = -1;
-    HandlerController controller;
     int lastFrameChildCount = 0;
+    boolean isCargoTab = false;
 
     @Override
     public void activate(Object ... args) {
@@ -53,12 +53,11 @@ public class TradeScreen extends InputScreenBase {
         }));
 
         addHandler("Close", new KeySender(Buttons.Start, Keyboard.KEY_ESCAPE));
-
-        if(Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.CARGO) {
+        isCargoTab = Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.CARGO;
+        if(isCargoTab) {
             addHandler("Select refit tab", new KeySender(Buttons.BumperLeft, Keyboard.KEY_R, 'r'));
             addHandler("Select map tab", new KeySender(Buttons.BumperRight, Keyboard.KEY_TAB));
         }
-        controller = SSMSControllerModPluginEx.controller;
 
         playerDataGrid = tradeUiReflector.getPlayerCargoView();
         otherDataGrid = tradeUiReflector.getOtherCargoView();

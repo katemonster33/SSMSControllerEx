@@ -41,8 +41,6 @@ import ssms.controller.reflection.UIPanelReflector;
  */
 public class TitleScreenUI extends InputScreenBase {
     public static final String ID = "TitleScreen";
-    protected List<Pair<Indicators, String>> indicators;
-    Controller controller = null;
     List<ButtonAPI> titleScreenButtons = null;
     UIPanelAPI mainMenuPanel = null;
     MethodHandle doButtonClick = null;
@@ -57,13 +55,7 @@ public class TitleScreenUI extends InputScreenBase {
     }
 
     @Override
-    public List<Pair<Indicators, String>> getIndicators() {
-        return indicators;
-    }
-
-    @Override
     public void activate(Object ...args) {
-        controller = SSMSControllerModPluginEx.controller.controller;
         UIPanelAPI panel = TitleScreenStateReflector.GetInstance().getScreenPanel();;
         UIPanelReflector.initialize(panel.getClass());
         var widgets = UIPanelReflector.getChildItems(panel);
@@ -141,18 +133,17 @@ public class TitleScreenUI extends InputScreenBase {
 
     @Override
     public void preInput(float advance) {
-        var handler = SSMSControllerModPluginEx.controller;
-        if ( handler.getButtonEvent(Buttons.LeftStickDown) == 1 ) {
+        if ( controller.getButtonEvent(Buttons.LeftStickDown) == 1 ) {
             selectNextButton();
-        } else if ( handler.getButtonEvent(Buttons.LeftStickUp) == 1 ) {
+        } else if ( controller.getButtonEvent(Buttons.LeftStickUp) == 1 ) {
             selectPrevButton();
-        } else if ( handler.getButtonEvent(Buttons.A) == 1 ) {
+        } else if ( controller.getButtonEvent(Buttons.A) == 1 ) {
             clickButton();
-        } else if ( handler.getButtonEvent(Buttons.Select) == 1 ) {
+        } else if ( controller.getButtonEvent(Buttons.Select) == 1 ) {
             InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, AutoMapperUI.ID, new Object[]{});
-        } else if (handler.getButtonEvent(Buttons.DpadDown) == 1) {
+        } else if (controller.getButtonEvent(Buttons.DpadDown) == 1) {
             selectNextButton();
-        } else if (handler.getButtonEvent(Buttons.DpadUp) == 1) {
+        } else if (controller.getButtonEvent(Buttons.DpadUp) == 1) {
             selectPrevButton();
         }
     }

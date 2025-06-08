@@ -17,7 +17,6 @@ public class CommandTabUI  extends InputScreenBase {
     public static final String ID = "CommandTab";
     List<Pair<Indicators, String>> indicators;
     ViewportAPI viewportAPI;
-    HandlerController controller;
     Vector2f desiredMousePos = null;
     float mouseMoveFactor = 4.f;
 
@@ -45,7 +44,6 @@ public class CommandTabUI  extends InputScreenBase {
 
     @Override
     public void activate(Object... args) {
-        controller = SSMSControllerModPluginEx.controller;
         viewportAPI = Global.getSector().getViewport();
     }
 

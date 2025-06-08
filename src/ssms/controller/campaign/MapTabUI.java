@@ -9,6 +9,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
+import ssms.controller.inputhelper.MapInputHandler;
 import ssms.controller.reflection.MapReflector;
 
 import java.util.ArrayList;
@@ -17,15 +18,22 @@ import java.util.List;
 public class MapTabUI extends InputScreenBase {
     public final static String ID = "MapTab";
     ViewportAPI viewportAPI;
-    HandlerController controller;
-    List<Pair<Indicators, String>> indicators = null;
-    boolean mouseDown = false;
-    boolean movingMap = false;
+    MapInputHandler mapInputHandler;
     CampaignScope campaignScope;
 
     MapReflector mapReflector;
-    Vector2f desiredMousePos;
-    final float mouseMoveFactor = 4.f;
+
+    public MapTabUI() {
+        indicators = new ArrayList<>();
+        indicators.add(new Pair<>(Indicators.LeftStick, "Move cursor"));
+        indicators.add(new Pair<>(Indicators.LeftStick, "(press) Toggle map move"));
+        indicators.add(new Pair<>(Indicators.A, "Select point"));
+        indicators.add(new Pair<>(Indicators.B, "Close dialog"));
+        indicators.add(new Pair<>(Indicators.LeftTrigger, "Open sector view"));
+        indicators.add(new Pair<>(Indicators.B, "Open system view"));
+        indicators.add(new Pair<>(Indicators.BumperLeft, "Select cargo tab"));
+        indicators.add(new Pair<>(Indicators.BumperRight, "Select intel tab"));
+    }
 
     @Override
     public String getId() {
@@ -38,12 +46,10 @@ public class MapTabUI extends InputScreenBase {
 
     @Override
     public void activate(Object ... args) {
-        controller = SSMSControllerModPluginEx.controller;
         viewportAPI = Global.getSector().getViewport();
         mapReflector = (MapReflector) args[0];
-        desiredMousePos = null;
-        mouseDown = movingMap = false;
         campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
+        mapInputHandler = new MapInputHandler(viewportAPI);
     }
 
     @Override
@@ -52,34 +58,8 @@ public class MapTabUI extends InputScreenBase {
             InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
             return;
         }
-
-        ReadableVector2f leftStick = controller.getLeftStick();
-        if (leftStick.getX() != 0 || leftStick.getY() != 0) {
-            if (desiredMousePos == null) {
-                desiredMousePos = new Vector2f(viewportAPI.convertWorldXtoScreenX(viewportAPI.getCenter().getX()), viewportAPI.convertWorldYtoScreenY(viewportAPI.getCenter().getY()));
-            } else {
-                desiredMousePos.set(desiredMousePos.getX() + (leftStick.getX() * mouseMoveFactor), desiredMousePos.getY() + (leftStick.getY() * mouseMoveFactor));
-            }
-            InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
-        }
-        if(!mouseDown && controller.getButtonEvent(Buttons.LeftStickButton) == 1) {
-            if(!movingMap) {
-                InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
-            } else {
-                InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
-            }
-            movingMap = !movingMap;
-        }
-        if(!movingMap) {
-            if(desiredMousePos != null) {
-                if (controller.isButtonAPressed() && !mouseDown) {
-                    InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
-                    mouseDown = true;
-                } else if (!controller.isButtonAPressed() && mouseDown) {
-                    InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
-                    mouseDown = false;
-                }
-            }
+        mapInputHandler.advance(amount);
+        if(!mapInputHandler.getIsMovingMap()) {
             if (controller.getButtonEvent(Buttons.B) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
             } else if (controller.getButtonEvent(Buttons.LeftTrigger) == 1) {
@@ -92,21 +72,5 @@ public class MapTabUI extends InputScreenBase {
                 InputShim.keyDownUp(Keyboard.KEY_E, 'e');
             }
         }
-    }
-
-    @Override
-    public List<Pair<Indicators, String>> getIndicators() {
-        if (indicators == null) {
-            indicators = new ArrayList<>();
-            indicators.add(new Pair<>(Indicators.LeftStick, "Move cursor"));
-            indicators.add(new Pair<>(Indicators.LeftStick, "(press) Toggle map move"));
-            indicators.add(new Pair<>(Indicators.A, "Select point"));
-            indicators.add(new Pair<>(Indicators.B, "Close dialog"));
-            indicators.add(new Pair<>(Indicators.LeftTrigger, "Open sector view"));
-            indicators.add(new Pair<>(Indicators.B, "Open system view"));
-            indicators.add(new Pair<>(Indicators.BumperLeft, "Select cargo tab"));
-            indicators.add(new Pair<>(Indicators.BumperRight, "Select intel tab"));
-        }
-        return indicators;
     }
 }

@@ -26,10 +26,8 @@ import java.util.List;
 
 public class IntelPlanetTabUi extends InputScreenBase {
     public static final String ID = "IntelPlanetTab";
-    List<Pair<Indicators, String>> indicators;
     List<List<ButtonAPI>> filterButtonRows = null;
     CampaignScope campaignScope;
-    HandlerController controller;
     PlanetTabReflector planetTabReflector;
     IntelTabData intelTabData;
     IntelTabReflector intelTabReflector;
@@ -38,6 +36,16 @@ public class IntelPlanetTabUi extends InputScreenBase {
     List<UIComponentAPI> selectedRowColumns;
     UIPanelAPI selectedPlanet;
     boolean selectingPlanetFilters = false;
+
+    public IntelPlanetTabUi() {
+        indicators = new ArrayList<>();
+
+        indicators.add(new Pair<>(Indicators.LeftStick, "Navigate"));
+        indicators.add(new Pair<>(Indicators.A, "Select"));
+        indicators.add(new Pair<>(Indicators.B, "Close"));
+        indicators.add(new Pair<>(Indicators.LeftTrigger, "Select intel tab"));
+        indicators.add(new Pair<>(Indicators.RightTrigger, "Select planet tab"));
+    }
 
     @Override
     public String getId() {
@@ -56,7 +64,6 @@ public class IntelPlanetTabUi extends InputScreenBase {
         planetTabReflector = PlanetTabReflector.tryGet(intelTabReflector);
         intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
         campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
-        controller = SSMSControllerModPluginEx.controller;
 
         filterButtonRows = new ArrayList<>();
         for (UIPanelAPI buttonGroup : UIPanelReflector.getChildPanels(planetTabReflector.planetTabData(), 1, 5, 0)) {
@@ -67,20 +74,6 @@ public class IntelPlanetTabUi extends InputScreenBase {
                 }
             }
         }
-    }
-
-    @Override
-    public List<Pair<Indicators, String>> getIndicators() {
-        if (indicators == null) {
-            indicators = new ArrayList<>();
-
-            indicators.add(new Pair<>(Indicators.LeftStick, "Navigate"));
-            indicators.add(new Pair<>(Indicators.A, "Select"));
-            indicators.add(new Pair<>(Indicators.B, "Close"));
-            indicators.add(new Pair<>(Indicators.LeftTrigger, "Select intel tab"));
-            indicators.add(new Pair<>(Indicators.RightTrigger, "Select planet tab"));
-        }
-        return indicators;
     }
 
     void updateSelectedRowColumns() {
