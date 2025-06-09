@@ -17,24 +17,18 @@
  */
 package ssms.controller.titlescreen;
 
-import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
-import org.apache.log4j.Level;
 import ssms.controller.*;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
-import org.lwjgl.input.Controller;
+
+import ssms.controller.enums.Indicators;
 import ssms.controller.inputhelper.DirectionalUINavigator;
-import ssms.controller.reflection.ClassReflector;
-import ssms.controller.reflection.MethodReflector;
 import ssms.controller.reflection.TitleScreenStateReflector;
 import ssms.controller.reflection.UIPanelReflector;
 

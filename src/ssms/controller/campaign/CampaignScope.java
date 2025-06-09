@@ -4,6 +4,8 @@ import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.util.Pair;
 import ssms.controller.*;
+import ssms.controller.enums.Indicators;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.reflection.CampaignStateReflector;
 import ssms.controller.reflection.CampaignTabButtonPanelReflector;
 
@@ -50,12 +52,12 @@ public class CampaignScope extends InputScopeBase {
     }
 
     public void handleInput(float advance, boolean autoNavigate) {
-        if(controller.getButtonEvent(Buttons.BumperLeft) == 1) {
+        if(controller.getButtonEvent(LogicalButtons.BumperLeft) == 1) {
             highlightPrevTab(autoNavigate);
             if(autoNavigate) {
                 selectTab();
             }
-        } else if(controller.getButtonEvent(Buttons.BumperRight) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.BumperRight) == 1) {
             highlightNextTab(autoNavigate);
             if(autoNavigate) {
                 selectTab();

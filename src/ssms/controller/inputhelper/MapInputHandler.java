@@ -4,7 +4,7 @@ import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
-import ssms.controller.Buttons;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.InputShim;
 import ssms.controller.SSMSControllerModPluginEx;
 
@@ -53,13 +53,13 @@ public class MapInputHandler{
                 InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
             }
         }
-        if(controller.getButtonEvent(Buttons.LeftTrigger) == 1) {
+        if(controller.getButtonEvent(LogicalButtons.LeftTrigger) == 1) {
             InputShim.mouseWheel((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), 1);
-        } else if(controller.getButtonEvent(Buttons.RightTrigger) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.RightTrigger) == 1) {
             InputShim.mouseWheel((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), -1);
-        } else if (controller.getButtonEvent(Buttons.A) == 1) {
+        } else if (controller.getButtonEvent(LogicalButtons.A) == 1) {
             InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
-        } else if (controller.getButtonEvent(Buttons.A) == -1) {
+        } else if (controller.getButtonEvent(LogicalButtons.A) == -1) {
             InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
         }
     }

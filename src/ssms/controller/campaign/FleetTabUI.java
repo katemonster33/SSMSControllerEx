@@ -9,6 +9,8 @@ import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
+import ssms.controller.enums.Indicators;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.ButtonInputHandler;
 import ssms.controller.reflection.FleetTabReflector;
 import ssms.controller.reflection.UIPanelReflector;
@@ -62,7 +64,7 @@ public class FleetTabUI extends InputScreenBase {
         if (indicators == null) {
             indicators = new ArrayList<>();
             indicators.add(new Pair<>(Indicators.LeftStick, "Navigate ships"));
-            addHandler("Cycle ship info", new ButtonInputHandler(Buttons.LeftStickButton, (float advance) ->
+            addHandler("Cycle ship info", new ButtonInputHandler(LogicalButtons.LeftStickButton, (float advance) ->
                     incrementItemInfoOffset()));
             if(itemInfoOffset == -1) {
                 //addHandler("Move ship");
@@ -138,7 +140,7 @@ public class FleetTabUI extends InputScreenBase {
             InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
         }
 
-        if (controller.getButtonEvent(Buttons.LeftStickLeft) == 1) {
+        if (controller.getButtonEvent(LogicalButtons.LeftStickLeft) == 1) {
             if (curCol == -1 || curRow == -1) {
                 curCol = curRow = 0;
             } else if (curCol > 0) {
@@ -146,7 +148,7 @@ public class FleetTabUI extends InputScreenBase {
             }
             itemInfoOffset = -1;
             hoverCurrentItem();
-        } else if (controller.getButtonEvent(Buttons.LeftStickRight) == 1) {
+        } else if (controller.getButtonEvent(LogicalButtons.LeftStickRight) == 1) {
             if (curCol == -1 || curRow == -1) {
                 curCol = curRow = 0;
             } else if (curCol < (numCols - 1) && ((curRow * numCols) + curCol) < (itemCount - 1)) {
@@ -154,7 +156,7 @@ public class FleetTabUI extends InputScreenBase {
             }
             itemInfoOffset = -1;
             hoverCurrentItem();
-        } else if (controller.getButtonEvent(Buttons.LeftStickUp) == 1) {
+        } else if (controller.getButtonEvent(LogicalButtons.LeftStickUp) == 1) {
             if (curCol == -1 || curRow == -1) {
                 curCol = curRow = 0;
             } else if (curRow > 0) {
@@ -162,7 +164,7 @@ public class FleetTabUI extends InputScreenBase {
             }
             itemInfoOffset = -1;
             hoverCurrentItem();
-        } else if (controller.getButtonEvent(Buttons.LeftStickDown) == 1) {
+        } else if (controller.getButtonEvent(LogicalButtons.LeftStickDown) == 1) {
             if (curCol == -1 || curRow == -1) {
                 curCol = curRow = 0;
             } else if ((((curRow + 1) * numCols) + curCol) < itemCount) {
@@ -170,21 +172,21 @@ public class FleetTabUI extends InputScreenBase {
             }
             itemInfoOffset = -1;
             hoverCurrentItem();
-        } else if (controller.getButtonEvent(Buttons.B) == 1) {
+        } else if (controller.getButtonEvent(LogicalButtons.B) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-        } else if (controller.getButtonEvent(Buttons.Select) == 1) {
+        } else if (controller.getButtonEvent(LogicalButtons.Select) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_R, 'r');
         }
         if(itemInfoOffset == -1) {
-            if (controller.getButtonEvent(Buttons.A) == 1) {
+            if (controller.getButtonEvent(LogicalButtons.A) == 1) {
                 InputShim.mouseDownUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
             }
         } else if(itemInfoOffset == 0) {
-            if (controller.getButtonEvent(Buttons.A) == 1) {
+            if (controller.getButtonEvent(LogicalButtons.A) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_F2, '\0');
             }
         } else if(itemInfoOffset == 1) {
-            if(controller.isButtonAPressed()) {
+            if(controller.isButtonPressed(LogicalButtons.A)) {
                 if(buttonADownTime != -1.f) {
                     buttonADownTime += amount;
                 }
@@ -199,14 +201,14 @@ public class FleetTabUI extends InputScreenBase {
                 buttonADownTime = 0.f;
             }
         } else if(itemInfoOffset == 2) {
-            if (controller.getButtonEvent(Buttons.A) == 1) {
+            if (controller.getButtonEvent(LogicalButtons.A) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_F1, '\0');
             }
         }
-        if (controller.getButtonEvent(Buttons.LeftStickButton) == 1) {
+        if (controller.getButtonEvent(LogicalButtons.LeftStickButton) == 1) {
             incrementItemInfoOffset();
         }
-        if(controller.isButtonXPressed()) {
+        if(controller.isButtonPressed(LogicalButtons.X)) {
             if(buttonXDownTime != -1.f) {
                 buttonXDownTime += amount;
             }
@@ -225,7 +227,7 @@ public class FleetTabUI extends InputScreenBase {
             }
             buttonXDownTime = 0.f;
         }
-        if(controller.isButtonYPressed()) {
+        if(controller.isButtonPressed(LogicalButtons.Y)) {
             if(buttonYDownTime != -1.f) {
                 buttonYDownTime += amount;
             }
@@ -239,9 +241,9 @@ public class FleetTabUI extends InputScreenBase {
             }
             buttonYDownTime = 0.f;
         }
-        if(controller.getButtonEvent(Buttons.BumperLeft) == 1) {
+        if(controller.getButtonEvent(LogicalButtons.BumperLeft) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_C, 'c');
-        } else if(controller.getButtonEvent(Buttons.BumperRight) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.BumperRight) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_R, 'r');
         }
     }

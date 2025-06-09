@@ -15,7 +15,7 @@
  * License along with this library;  If not, see 
  * <https://www.gnu.org/licenses/>.
  */
-package ssms.controller;
+package ssms.controller.enums;
 
 /**
  *
@@ -25,7 +25,7 @@ public enum Indicators {
     A,B,X,Y,BumperLeft,BumperRight,Start,Select,LeftStickButton,RightStickButton,RightStickUp,RightStickDown,RightStickLeft,RightStickRight,
     LeftStickUp,LeftStickDown,LeftStickLeft,LeftStickRight,LeftStick,RightStick, LeftTrigger, RightTrigger, DPadUp, DPadDown, DPadLeft, DPadRight, DPad;
 
-    public static Indicators fromButton(Buttons btn)
+    public static Indicators fromButton(LogicalButtons btn)
     {
         return switch (btn) {
             case A -> Indicators.A;

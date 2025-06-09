@@ -9,6 +9,8 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
+import ssms.controller.enums.Indicators;
+import ssms.controller.enums.LogicalButtons;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,11 +66,11 @@ public class CommandTabUI  extends InputScreenBase {
             InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
         }
 
-        if (desiredMousePos != null && controller.getButtonEvent(Buttons.A) == 1) {
+        if (desiredMousePos != null && controller.getButtonEvent(LogicalButtons.A) == 1) {
             InputShim.mouseDownUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
-        } else if (controller.getButtonEvent(Buttons.B) == 1) {
+        } else if (controller.getButtonEvent(LogicalButtons.B) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-        } else if (controller.getButtonEvent(Buttons.BumperLeft) == 1) {
+        } else if (controller.getButtonEvent(LogicalButtons.BumperLeft) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_E, 'e');
         }
     }

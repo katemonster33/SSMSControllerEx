@@ -15,7 +15,7 @@
  * License along with this library;  If not, see 
  * <https://www.gnu.org/licenses/>.
  */
-package ssms.controller;
+package ssms.controller.steering;
 
 import org.lwjgl.util.vector.Vector2f;
 
@@ -23,7 +23,7 @@ import org.lwjgl.util.vector.Vector2f;
  *
  * @author Malte Schulze
  */
-public class Util_Steering {
+public class Util {
     static public float getFacingFromHeading(Vector2f v) {
         return (float)Math.atan2(v.y, v.x) * 57.295784F;
         //return com.fs.starfarer.prototype.Utils.\u00D300000(v);

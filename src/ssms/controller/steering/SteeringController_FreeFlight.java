@@ -27,9 +27,9 @@ import java.util.List;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.HandlerController;
-import ssms.controller.Util_Steering;
-import ssms.controller.Indicators;
+import ssms.controller.enums.Indicators;
 import ssms.controller.reflection.CombatStateReflector;
 
 /**
@@ -87,9 +87,9 @@ public class SteeringController_FreeFlight extends SteeringController_Base {
         
         //turning the ship based on joystick and accelerating with the triggers
         if ( allowAcceleration ) {
-            if ( handler.isTriggerRight() ) {
+            if ( handler.isButtonPressed(LogicalButtons.RightTrigger) ) {
                 ps.giveCommand(ShipCommand.ACCELERATE, null, -1);
-            } else if ( handler.isTriggerLeft() ) {
+            } else if ( handler.isButtonPressed(LogicalButtons.LeftTrigger) ) {
                 ps.giveCommand(ShipCommand.ACCELERATE_BACKWARDS, null, -1);
             } else if ( ps.getAcceleration() < 0.1f ) {
                 //if the player leaves the throttle idle close to zero we assume a full stop is desired
@@ -97,16 +97,16 @@ public class SteeringController_FreeFlight extends SteeringController_Base {
             }
         }
         if ( allowStrafe ) {
-            if ( handler.isButtonBumperLeftPressed() ) {
+            if ( handler.isButtonPressed(LogicalButtons.BumperLeft) ) {
                 ps.giveCommand(ShipCommand.STRAFE_LEFT, null, -1);
-            } else if ( handler.isButtonBumperRightPressed() ) {
+            } else if ( handler.isButtonPressed(LogicalButtons.BumperRight) ) {
                 ps.giveCommand(ShipCommand.STRAFE_RIGHT, null, -1);
             }
         }
         if ( allowTurning ) {
             ReadableVector2f vDesiredHeading = handler.getLeftStick();
             if ( vDesiredHeading.getX() != 0 || vDesiredHeading.getY() != 0 ) {
-                float desiredFacing = Util_Steering.getFacingFromHeading((Vector2f)vDesiredHeading);
+                float desiredFacing = Util.getFacingFromHeading((Vector2f)vDesiredHeading);
                 turnToAngle(ps,desiredFacing,timeAdvanced);
             }
         }
@@ -117,7 +117,7 @@ public class SteeringController_FreeFlight extends SteeringController_Base {
         Vector2f shipLocation = ps.getLocation();
         ReadableVector2f heading = handler.getLeftStick();
         if ( heading.getX() == 0 && heading.getY() == 0 ) {
-            heading = Util_Steering.getHeadingFromFacing(ps.getFacing());
+            heading = Util.getHeadingFromFacing(ps.getFacing());
         }
         if (CombatStateReflector.GetInstance().getWidgetPanel() == null ) return;
         float zoom = CombatStateReflector.GetInstance().getZoomFactor();
@@ -143,7 +143,7 @@ public class SteeringController_FreeFlight extends SteeringController_Base {
         Vector2f pentagonCenter = new Vector2f(shipLocation.x + vHeadingNormalised.x * ps.getCollisionRadius() * (1f + 2f * radius / ps.getCollisionRadius()), shipLocation.y + vHeadingNormalised.y * ps.getCollisionRadius() * (1f + 2f * radius / ps.getCollisionRadius()));
         float angleIncrement = (float) Math.toRadians(360.0f / 5f);
         //rotating the pentagon so that it points in the right direction and the missing slice is opposite to that point.
-        float angle = (float) Math.toRadians(Util_Steering.getFacingFromHeading(new Vector2f(heading))) + 3f * angleIncrement;
+        float angle = (float) Math.toRadians(Util.getFacingFromHeading(new Vector2f(heading))) + 3f * angleIncrement;
 
         GL11.glBegin(GL11.GL_TRIANGLE_FAN);
         GL11.glVertex2f(pentagonCenter.x, pentagonCenter.y);

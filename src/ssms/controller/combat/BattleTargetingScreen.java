@@ -29,6 +29,8 @@ import java.util.Comparator;
 import java.util.List;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
+import ssms.controller.enums.Indicators;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.reflection.CombatStateReflector;
 
 /**
@@ -125,22 +127,22 @@ public class BattleTargetingScreen extends InputScreenBase {
             closeTargeting();
             return;
         }
-        if ( controller.getButtonEvent(Buttons.BumperRight) == 1 ) {
+        if ( controller.getButtonEvent(LogicalButtons.BumperRight) == 1 ) {
             if ( targeting.hasTargets() ) {
                 ps.setShipTarget((Ship) targeting.next());
                 psCache.steeringController.onTargetSelected();
             }
-        } else if ( controller.getButtonEvent(Buttons.BumperLeft) == 1 ) {
+        } else if ( controller.getButtonEvent(LogicalButtons.BumperLeft) == 1 ) {
             if ( targeting.hasTargets() ) {
                 ps.setShipTarget((Ship) targeting.previous());
                 psCache.steeringController.onTargetSelected();
             }
-        } else if ( controller.getButtonEvent(Buttons.Start) == 1 ) {
+        } else if ( controller.getButtonEvent(LogicalButtons.Start) == 1 ) {
             if ( targeting != null ) targeting.discard();
             targeting = null;
             ps.setShipTarget(null);
             closeTargeting();
-        } else if ( controller.getButtonEvent(Buttons.Select) == 1 ) {
+        } else if ( controller.getButtonEvent(LogicalButtons.Select) == 1 ) {
             if ( targeting != null ) targeting.discard();
             targeting = null;
             closeTargeting();

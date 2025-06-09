@@ -17,8 +17,10 @@
  */
 package ssms.controller;
 
-import com.fs.starfarer.api.graphics.SpriteAPI;
-import com.fs.starfarer.api.util.Pair;
+import ssms.controller.enums.AxisId;
+import ssms.controller.enums.AxisMapping;
+import ssms.controller.enums.ButtonMapping;
+import ssms.controller.enums.Indicators;
 
 import java.util.*;
 
@@ -32,21 +34,21 @@ public class ControllerMapping {
     public float axisBtnConversionDeadzone = 0.85f, joystickDeadzone = 0.25f;
     public Map<String,Object> customProperties = new HashMap<>();
     public EnumMap<Indicators, String> indicators = new EnumMap<>(Indicators.class);
-    EnumMap<Axes, AxisData> axisDatas = new EnumMap<>(Axes.class);
-    EnumMap<Buttons, ButtonData> buttonDatas= new EnumMap<>(Buttons.class);
+    EnumMap<AxisMapping, AxisData> axisDatas = new EnumMap<>(AxisMapping.class);
+    EnumMap<ButtonMapping, ButtonData> buttonDatas= new EnumMap<>(ButtonMapping.class);
 
     public String indicatorProfile;
 
     public void mapAxis(AxisData axisData) {
-        axisDatas.put(axisData.getAxis(), axisData);
+        axisDatas.put(axisData.getAxisMapping(), axisData);
     }
 
     public void mapButton(ButtonData buttonData) {
-        buttonDatas.put(buttonData.getButtons(), buttonData);
+        buttonDatas.put(buttonData.getButtonMapping(), buttonData);
     }
 
-    public void mapPov(Axes axis) {
-        axisDatas.put(axis, new AxisData(axis, null, 0xFF, null, 0xFF));
+    public void mapPov(AxisMapping axisMapping) {
+        axisDatas.put(axisMapping, new AxisData(axisMapping, null, 0xFF));
     }
 
     public List<AxisData> getMappedAxes() {
@@ -58,50 +60,38 @@ public class ControllerMapping {
     }
 
     public static class AxisData {
-        Axes axis;
-        AxisId xAxisId;
-        int xAxisIndex;
-        AxisId yAxisId;
-        int yAxisIndex;
-        public AxisData(Axes axis, AxisId xAxisId, int xAxisIndex, AxisId yAxisId, int yAxisIndex) {
-            this.axis = axis;
-            this.xAxisId = xAxisId;
-            this.xAxisIndex = xAxisIndex;
-            this.yAxisId = yAxisId;
-            this.yAxisIndex = yAxisIndex;
+        AxisMapping axisMapping;
+        AxisId axisId;
+        int axisIndex;
+        public AxisData(AxisMapping axisMapping, AxisId axisId, int axisIndex) {
+            this.axisMapping = axisMapping;
+            this.axisId = axisId;
+            this.axisIndex = axisIndex;
         }
 
-        public Axes getAxis() {
-            return axis;
+        public AxisMapping getAxisMapping() {
+            return axisMapping;
         }
 
-        public AxisId getXAxisId() {
-            return xAxisId;
+        public AxisId getAxisId() {
+            return axisId;
         }
 
-        public int getXAxisIndex() {
-            return xAxisIndex;
-        }
-
-        public AxisId getYAxisId() {
-            return yAxisId;
-        }
-
-        public int getYAxisIndex() {
-            return yAxisIndex;
+        public int getAxisIndex() {
+            return axisIndex;
         }
     }
 
     public static class ButtonData {
-        Buttons buttons;
+        ButtonMapping buttonMapping;
         int buttonIndex;
-        public ButtonData(Buttons buttons, int buttonIndex) {
-            this.buttons = buttons;
+        public ButtonData(ButtonMapping buttonMapping, int buttonIndex) {
+            this.buttonMapping = buttonMapping;
             this.buttonIndex = buttonIndex;
         }
 
-        public Buttons getButtons() {
-            return buttons;
+        public ButtonMapping getButtonMapping() {
+            return buttonMapping;
         }
 
         public int getButtonIndex() {

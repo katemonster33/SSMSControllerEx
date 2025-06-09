@@ -4,10 +4,11 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.util.Pair;
 import ssms.controller.*;
+import ssms.controller.enums.Indicators;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.reflection.*;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class CargoStackPickerScreen  extends InputScreenBase {
     public static final String ID = "CargoStackPicker";
@@ -75,24 +76,24 @@ public class CargoStackPickerScreen  extends InputScreenBase {
             mouseX = (int) scrollbar.getPrivateObj().getPosition().getX();
             mouseY = (int) scrollbar.getPrivateObj().getPosition().getCenterY();
         }
-        if(controller.getButtonEvent(Buttons.LeftStickLeft) == 1 && controller.isLeftStickLeft()) {
+        if(controller.getButtonEvent(LogicalButtons.LeftStickLeft) == 1) {
             // the 10 is hard-coded in the scrollbar source code
             mouseX -= 10;
             mouseX = Math.max((int) scrollbar.getPrivateObj().getPosition().getX(), mouseX);
             updateMousePos();
-        } else if(controller.getButtonEvent(Buttons.LeftStickRight) == 1 && controller.isLeftStickRight()) {
+        } else if(controller.getButtonEvent(LogicalButtons.LeftStickRight) == 1) {
             mouseX += 10;
             mouseX = Math.min((int)(scrollbar.getPrivateObj().getPosition().getX() + scrollbar.getPrivateObj().getPosition().getWidth()), mouseX);
             updateMousePos();
-        } else if(controller.getButtonEvent(Buttons.LeftStickDown) == 1 && controller.isLeftStickDown()) {
+        } else if(controller.getButtonEvent(LogicalButtons.LeftStickDown) == 1) {
             mouseX = (int)scrollbar.getPrivateObj().getPosition().getX();
             updateMousePos();
-        } else if(controller.getButtonEvent(Buttons.LeftStickUp) == 1 && controller.isLeftStickUp()) {
+        } else if(controller.getButtonEvent(LogicalButtons.LeftStickUp) == 1) {
             mouseX = (int)(scrollbar.getPrivateObj().getPosition().getX() + scrollbar.getPrivateObj().getPosition().getWidth());
             updateMousePos();
-        } else if(controller.getButtonEvent(Buttons.B) == 1 && controller.isButtonBPressed()) {
+        } else if(controller.getButtonEvent(LogicalButtons.B) == 1) {
             cancel();
-        } else if(controller.getButtonEvent(Buttons.A) == 1 && controller.isButtonAPressed()) {
+        } else if(controller.getButtonEvent(LogicalButtons.A) == 1) {
             confirm();
         }
     }

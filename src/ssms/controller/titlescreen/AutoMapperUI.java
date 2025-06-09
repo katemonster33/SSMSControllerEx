@@ -9,6 +9,10 @@ import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import lunalib.lunaUI.panel.LunaBaseCustomPanelPlugin;
 import ssms.controller.*;
+import ssms.controller.enums.AxisMapping;
+import ssms.controller.enums.ButtonMapping;
+import ssms.controller.enums.Indicators;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.reflection.TitleScreenStateReflector;
 
 import java.awt.*;
@@ -16,7 +20,7 @@ import java.util.List;
 
 public class AutoMapperUI extends InputScreenBase {
     public static final String ID = "AutoMapper";
-    Buttons[] buttons = Buttons.values();
+    LogicalButtons[] buttons = LogicalButtons.values();
     int calibrationIndex = -1;
     int btnCount = -1;
     boolean[] buttonsChanged;
@@ -152,46 +156,30 @@ public class AutoMapperUI extends InputScreenBase {
     }
 
     void setMappingIndices() {
-        Buttons btn = buttons[calibrationIndex];
-        for(int i = 0; i < SSMSControllerModPluginEx.controller.controller.getButtonCount(); i++) {
-            if(buttonsChanged[i]) {
-                switch(btn) {
-                    case A ->                   tempMapping.btnA = i;
-                    case B ->                   tempMapping.btnB = i;
-                    case X ->                   tempMapping.btnX = i;
-                    case Y ->                   tempMapping.btnY = i;
-                    case BumperLeft ->          tempMapping.btnBumperLeft = i;
-                    case BumperRight ->         tempMapping.btnBumperRight = i;
-                    case Select ->              tempMapping.btnSelect = i;
-                    case Start ->               tempMapping.btnStart = i;
-                    case LeftStickButton ->     tempMapping.btnLeftStick = i;
-                    case RightStickButton ->    tempMapping.btnRightStick = i;
-                    case LeftTrigger ->     tempMapping.btnLeftTrigger = i;
-                    case RightTrigger ->    tempMapping.btnRightTrigger = i;
+        LogicalButtons btn = buttons[calibrationIndex];
+        var btnMapping = ButtonMapping.fromButton(btn);
+        var axisMapping = AxisMapping.fromButton(btn);
+        if(btnMapping != null) {
+            for(int i = 0; i < SSMSControllerModPluginEx.controller.controller.getButtonCount(); i++) {
+                if(buttonsChanged[i]) {
+                    tempMapping.mapButton(new ControllerMapping.ButtonData(btnMapping, i));
+                    break;
                 }
-                break;
             }
         }
-        for(int i = 0; i < SSMSControllerModPluginEx.controller.controller.getAxisCount(); i++) {
-            if(axesChanged[i]) {
-                switch(btn) {
-                    case LeftStickLeft, LeftStickRight ->   tempMapping.axisIndexLX = i;
-                    case LeftStickUp, LeftStickDown ->      tempMapping.axisIndexLY = i;
-                    case RightStickLeft, RightStickRight -> tempMapping.axisIndexRX = i;
-                    case RightStickUp, RightStickDown ->    tempMapping.axisIndexRY = i;
-                    case LeftTrigger ->                     tempMapping.axisIndexLT = i;
-                    case RightTrigger ->                    tempMapping.axisIndexRT = i;
-                    case DpadLeft, DpadRight ->             tempMapping.axisIndexDpadX = i;
-                    case DpadUp, DpadDown ->                tempMapping.axisIndexDpadY = i;
+        if(axisMapping != null) {
+            for (int i = 0; i < SSMSControllerModPluginEx.controller.controller.getAxisCount(); i++) {
+                if (axesChanged[i]) {
+                    tempMapping.mapAxis(new ControllerMapping.AxisData(axisMapping, null, i));
+                    break;
                 }
-                break;
             }
         }
         if(povXChanged) {
-            tempMapping.axisIndexDpadX = 0xFF;
+            tempMapping.mapPov(AxisMapping.DPadX);
         }
         if(povYChanged) {
-            tempMapping.axisIndexDpadY = 0xFF;
+            tempMapping.mapPov(AxisMapping.DPadY);
         }
     }
 

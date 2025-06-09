@@ -35,11 +35,14 @@ import java.util.List;
 import org.apache.log4j.Level;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
+import ssms.controller.enums.Indicators;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.reflection.CombatStateReflector;
 import ssms.controller.reflection.WeaponReflection;
 import ssms.controller.steering.SteeringController;
 import ssms.controller.steering.SteeringController_FreeFlight;
 import ssms.controller.steering.SteeringController_OrbitTarget;
+import ssms.controller.steering.Util;
 
 /**
  *
@@ -119,13 +122,13 @@ public class BattleSteeringScreen extends InputScreenBase {
         if ( processShipInputs(ps) ) {
             //autopilot flag is inverted!
             if ( engine.isUIAutopilotOn() && !engine.isPaused() && amount > 0f ) {
-                if ( controller.getButtonEvent(Buttons.Select) == 1 ) {
+                if ( controller.getButtonEvent(LogicalButtons.Select) == 1 ) {
                     InputScreenManager.getInstance().transitionDelayed(BattleTargetingScreen.ID);
                 }
-                if ( controller.getButtonEvent(Buttons.Start) == 1 ) {
+                if ( controller.getButtonEvent(LogicalButtons.Start) == 1 ) {
                     InputScreenManager.getInstance().transitionDelayed(BattleMenuScreen.ID);
                 }
-                if ( controller.getButtonEvent(Buttons.LeftStickButton) == 1 ) {
+                if ( controller.getButtonEvent(LogicalButtons.LeftStickButton) == 1 ) {
                     isAlternateSteering = !isAlternateSteering;
                     if ( isAlternateSteering ) {
                         psCache.setSteeringController(new SteeringController_OrbitTarget(), controller, engine);
@@ -156,17 +159,17 @@ public class BattleSteeringScreen extends InputScreenBase {
 
                         WeaponReflection.AimWeapon(weapon, targetLocation);
                     }
-                    if ( controller.isButtonAPressed() ) ps.giveCommand(ShipCommand.FIRE, v1, -1);
+                    if ( controller.isButtonPressed(LogicalButtons.A) ) ps.giveCommand(ShipCommand.FIRE, v1, -1);
                 }
 
                 //start venting
-                if ( controller.getButtonEvent(Buttons.Y) == 1 ) {
+                if ( controller.getButtonEvent(LogicalButtons.Y) == 1 ) {
                     ps.giveCommand(ShipCommand.VENT_FLUX, null, -1);
                 }
 
                 //TODO maybe adjust shield facing in the after input processed method if it got turned on this frame
                 //shield/cloak on/off
-                if ( controller.getButtonEvent(Buttons.B) == 1 ) {
+                if ( controller.getButtonEvent(LogicalButtons.B) == 1 ) {
                     if ( ps.getShield() != null ) {
                         if ( ps.getShield().getType() == ShieldAPI.ShieldType.OMNI) {
                             CombatStateReflector.GetInstance().setAutoOmniShield();
@@ -195,7 +198,7 @@ public class BattleSteeringScreen extends InputScreenBase {
                 }
 
                 //activate system
-                if ( controller.getButtonEvent(Buttons.X) == 1 ) {
+                if ( controller.getButtonEvent(LogicalButtons.X) == 1 ) {
                     if ( ps.getShipTarget() != null ) {
                         //due to a bug in vanilla coding the getAI method must return not null in order for the minestrike to use the override
                         //replacing the script with a corrected version that skips the AI check
@@ -213,16 +216,16 @@ public class BattleSteeringScreen extends InputScreenBase {
 
                 //second joystick cycles fighter modes and weapon groups if not held down. up fighter mode, left right weapon groups, down autofire
                 //toggle fighter mode
-                if ( psCache.hasFighters && controller.getButtonEvent(Buttons.RightStickUp) == 1 ) {
+                if ( psCache.hasFighters && controller.getButtonEvent(LogicalButtons.RightStickUp) == 1 ) {
                     ps.setPullBackFighters(true);
                     //ps.giveCommand(ShipCommand.PULL_BACK_FIGHTERS, null, -1);
                 }
                 //toggle autofire
-                if ( controller.getButtonEvent(Buttons.RightStickDown) == 1 ) {
+                if ( controller.getButtonEvent(LogicalButtons.RightStickDown) == 1 ) {
                     ps.giveCommand(ShipCommand.TOGGLE_AUTOFIRE, null, ps.getWeaponGroupsCopy().indexOf(ps.getSelectedGroupAPI()));
                 }
                 //select weapon group
-                if ( controller.getButtonEvent(Buttons.RightStickRight) == 1 ) {
+                if ( controller.getButtonEvent(LogicalButtons.RightStickRight) == 1 ) {
                     List<WeaponGroupAPI> wgs = ps.getWeaponGroupsCopy();
                     int indx = wgs.indexOf(ps.getSelectedGroupAPI()) + 1;
                     if ( indx >= wgs.size() ) {
@@ -230,7 +233,7 @@ public class BattleSteeringScreen extends InputScreenBase {
                     }
                     ps.giveCommand(ShipCommand.SELECT_GROUP, null, indx);
                 }
-                if ( controller.getButtonEvent(Buttons.RightStickLeft) == 1 ) {
+                if ( controller.getButtonEvent(LogicalButtons.RightStickLeft) == 1 ) {
                     List<WeaponGroupAPI> wgs = ps.getWeaponGroupsCopy();
                     int indx = wgs.indexOf(ps.getSelectedGroupAPI()) - 1;
                     if ( indx < 0 ) {
@@ -263,7 +266,7 @@ public class BattleSteeringScreen extends InputScreenBase {
                         ps.getShield().forceFacing(ps.getFacing() + scope.getOffsetFacingAngle());
                     } else {
                         Vector2f v = Vector2f.sub(ps.getShipTarget().getLocation(), ps.getLocation(), new Vector2f());
-                        ps.getShield().forceFacing(Util_Steering.getFacingFromHeading(v));
+                        ps.getShield().forceFacing(Util.getFacingFromHeading(v));
                     }
                 }
             }

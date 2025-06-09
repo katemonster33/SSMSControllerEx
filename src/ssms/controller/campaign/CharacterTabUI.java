@@ -8,6 +8,8 @@ import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
+import ssms.controller.enums.Indicators;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.reflection.CharacterSheetReflector;
 
 import java.util.ArrayList;
@@ -72,7 +74,7 @@ public class CharacterTabUI extends InputScreenBase {
                 selectedBtn.highlight();
             }
         }
-        if(controller.getButtonEvent(Buttons.LeftStickDown) == 1) {
+        if(controller.getButtonEvent(LogicalButtons.LeftStickDown) == 1) {
             if(rowSelected < buttonRows.size() - 1) {
                 rowSelected++;
             }
@@ -80,7 +82,7 @@ public class CharacterTabUI extends InputScreenBase {
                 buttonSelected = buttonRows.get(rowSelected).size() - 1;
             }
             selectNewBtn();
-        } else if(controller.getButtonEvent(Buttons.LeftStickUp) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.LeftStickUp) == 1) {
             if(rowSelected > 0) {
                 rowSelected--;
             }
@@ -88,29 +90,29 @@ public class CharacterTabUI extends InputScreenBase {
                 buttonSelected = buttonRows.get(rowSelected).size() - 1;
             }
             selectNewBtn();
-        } else if(controller.getButtonEvent(Buttons.LeftStickLeft) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.LeftStickLeft) == 1) {
             if(buttonSelected > 0) {
                 buttonSelected--;
             }
             selectNewBtn();
-        } else if(controller.getButtonEvent(Buttons.LeftStickRight) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.LeftStickRight) == 1) {
             if(buttonSelected < (buttonRows.get(rowSelected).size() - 1)) {
                 buttonSelected++;
             }
             selectNewBtn();
-        } else if(controller.getButtonEvent(Buttons.Y) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.Y) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_G, 'G');
-        } else if(controller.getButtonEvent(Buttons.X) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.X) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_T, 'T');
-        } else if(controller.getButtonEvent(Buttons.A) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.A) == 1) {
             if(selectedBtn != null) {
                 float mouseX = selectedBtn.getPosition().getCenterX(), mouseY = selectedBtn.getPosition().getCenterY();
                 InputShim.mouseMove((int) mouseX, (int) mouseY);
                 InputShim.mouseDownUp((int) mouseX, (int) mouseY, InputEventMouseButton.LEFT);
             }
-        } else if(controller.getButtonEvent(Buttons.B) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.B) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-        } else if(controller.getButtonEvent(Buttons.BumperRight) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.BumperRight) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_F, 'f');
         }
     }

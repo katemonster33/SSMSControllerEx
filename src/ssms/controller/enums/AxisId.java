@@ -1,4 +1,4 @@
-package ssms.controller;
+package ssms.controller.enums;
 
 public enum AxisId {
     XAxis,

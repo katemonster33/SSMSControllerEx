@@ -7,6 +7,8 @@ import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.apache.log4j.Level;
 import ssms.controller.*;
+import ssms.controller.enums.Indicators;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.reflection.BorderedPanelReflector;
 import ssms.controller.reflection.InteractionDialogReflector;
 import ssms.controller.reflection.TradeUiReflector;
@@ -135,11 +137,11 @@ public class DialogUI extends InputScreenBase {
                 selectNextButton();
             }
         }
-        if(controller.getButtonEvent(Buttons.LeftStickDown) == 1) {
+        if(controller.getButtonEvent(LogicalButtons.LeftStickDown) == 1) {
             selectNextButton();
-        } else if(controller.getButtonEvent(Buttons.LeftStickUp) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.LeftStickUp) == 1) {
             selectPrevButton();
-        } else if(controller.getButtonEvent(Buttons.A) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.A) == 1) {
             clickButton();
             dialogOptions = null;
         }

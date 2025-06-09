@@ -3,17 +3,15 @@ package ssms.controller.campaign;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.combat.ViewportAPI;
-import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.util.vector.ReadableVector2f;
-import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
+import ssms.controller.enums.Indicators;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.MapInputHandler;
 import ssms.controller.reflection.MapReflector;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class MapTabUI extends InputScreenBase {
     public final static String ID = "MapTab";
@@ -60,15 +58,15 @@ public class MapTabUI extends InputScreenBase {
         }
         mapInputHandler.advance(amount);
         if(!mapInputHandler.getIsMovingMap()) {
-            if (controller.getButtonEvent(Buttons.B) == 1) {
+            if (controller.getButtonEvent(LogicalButtons.B) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-            } else if (controller.getButtonEvent(Buttons.LeftTrigger) == 1) {
+            } else if (controller.getButtonEvent(LogicalButtons.LeftTrigger) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_Q, 'q');
-            } else if (controller.getButtonEvent(Buttons.RightTrigger) == 1) {
+            } else if (controller.getButtonEvent(LogicalButtons.RightTrigger) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_W, 'w');
-            } else if (controller.getButtonEvent(Buttons.BumperLeft) == 1) {
+            } else if (controller.getButtonEvent(LogicalButtons.BumperLeft) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_I, 'i');
-            } else if (controller.getButtonEvent(Buttons.BumperRight) == 1) {
+            } else if (controller.getButtonEvent(LogicalButtons.BumperRight) == 1) {
                 InputShim.keyDownUp(Keyboard.KEY_E, 'e');
             }
         }

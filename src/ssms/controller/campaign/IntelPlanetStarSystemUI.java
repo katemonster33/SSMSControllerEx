@@ -14,6 +14,8 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
+import ssms.controller.enums.Indicators;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.reflection.*;
 
 import java.util.ArrayList;
@@ -123,10 +125,10 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
             return (int)(left.getPosition().getX() - right.getPosition().getX());
         });
         //var lst = starSystemReflector.getIntelFilters();
-        if(controller.getButtonEvent(Buttons.LeftStickLeft) == 1) {
+        if(controller.getButtonEvent(LogicalButtons.LeftStickLeft) == 1) {
             selectedIndex--;
             navigateButton(lst);
-        } else if(controller.getButtonEvent(Buttons.LeftStickRight) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.LeftStickRight) == 1) {
             selectedIndex++;
             navigateButton(lst);
         }
@@ -134,9 +136,9 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
 
     void preInputMap(float amount) {
         if(currentMapMode == MapMode.Zoom) {
-            if(controller.isLeftStickUp()) {
+            if(controller.isButtonPressed(LogicalButtons.LeftStickUp)) {
                 InputShim.mouseWheel((int) desiredMousePos.getX(), (int)desiredMousePos.getY(), 1);
-            } else if(controller.isLeftStickDown()) {
+            } else if(controller.isButtonPressed(LogicalButtons.LeftStickDown)) {
                 InputShim.mouseWheel((int) desiredMousePos.getX(), (int)desiredMousePos.getY(), -1);
             }
         } else {
@@ -151,7 +153,7 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
                 InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
             }
         }
-        if (controller.getButtonEvent(Buttons.LeftStickButton) == 1) {
+        if (controller.getButtonEvent(LogicalButtons.LeftStickButton) == 1) {
             if (currentMapMode == MapMode.MoveCursor) InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
             else if(currentMapMode == MapMode.MoveMap) InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
 
@@ -165,7 +167,7 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
         }
         if (currentMapMode == MapMode.MoveCursor) {
             if (desiredMousePos != null) {
-                if (controller.getButtonEvent(Buttons.A) == 1) {
+                if (controller.getButtonEvent(LogicalButtons.A) == 1) {
                     InputShim.mouseDownUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
                 }
             }
@@ -187,11 +189,11 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
         }
         lst.sort((UIComponentAPI left, UIComponentAPI right) -> (int)(left.getPosition().getX() - right.getPosition().getX()));
         //var lst = starSystemReflector.getIntelButtons();
-        if(controller.getButtonEvent(Buttons.LeftStickLeft) == 1) {
+        if(controller.getButtonEvent(LogicalButtons.LeftStickLeft) == 1) {
             selectedIndex--;
             navigateButton(lst);
             //if(selectedIndex != -1) starSystemReflector.ensureIntelButtonVisible(lst.get(selectedIndex));
-        } else if(controller.getButtonEvent(Buttons.LeftStickRight) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.LeftStickRight) == 1) {
             selectedIndex++;
             navigateButton(lst);
             //if(selectedIndex != -1) starSystemReflector.ensureIntelButtonVisible(lst.get(selectedIndex));
@@ -210,24 +212,24 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
             case Map -> preInputMap(amount);
             case PlanetList -> preInputPlanetAttributes(amount);
         }
-        if(controller.getButtonEvent(Buttons.B) == 1) {
+        if(controller.getButtonEvent(LogicalButtons.B) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_Q, 'q');
-        } else if(controller.getButtonEvent(Buttons.X) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.X) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_S, 's');
-        } else if(controller.getButtonEvent(Buttons.Y) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.Y) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_A, 'a');
-        } else if(controller.getButtonEvent(Buttons.A) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.A) == 1) {
             if(currentTabFocus == StarSystemTabFocusMode.PlanetAttributes) {
                 InputShim.keyDownUp(Keyboard.KEY_F2, '\0');
             } else if(desiredMousePos != null) {
                 InputShim.mouseDownUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
             }
             InputShim.keyDownUp(Keyboard.KEY_A, 'a');
-        } else if(controller.getButtonEvent(Buttons.LeftTrigger) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.LeftTrigger) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_1, '1');
-        } else if(controller.getButtonEvent(Buttons.RightTrigger) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.RightTrigger) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_3, '3');
-        } else if(controller.getButtonEvent(Buttons.RightStickLeft) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.RightStickLeft) == 1) {
             var map = planetTabReflector.getMap();
             currentMapMode = MapMode.MoveCursor;
             desiredMousePos = new Vector2f((int) map.getPosition().getCenterX(), (int) map.getPosition().getCenterY());
@@ -235,14 +237,14 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
             currentTabFocus = StarSystemTabFocusMode.Map;
             indicators = null;
             InputScreenManager.getInstance().refreshIndicators();
-        } else if(controller.getButtonEvent(Buttons.RightStickRight) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.RightStickRight) == 1) {
             //var lst = starSystemReflector.getIntelFilters();
             selectedIndex = 0;
             //navigateButton(lst);
             currentTabFocus = StarSystemTabFocusMode.PlanetList;
             indicators = null;
             InputScreenManager.getInstance().refreshIndicators();
-        } else if(controller.getButtonEvent(Buttons.RightStickUp) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.RightStickUp) == 1) {
             //var lst = starSystemReflector.getIntelButtons();
             selectedIndex = 0;
             //navigateButton(lst);

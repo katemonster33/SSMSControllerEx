@@ -22,8 +22,10 @@ import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
+import ssms.controller.enums.AxisMapping;
+import ssms.controller.enums.Indicators;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.AbstractButtonInputHandler;
-import ssms.controller.inputhelper.ButtonInputHandler;
 import ssms.controller.reflection.CampaignStateReflector;
 import ssms.controller.reflection.CombatStateReflector;
 import ssms.controller.reflection.TitleScreenStateReflector;
@@ -31,6 +33,8 @@ import ssms.controller.reflection.TitleScreenStateReflector;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  *
@@ -41,11 +45,14 @@ public class InputScreenBase {
     public static final String ID = "NoScreen";
     public static final String SCOPES = InputScopeBase.ID;
     protected List<Pair<Indicators, String>> indicators;
-    protected HashMap<Indicators, AbstractButtonInputHandler> handlers;
+    protected HashMap<LogicalButtons, Consumer<Boolean>> buttonHandlers;
+    protected HashMap<AxisMapping, Object> axisHandlers;
+    protected Object leftJoystickHandler;
+    protected Object rightJoystickHandler;
     protected HandlerController controller;
 
     public InputScreenBase() {
-        handlers = new HashMap<>();
+        buttonHandlers = new HashMap<>();
         indicators = new ArrayList<>();
         controller = SSMSControllerModPluginEx.controller;
     }
@@ -67,8 +74,14 @@ public class InputScreenBase {
     }
 
     public void preInput(float advance) {
-        for(var btnHandler : handlers.values()) {
+        for(var btnHandler : buttonHandlers.values()) {
             btnHandler.advance(advance);
+        }
+    }
+
+    public final void processButtonEvents(List<Pair<LogicalButtons, Boolean>> buttonEvents) {
+        for(var btnEvent : buttonEvents) {
+
         }
     }
 
@@ -79,24 +92,18 @@ public class InputScreenBase {
 
     public String[] getScopes() { return new String[]{ SCOPES }; }
 
-    //protected void addJoystickHandler(String msg, Indicators joystickIndicator, )
-
-//    protected void addButtonHandler(String msg, AbstractButtonInputHandler handler) {
-//
-//    }
-
     protected void addHandler(String msg, AbstractButtonInputHandler handler) {
         var indicator = Indicators.fromButton(handler.getButtons());
         if(indicator == null) {
             Global.getLogger(getClass()).warn("given button doesn't translate to indicator! " + handler.getButtons());
             return;
         }
-        handlers.put(indicator, handler);
+        buttonHandlers.put(indicator, handler);
         indicators.add(new Pair<>(indicator, msg));
     }
 
     protected void clearHandlers() {
-        handlers.clear();
+        buttonHandlers.clear();
     }
 
     public UIPanelAPI getPanelForIndicators() {

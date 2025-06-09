@@ -3,15 +3,10 @@ package ssms.controller.reflection;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUIAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
-import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.coreui.P;
-import ssms.controller.Indicators;
-import ssms.controller.InputScreenBase;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.util.ArrayList;
 import java.util.List;
 
 public class FleetTabReflector {

@@ -1,16 +1,16 @@
 package ssms.controller.inputhelper;
 
-import ssms.controller.Buttons;
+import ssms.controller.enums.LogicalButtons;
 
 public class ButtonInputHandler extends AbstractButtonInputHandler {
     Callback callback;
-    public ButtonInputHandler(Buttons buttons, Callback callback) {
-        super(buttons);
+    public ButtonInputHandler(LogicalButtons logicalButtons, Callback callback) {
+        super(logicalButtons);
         this.callback = callback;
     }
 
-    public ButtonInputHandler(Buttons buttons, ButtonMode buttonMode, Callback callback) {
-        super(buttons, buttonMode);
+    public ButtonInputHandler(LogicalButtons logicalButtons, ButtonMode buttonMode, Callback callback) {
+        super(logicalButtons, buttonMode);
         this.callback = callback;
     }
 

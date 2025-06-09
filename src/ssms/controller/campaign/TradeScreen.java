@@ -10,13 +10,14 @@ import com.fs.starfarer.campaign.ui.trade.CargoStackView;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
+import ssms.controller.enums.Indicators;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.inputhelper.ButtonInputHandler;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.*;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class TradeScreen extends InputScreenBase {
     public static final String ID = "Trade";
@@ -38,25 +39,25 @@ public class TradeScreen extends InputScreenBase {
         indicators = new ArrayList<>();
         indicators.add(new Pair<>(Indicators.LeftStick, "Navigate list"));
 
-        addHandler("Pick up stack", new ButtonInputHandler(Buttons.X, (float advance) ->
+        addHandler("Pick up stack", new ButtonInputHandler(LogicalButtons.X, (float advance) ->
                 clickStack(playerGridSelected ? playerDataGrid : otherDataGrid)));
 
-        addHandler("Take all", new KeySender(Buttons.Y, Keyboard.KEY_R, 'r'));
+        addHandler("Take all", new KeySender(LogicalButtons.Y, Keyboard.KEY_R, 'r'));
 
-        addHandler("Abort", new KeySender(Buttons.B, Keyboard.KEY_T, 't'));
+        addHandler("Abort", new KeySender(LogicalButtons.B, Keyboard.KEY_T, 't'));
 
-        addHandler("Confirm", new KeySender(Buttons.A, Keyboard.KEY_G, 'g'));
+        addHandler("Confirm", new KeySender(LogicalButtons.A, Keyboard.KEY_G, 'g'));
 
-        addHandler("Toggle hangar", new ButtonInputHandler(Buttons.Select, (float advance) -> {
+        addHandler("Toggle hangar", new ButtonInputHandler(LogicalButtons.Select, (float advance) -> {
             playerGridSelected = !playerGridSelected;
             selectedRow = selectedCol = -1;
         }));
 
-        addHandler("Close", new KeySender(Buttons.Start, Keyboard.KEY_ESCAPE));
+        addHandler("Close", new KeySender(LogicalButtons.Start, Keyboard.KEY_ESCAPE));
         isCargoTab = Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.CARGO;
         if(isCargoTab) {
-            addHandler("Select refit tab", new KeySender(Buttons.BumperLeft, Keyboard.KEY_R, 'r'));
-            addHandler("Select map tab", new KeySender(Buttons.BumperRight, Keyboard.KEY_TAB));
+            addHandler("Select refit tab", new KeySender(LogicalButtons.BumperLeft, Keyboard.KEY_R, 'r'));
+            addHandler("Select map tab", new KeySender(LogicalButtons.BumperRight, Keyboard.KEY_TAB));
         }
 
         playerDataGrid = tradeUiReflector.getPlayerCargoView();
@@ -159,17 +160,17 @@ public class TradeScreen extends InputScreenBase {
             selectedCol = selectedRow = 0;
             mouseOverGrid(curGrid);
         }
-        if(controller.getButtonEvent(Buttons.LeftStickUp) == 1 && controller.isLeftStickUp()) {
+        if(controller.getButtonEvent(LogicalButtons.LeftStickUp) == 1) {
             moveGridSelection(curGrid, -1, 0);
-        } else if(controller.getButtonEvent(Buttons.LeftStickDown) == 1 && controller.isLeftStickDown()) {
+        } else if(controller.getButtonEvent(LogicalButtons.LeftStickDown) == 1) {
             moveGridSelection(curGrid, 1, 0);
-        } else if(controller.getButtonEvent(Buttons.LeftStickLeft) == 1 && controller.isLeftStickLeft()) {
+        } else if(controller.getButtonEvent(LogicalButtons.LeftStickLeft) == 1) {
             //selectStack(curGrid, 0, -1);
             moveGridSelection(curGrid, 0, -1);
-        } else if(controller.getButtonEvent(Buttons.LeftStickRight) == 1 && controller.isLeftStickRight()) {
+        } else if(controller.getButtonEvent(LogicalButtons.LeftStickRight) == 1) {
             //selectStack(curGrid, 0, 1);
             moveGridSelection(curGrid, 0, 1);
-        } else if(controller.getButtonEvent(Buttons.Select) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.Select) == 1) {
             playerGridSelected = !playerGridSelected;
             selectedRow = selectedCol = -1;
         }

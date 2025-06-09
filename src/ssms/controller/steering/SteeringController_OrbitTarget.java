@@ -28,9 +28,9 @@ import java.util.List;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.HandlerController;
-import ssms.controller.Util_Steering;
-import ssms.controller.Indicators;
+import ssms.controller.enums.Indicators;
 import ssms.controller.reflection.CombatStateReflector;
 import ssms.controller.reflection.ShipEngineControllerReflection;
 
@@ -89,10 +89,10 @@ public class SteeringController_OrbitTarget extends SteeringController_Base {
     public void steer(float timeAdvanced, float offsetFacingAngle) {
         calculateAllowances(ps);
         
-        if ( handler.isTriggerRight() ) {
+        if ( handler.isButtonPressed(LogicalButtons.RightTrigger) ) {
             desiredDistance -= Math.max(ps.getEngineController().getMaxSpeedWithoutBoost(), 400f) * timeAdvanced;
             desiredDistance = Math.max(ps.getCollisionRadius() + ps.getShipTarget().getCollisionRadius(), desiredDistance);
-        } else if ( handler.isTriggerLeft() ) {
+        } else if ( handler.isButtonPressed(LogicalButtons.LeftTrigger) ) {
             desiredDistance += Math.max(ps.getEngineController().getMaxSpeedWithoutBoost(), 400f) * timeAdvanced;
         }
 
@@ -106,7 +106,7 @@ public class SteeringController_OrbitTarget extends SteeringController_Base {
 
             //its possible that we should turn towards the target leading average of the current weapon group  instead of the ship location, 
             //so that rigid mounts are more likely to hit
-            if ( allowTurning ) turnToAngle(ps,Util_Steering.getFacingFromHeading(Vector2f.sub(ps.getShipTarget().getLocation(), ps.getLocation(), new Vector2f()))+offsetFacingAngle,timeAdvanced);
+            if ( allowTurning ) turnToAngle(ps, Util.getFacingFromHeading(Vector2f.sub(ps.getShipTarget().getLocation(), ps.getLocation(), new Vector2f()))+offsetFacingAngle,timeAdvanced);
 
             vDesiredHeadingLastValidInput = vDesiredHeading;
         }
@@ -118,7 +118,7 @@ public class SteeringController_OrbitTarget extends SteeringController_Base {
         
         ReadableVector2f heading = handler.getLeftStick();
         if ( heading.getX() == 0 && heading.getY() == 0 ) {
-            heading = Util_Steering.getHeadingFromFacing(ps.getFacing());
+            heading = Util.getHeadingFromFacing(ps.getFacing());
         }
         float zoom = CombatStateReflector.GetInstance().getZoomFactor();
         
@@ -149,7 +149,7 @@ public class SteeringController_OrbitTarget extends SteeringController_Base {
         float angleIncrement = (float) Math.toRadians(360.0f / 5f);
 
         //rotating the pentagon so that it points in the right direction and the missing slice is opposite to that point.
-        float angle = (float) Math.toRadians(Util_Steering.getFacingFromHeading(Vector2f.sub(ps.getShipTarget().getLocation(), pentagonCenter, new Vector2f())) + offsetFacingAngle) + 3f * angleIncrement;
+        float angle = (float) Math.toRadians(Util.getFacingFromHeading(Vector2f.sub(ps.getShipTarget().getLocation(), pentagonCenter, new Vector2f())) + offsetFacingAngle) + 3f * angleIncrement;
 
         GL11.glBegin(GL11.GL_TRIANGLE_FAN);
         GL11.glVertex2f(pentagonCenter.x, pentagonCenter.y);
@@ -211,8 +211,8 @@ public class SteeringController_OrbitTarget extends SteeringController_Base {
         }
         
         Vector2f velocity = ps.getVelocity();
-        Vector2f vShipForwardDirection = Util_Steering.getHeadingFromFacing(ps.getFacing());
-        Vector2f vShipStrafingLeftDirection = Util_Steering.getHeadingFromFacing(ps.getFacing() + 90f);
+        Vector2f vShipForwardDirection = Util.getHeadingFromFacing(ps.getFacing());
+        Vector2f vShipStrafingLeftDirection = Util.getHeadingFromFacing(ps.getFacing() + 90f);
         
         velocity.set(velocity.x + (vShipForwardDirection.x * targetAcceleration + vShipStrafingLeftDirection.x * targetStrafeAcceleration) * time, 
                 velocity.y + (vShipForwardDirection.y * targetAcceleration + vShipStrafingLeftDirection.y * targetStrafeAcceleration) * time);
@@ -239,7 +239,7 @@ public class SteeringController_OrbitTarget extends SteeringController_Base {
         Vector2f.add(ps.getShipTarget().getLocation(), vDesiredLocation, vDesiredLocation);
         Vector2f.sub(vDesiredLocation, ps.getVelocity(), vDesiredLocation);
         Vector2f.add(ps.getShipTarget().getVelocity(), vDesiredLocation, vDesiredLocation);
-        Vector2f vShipFacing = Util_Steering.getHeadingFromFacing(ps.getFacing());
+        Vector2f vShipFacing = Util.getHeadingFromFacing(ps.getFacing());
         
         float accelerationToReachDesiredLocation, strafingToReachDesiredLocation;
         Vector2f v1 = new Vector2f();

@@ -1,23 +1,21 @@
 package ssms.controller.inputhelper;
 
-import ssms.controller.Buttons;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.SSMSControllerModPluginEx;
 
 public abstract class AbstractButtonInputHandler {
-    Buttons buttons;
     ButtonMode buttonMode;
     boolean buttonState = false;
-    public AbstractButtonInputHandler(Buttons buttons) {
-        this(buttons, ButtonMode.Down);
+    public AbstractButtonInputHandler() {
+        this(ButtonMode.Down);
     }
 
-    public AbstractButtonInputHandler(Buttons buttons, ButtonMode buttonMode) {
-        this.buttons = buttons;
+    public AbstractButtonInputHandler(ButtonMode buttonMode) {
         this.buttonMode = buttonMode;
     }
 
-    public Buttons getButtons() {
-        return buttons;
+    public LogicalButtons getButtons() {
+        return logicalButtons;
     }
 
     public ButtonMode getButtonMode() {
@@ -29,10 +27,12 @@ public abstract class AbstractButtonInputHandler {
     }
 
     public void advance(float advance) {
+    }
+
+    public void handleEvent(boolean newState) {
+
         switch(buttonMode) {
-            case Up: if(SSMSControllerModPluginEx.controller.getButtonEvent(buttons) == -1) performAction(advance); break;
-            case Down: if(SSMSControllerModPluginEx.controller.getButtonEvent(buttons) == 1) performAction(advance); break;
-            case UpOrDown: if(SSMSControllerModPluginEx.controller.getButtonEvent(buttons) != 0) performAction(advance); break;
+            case Up: if(!newState) performAction(advance); break;
             case DownAndHold: handleDownHold(advance);
         }
     }

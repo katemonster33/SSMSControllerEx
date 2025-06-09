@@ -11,6 +11,7 @@ import com.fs.starfarer.api.util.Pair;
 
 import lunalib.lunaUI.panel.LunaBaseCustomPanelPlugin;
 import org.jetbrains.annotations.NotNull;
+import ssms.controller.enums.Indicators;
 
 import java.awt.Color;
 import java.util.ArrayList;

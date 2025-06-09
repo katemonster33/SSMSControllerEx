@@ -24,10 +24,6 @@ import java.util.Map;
 
 import org.apache.log4j.Level;
 
-import ssms.controller.reflection.CampaignStateReflector;
-import ssms.controller.reflection.CombatStateReflector;
-import ssms.controller.reflection.TitleScreenStateReflector;
-
 /**
  *
  * @author Malte Schulze
@@ -77,12 +73,12 @@ public class InputScreenManager {
         return localInstance;
     }
     
-    public InputScreenBase registerScreen(InputScreenBase screen) {
-        return screens.put(screen.getId(), screen);
+    public void registerScreen(InputScreenBase screen) {
+        screens.put(screen.getId(), screen);
     }
     
-    public InputScopeBase registerScope(InputScopeBase scope) {
-        return scopes.put(scope.getId(), scope);
+    public void registerScope(InputScopeBase scope) {
+        scopes.put(scope.getId(), scope);
     }
     
     public InputScreenBase getCurrentScreen() {

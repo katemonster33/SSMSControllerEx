@@ -7,6 +7,8 @@ import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
 import ssms.controller.combat.BattleScope;
+import ssms.controller.enums.Indicators;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.reflection.ClassReflector;
 import ssms.controller.reflection.MessageBoxReflector;
 import ssms.controller.reflection.MethodReflector;
@@ -125,15 +127,15 @@ public class MessageBoxScreen extends InputScreenBase {
                 InputScreenManager.getInstance().transitionToScreen(uiToReturnTo);
             }
         }
-        if(controller.getButtonEvent(Buttons.LeftStickDown) == 1) {
+        if(controller.getButtonEvent(LogicalButtons.LeftStickDown) == 1) {
             selectNextButton();
-        } else if(controller.getButtonEvent(Buttons.LeftStickUp) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.LeftStickUp) == 1) {
             selectPrevButton();
-        } else if(controller.getButtonEvent(Buttons.A) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.A) == 1) {
             clickButton();
-        } else if(controller.getButtonEvent(Buttons.B) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.B) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-        } else if(controller.getButtonEvent(Buttons.Y) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.Y) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_RETURN, '\0');
         }
     }

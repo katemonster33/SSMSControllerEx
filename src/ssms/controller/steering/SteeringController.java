@@ -23,7 +23,7 @@ import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.util.Pair;
 import java.util.List;
 import ssms.controller.HandlerController;
-import ssms.controller.Indicators;
+import ssms.controller.enums.Indicators;
 
 /**
  * This interface defines the contract for custom steering behaviour. The user can select which behaviours he wants to use in either first or second mode.

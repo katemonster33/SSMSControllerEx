@@ -30,6 +30,8 @@ import com.fs.starfarer.api.util.Pair;
 import java.util.*;
 import lunalib.lunaUI.panel.LunaBaseCustomPanelPlugin;
 import ssms.controller.*;
+import ssms.controller.enums.Indicators;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.reflection.CombatStateReflector;
 
 /**
@@ -108,18 +110,18 @@ public class BattleMenuScreen extends InputScreenBase {
             if(buttons.isEmpty()) {
                 throw new IllegalArgumentException("Cannot handle inputs on empty BattleMenuUI!");
             }
-            if ( controller.getButtonEvent(Buttons.BumperLeft) == 1) {
+            if ( controller.getButtonEvent(LogicalButtons.BumperLeft) == 1) {
                 buttons.get(currentSelectedIndex).unhighlight();
                 currentSelectedIndex--;
                 if(currentSelectedIndex < 0) currentSelectedIndex = buttons.size() - 1;
                 buttons.get(currentSelectedIndex).highlight();
-            } else if(controller.getButtonEvent(Buttons.BumperRight) == 1) {
+            } else if(controller.getButtonEvent(LogicalButtons.BumperRight) == 1) {
                 buttons.get(currentSelectedIndex).unhighlight();
                 currentSelectedIndex++;
                 if(currentSelectedIndex >= buttons.size()) currentSelectedIndex = 0;
                 buttons.get(currentSelectedIndex).highlight();
             }
-            if ( controller.getButtonEvent(Buttons.Select) == 1 ) {
+            if ( controller.getButtonEvent(LogicalButtons.Select) == 1 ) {
                 if(currentSelectedIndex != -1) {
                     onClicked(currentSelectedIndex);
                 }
