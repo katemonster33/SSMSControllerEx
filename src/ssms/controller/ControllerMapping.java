@@ -18,10 +18,9 @@
 package ssms.controller;
 
 import com.fs.starfarer.api.graphics.SpriteAPI;
+import com.fs.starfarer.api.util.Pair;
 
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Stores information on how to interpret game controller signals.
@@ -32,11 +31,81 @@ public class ControllerMapping {
     public String deviceName;
     public float axisBtnConversionDeadzone = 0.85f, joystickDeadzone = 0.25f;
     public Map<String,Object> customProperties = new HashMap<>();
-    public EnumMap<Indicators, String> indicators;
+    public EnumMap<Indicators, String> indicators = new EnumMap<>(Indicators.class);
+    EnumMap<Axes, AxisData> axisDatas = new EnumMap<>(Axes.class);
+    EnumMap<Buttons, ButtonData> buttonDatas= new EnumMap<>(Buttons.class);
 
     public String indicatorProfile;
-    
-    public AxisId axisIdLX, axisIdLY, axisIdRX, axisIdRY, axisIdLT, axisIdRT, axisIdDpadX, axisIdDpadY;
-    public Integer axisIndexLX, axisIndexLY, axisIndexRX, axisIndexRY, axisIndexLT, axisIndexRT, axisIndexDpadX, axisIndexDpadY;
-    public Integer btnA, btnB, btnX, btnY, btnBumperLeft, btnBumperRight, btnStart, btnSelect, btnLeftStick, btnRightStick, btnLeftTrigger, btnRightTrigger;
+
+    public void mapAxis(AxisData axisData) {
+        axisDatas.put(axisData.getAxis(), axisData);
+    }
+
+    public void mapButton(ButtonData buttonData) {
+        buttonDatas.put(buttonData.getButtons(), buttonData);
+    }
+
+    public void mapPov(Axes axis) {
+        axisDatas.put(axis, new AxisData(axis, null, 0xFF, null, 0xFF));
+    }
+
+    public List<AxisData> getMappedAxes() {
+        return new ArrayList<>(axisDatas.values());
+    }
+
+    public List<ButtonData> getMappedButtons() {
+        return new ArrayList<>(buttonDatas.values());
+    }
+
+    public static class AxisData {
+        Axes axis;
+        AxisId xAxisId;
+        int xAxisIndex;
+        AxisId yAxisId;
+        int yAxisIndex;
+        public AxisData(Axes axis, AxisId xAxisId, int xAxisIndex, AxisId yAxisId, int yAxisIndex) {
+            this.axis = axis;
+            this.xAxisId = xAxisId;
+            this.xAxisIndex = xAxisIndex;
+            this.yAxisId = yAxisId;
+            this.yAxisIndex = yAxisIndex;
+        }
+
+        public Axes getAxis() {
+            return axis;
+        }
+
+        public AxisId getXAxisId() {
+            return xAxisId;
+        }
+
+        public int getXAxisIndex() {
+            return xAxisIndex;
+        }
+
+        public AxisId getYAxisId() {
+            return yAxisId;
+        }
+
+        public int getYAxisIndex() {
+            return yAxisIndex;
+        }
+    }
+
+    public static class ButtonData {
+        Buttons buttons;
+        int buttonIndex;
+        public ButtonData(Buttons buttons, int buttonIndex) {
+            this.buttons = buttons;
+            this.buttonIndex = buttonIndex;
+        }
+
+        public Buttons getButtons() {
+            return buttons;
+        }
+
+        public int getButtonIndex() {
+            return buttonIndex;
+        }
+    }
 }

@@ -58,11 +58,17 @@ public class UIPanelReflector {
     }
 
     public static List<ButtonAPI> getChildButtons(UIPanelAPI panel) {
+        return getChildButtons(panel, false);
+    }
+
+    public static List<ButtonAPI> getChildButtons(UIPanelAPI panel, boolean recursive) {
         ArrayList<ButtonAPI> output = new ArrayList<>();
         List<?> childItems = getChildItems(panel);
         for(Object childItem : childItems) {
-            if(ButtonAPI.class.isAssignableFrom(childItem.getClass())) {
-                output.add((ButtonAPI)childItem);
+            if (recursive && UIPanelAPI.class.isAssignableFrom(childItem.getClass())) {
+                output.addAll(getChildButtons((UIPanelAPI) childItem, true));
+            } else if (ButtonAPI.class.isAssignableFrom(childItem.getClass())) {
+                output.add((ButtonAPI) childItem);
             }
         }
         return output;

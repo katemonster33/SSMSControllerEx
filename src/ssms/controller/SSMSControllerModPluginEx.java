@@ -20,6 +20,7 @@ package ssms.controller;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.campaign.ui.trade.CargoDataGridView;
+import net.java.games.input.Component;
 import net.java.games.input.ControllerEnvironment;
 import ssms.controller.campaign.*;
 import ssms.controller.combat.*;
@@ -171,6 +172,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
      // TODO : This is the preferred approach to map controller buttons. But without a reliable way to get USB device info (vendor, product, version) and turn it into the GUID we need to lookup the device in our table, this can't work.
      static HashMap<String, ControllerMapping> configureControllerMappingEx() {
          HashMap<String, ControllerMapping> output = new HashMap<>();
+         var axisMappingsIndexed = AxisMapping.values();
          try {
              var controllerMapJson = Global.getSettings().loadJSON("data/config/controllerMappings.json");
              String platform = System.getProperty("os.name");
@@ -219,26 +221,13 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                      }
                  }
                  var axes = controller.getJSONArray("axes");
+                 EnumMap<AxisMapping, Integer> axisMappings = new EnumMap<>(AxisMapping.class);
                  for(int axisIdx = 0; axisIdx < axes.length(); axisIdx++) {
                      if(!axes.isNull(axisIdx)) {
-                         AxisMapping axisId = AxisMapping.values()[axes.getInt(axisIdx)];
-                         switch(axisId)
-                         {
-                             case LeftStickX: newMapping.axisIndexLX = axisIdx; break;
-                             case LeftStickY: newMapping.axisIndexLY = axisIdx; break;
-                             case RightStickX: newMapping.axisIndexRX = axisIdx; break;
-                             case RightStickY: newMapping.axisIndexRY = axisIdx; break;
-                             case LeftTrigger: newMapping.axisIndexLT = axisIdx; break;
-                             case RightTrigger: newMapping.axisIndexRT = axisIdx; break;
-                             case DPadX: newMapping.axisIndexDpadX = axisIdx; break;
-                             case DPadY: newMapping.axisIndexDpadY = axisIdx; break;
-
-                             case Invalid:
-                             default:
-                                 break;
-                         }
+                         axisMappings.put(axisMappingsIndexed[axes.getInt(axisIdx)], axisIdx);
                      }
                  }
+                 mapAxisByAxisIndex(axisMappings, newMapping, Axes.LeftStick, AxisMapping.LeftStickX, AxisMapping.LeftStickY);
                  var povs = controller.getJSONArray("povs");
                  for(int povIdx = 0; povIdx < povs.length(); povIdx++) {
                      if(!povs.isNull(povIdx)) {
@@ -259,11 +248,27 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
          return output;
      }
 
+    private static void mapAxisByAxisIndex(EnumMap<AxisMapping, Integer> axisMappings, ControllerMapping newMapping, Axes axis, AxisMapping xAxisMapping, AxisMapping yAxisMapping) {
+        if(axisMappings.containsKey(xAxisMapping) && axisMappings.containsKey(yAxisMapping)) {
+            newMapping.mapAxis(new ControllerMapping.AxisData(axis, null, (int) axisMappings.get(xAxisMapping), null, (int) axisMappings.get(yAxisMapping)));
+        }
+    }
+
     @Override
     public void onGameLoad(boolean newGame) {
 
         Global.getSector().addTransientScript(new CampaignControllerListener());
         Global.getSector().getListenerManager().addListener(new CampaignRenderer());
+    }
+
+    void mapAxisFromJson(ControllerMapping controllerMapping, JSONObject jsonObject, Axes axes, String xAxisJsonName, String yAxisJsonName ) throws JSONException {
+        if(jsonObject.has(xAxisJsonName) && jsonObject.has(yAxisJsonName))  {
+            controllerMapping.mapAxis(new ControllerMapping.AxisData(axes,
+                    Enum.valueOf(AxisId.class, jsonObject.getString(xAxisJsonName)),
+                    -1,
+                    Enum.valueOf(AxisId.class, jsonObject.getString(yAxisJsonName)),
+                    -1));
+        }
     }
 
     protected HashMap<String, ControllerMapping> configureControllerMappings(JSONObject controllerMappingsObj) {
@@ -283,36 +288,21 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                     if(deviceButtons != null) {
                         for(int btnIdx = 0; btnIdx < deviceButtons.length(); btnIdx++) {
                             String btnName = deviceButtons.getString(btnIdx);
-
-                            switch(btnName)
-                            {
-                                case "A":                   newMapping.btnA = btnIdx; break;
-                                case "B":                   newMapping.btnB = btnIdx; break;
-                                case "X":                   newMapping.btnX = btnIdx; break;
-                                case "Y":                   newMapping.btnY = btnIdx; break;
-                                case "BumperLeft":          newMapping.btnBumperLeft = btnIdx; break;
-                                case "BumperRight":         newMapping.btnBumperRight = btnIdx; break;
-                                case "Select" :             newMapping.btnSelect = btnIdx; break;
-                                case "Start" :              newMapping.btnStart = btnIdx; break;
-                                case "LeftStickButton":     newMapping.btnLeftStick = btnIdx; break;
-                                case "RightStickButton":    newMapping.btnRightStick = btnIdx; break;
-                                case "LeftTrigger":         newMapping.btnLeftTrigger = btnIdx; break;
-                                case "RightTrigger":        newMapping.btnRightTrigger = btnIdx; break;
+                            try {
+                                var btn = Enum.valueOf(Buttons.class, btnName);
+                                newMapping.mapButton(new ControllerMapping.ButtonData(btn, btnIdx));
+                            } catch(IllegalArgumentException e) {
+                                Global.getLogger(SSMSControllerModPluginEx.class).warn("Couldn't match button enum from string: " + btnName);
                             }
                         }
                     }
                     JSONObject deviceAxes = deviceMappings.getJSONObject("axes");
 
                     if(deviceAxes != null) {
-                        if(deviceAxes.has("LeftStickX")) newMapping.axisIdLX = Enum.valueOf(AxisId.class, deviceAxes.getString("LeftStickX"));
-                        if(deviceAxes.has("LeftStickY")) newMapping.axisIdLY = Enum.valueOf(AxisId.class, deviceAxes.getString("LeftStickY"));
-                        if(deviceAxes.has("RightStickX")) newMapping.axisIdRX = Enum.valueOf(AxisId.class, deviceAxes.getString("RightStickX"));
-                        if(deviceAxes.has("RightStickY")) newMapping.axisIdRY = Enum.valueOf(AxisId.class, deviceAxes.getString("RightStickY"));
-                        if(deviceAxes.has("LeftTrigger")) newMapping.axisIdLT = Enum.valueOf(AxisId.class, deviceAxes.getString("LeftTrigger"));
-                        if(deviceAxes.has("RightTrigger")) newMapping.axisIdRT = Enum.valueOf(AxisId.class, deviceAxes.getString("RightTrigger"));
-                        //newMapping.axisRightStickY = deviceAxes.getString("RightStickY");
-                        if(deviceAxes.has("DPadX")) newMapping.axisIdDpadX = Enum.valueOf(AxisId.class, deviceAxes.getString("DPadX"));
-                        if(deviceAxes.has("DPadY")) newMapping.axisIdDpadY = Enum.valueOf(AxisId.class, deviceAxes.getString("DPadY"));
+                        mapAxisFromJson(newMapping, deviceAxes, Axes.LeftStick, "LeftStickX", "LeftStickY");
+                        mapAxisFromJson(newMapping, deviceAxes, Axes.RightStick, "RightStickX", "RightStickY");
+                        mapAxisFromJson(newMapping, deviceAxes, Axes.Trigger, "LeftTrigger", "RightTrigger");
+                        mapAxisFromJson(newMapping, deviceAxes, Axes.DPad, "DPadX", "DPadY");
                     }
                     output.put(deviceName, newMapping);
                 }
@@ -323,7 +313,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         return output;
     }
 
-    protected HashMap<String, EnumMap<Indicators, String>> configureSettingsApplicationController(JSONObject graphicsObject) {
+    private HashMap<String, EnumMap<Indicators, String>> configureSettingsApplicationController(JSONObject graphicsObject) {
         HashMap<String, EnumMap<Indicators, String>> output = new HashMap<>();
         try {
             JSONArray names = graphicsObject.names();
@@ -466,23 +456,22 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                 var obj = FieldReflector.GetInstance().GetVariableByName("object", axis);
                 instances.add(new Pair<>((int) FieldReflector.GetInstance().GetVariableByName("instance", obj), axisIdx));
             }
-            instances.sort(new Comparator<Pair<Integer, Integer>>() {
-                @Override
-                public int compare(Pair<Integer, Integer> o1, Pair<Integer, Integer> o2) {
-                    return o1.one - o2.one;
-                }
-            });
-            conMap.axisIndexLX = fixAxisIndex(conMap.axisIndexLX, instances);
-            conMap.axisIndexLY = fixAxisIndex(conMap.axisIndexLY, instances);
-            conMap.axisIndexRX = fixAxisIndex(conMap.axisIndexRX, instances);
-            conMap.axisIndexRY = fixAxisIndex(conMap.axisIndexRY, instances);
-            conMap.axisIndexLT = fixAxisIndex(conMap.axisIndexLT, instances);
-            conMap.axisIndexRT = fixAxisIndex(conMap.axisIndexRT, instances);
-            conMap.axisIndexDpadX = fixAxisIndex(conMap.axisIndexDpadX, instances);
-            conMap.axisIndexDpadY = fixAxisIndex(conMap.axisIndexDpadY, instances);
+            instances.sort(Comparator.comparingInt(o -> o.one));
+            for(var axisMapping : conMap.getMappedAxes()) {
+                var newMapping = fixAxisIndices(axisMapping, instances);
+                conMap.mapAxis(newMapping);
+            }
         } catch(Throwable ex) {
             Global.getLogger(SSMSControllerModPluginEx.class).error("Couldn't reflect instance ID of controller axes!");
         }
+    }
+
+    static ControllerMapping.AxisData fixAxisIndices(ControllerMapping.AxisData axisMapping, List<Pair<Integer, Integer>> instances) {
+         return new ControllerMapping.AxisData(axisMapping.getAxis(),
+                 axisMapping.getXAxisId(),
+                 fixAxisIndex(axisMapping.getXAxisIndex(), instances),
+                 axisMapping.getYAxisId(),
+                 fixAxisIndex(axisMapping.getYAxisIndex(), instances));
     }
 
     //implementation of SDL_Swap16LE

@@ -18,7 +18,9 @@
 package ssms.controller.titlescreen;
 
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.ButtonAPI;
+import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.apache.log4j.Level;
@@ -30,6 +32,7 @@ import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
 import org.lwjgl.input.Controller;
+import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.reflection.ClassReflector;
 import ssms.controller.reflection.MethodReflector;
 import ssms.controller.reflection.TitleScreenStateReflector;
@@ -43,8 +46,8 @@ public class TitleScreenUI extends InputScreenBase {
     public static final String ID = "TitleScreen";
     List<ButtonAPI> titleScreenButtons = null;
     UIPanelAPI mainMenuPanel = null;
-    MethodHandle doButtonClick = null;
     int selectedButton = -1;
+    DirectionalUINavigator  directionalUINavigator;
 
     public TitleScreenUI() {
         indicators = new ArrayList<>();
@@ -58,21 +61,19 @@ public class TitleScreenUI extends InputScreenBase {
     public void activate(Object ...args) {
         UIPanelAPI panel = TitleScreenStateReflector.GetInstance().getScreenPanel();;
         UIPanelReflector.initialize(panel.getClass());
-        var widgets = UIPanelReflector.getChildItems(panel);
-        if(!widgets.isEmpty() && UIPanelAPI.class.isAssignableFrom(widgets.get(0).getClass())) {
-            var mainMenu = (UIPanelAPI)widgets.get(0);
-            try {
-                var getMainMenu = ClassReflector.GetInstance().findDeclaredMethod(mainMenu.getClass(), "getMainMenu");
-                mainMenuPanel = (UIPanelAPI) MethodReflector.GetInstance().invoke(getMainMenu, mainMenu);
-                doButtonClick = MethodHandles.lookup().findVirtual(mainMenuPanel.getClass(), "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
-                var mainMenuWidgets = UIPanelReflector.getChildItems(mainMenuPanel);
-                if(!mainMenuWidgets.isEmpty())  {
-                    titleScreenButtons = UIPanelReflector.getChildButtons((UIPanelAPI)mainMenuWidgets.get(0));
-                }
-            } catch(Throwable ex) {
-                Global.getLogger(getClass()).fatal("Couldn't get the main menu buttons!");
+        var buttons = UIPanelReflector.getChildButtons(panel, true);
+        List<Pair<UIComponentAPI, Object>> directionalUiElements = new ArrayList<>();
+        for(var btn : buttons) {
+            directionalUiElements.add(new Pair<>(btn, null));
+        };
+        directionalUINavigator = new DirectionalUINavigator(directionalUiElements) {
+            @Override
+            public void onConfirm(Pair<UIComponentAPI, Object> selectedPair) {
+                var btn =  selectedPair.one;
+                InputShim.mouseMove((int) btn.getPosition().getCenterX(), (int) btn.getPosition().getCenterY());
+                InputShim.mouseDownUp((int) btn.getPosition().getCenterX(), (int) btn.getPosition().getCenterY(), InputEventMouseButton.LEFT);
             }
-        }
+        };
     }
 
     public void selectNextButton()
@@ -122,30 +123,27 @@ public class TitleScreenUI extends InputScreenBase {
     public void clickButton()
     {
         if(selectedButton != -1 && titleScreenButtons != null && selectedButton < titleScreenButtons.size()) {
-            try {
-                doButtonClick.invoke(mainMenuPanel, null, titleScreenButtons.get(selectedButton));
-            } catch(Throwable ex) {
-                Global.getLogger(getClass()).log(Level.ERROR, "couldn't fire button event!");
-            }
-            //titleScreenButtons.get(selectedButton).
+            var btn =  titleScreenButtons.get(selectedButton);
+            InputShim.mouseMove((int) btn.getPosition().getCenterX(), (int) btn.getPosition().getCenterY());
         }
     }
 
     @Override
     public void preInput(float advance) {
-        if ( controller.getButtonEvent(Buttons.LeftStickDown) == 1 ) {
-            selectNextButton();
-        } else if ( controller.getButtonEvent(Buttons.LeftStickUp) == 1 ) {
-            selectPrevButton();
-        } else if ( controller.getButtonEvent(Buttons.A) == 1 ) {
-            clickButton();
-        } else if ( controller.getButtonEvent(Buttons.Select) == 1 ) {
-            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, AutoMapperUI.ID, new Object[]{});
-        } else if (controller.getButtonEvent(Buttons.DpadDown) == 1) {
-            selectNextButton();
-        } else if (controller.getButtonEvent(Buttons.DpadUp) == 1) {
-            selectPrevButton();
-        }
+        directionalUINavigator.handleInput(advance);
+//        if ( controller.getButtonEvent(Buttons.LeftStickDown) == 1 ) {
+//            selectNextButton();
+//        } else if ( controller.getButtonEvent(Buttons.LeftStickUp) == 1 ) {
+//            selectPrevButton();
+//        } else if ( controller.getButtonEvent(Buttons.A) == 1 ) {
+//            clickButton();
+//        } else if ( controller.getButtonEvent(Buttons.Select) == 1 ) {
+//            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, AutoMapperUI.ID, new Object[]{});
+//        } else if (controller.getButtonEvent(Buttons.DpadDown) == 1) {
+//            selectNextButton();
+//        } else if (controller.getButtonEvent(Buttons.DpadUp) == 1) {
+//            selectPrevButton();
+//        }
     }
 
     @Override

@@ -18,6 +18,7 @@
 package ssms.controller;
 
 import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import org.lwjgl.input.Controller;
@@ -43,6 +44,9 @@ public class HandlerController {
     protected int[] axisEvents;
     protected boolean[] povStates = new boolean[4];
     protected int[] povEvents = new int[4];
+    protected EnumMap<Buttons, Integer> buttonIndices;
+    EnumMap<Axes, ControllerMapping.AxisData> finalAxisMappings;
+
 
     protected int axisLeftStickX, axisLeftStickY, axisRightStickX, axisRightStickY, axisTrigger, axisRTrigger, axisDpadX, axisDpadY,
             btnA, btnB, btnX, btnY, btnBumperLeft, btnBumperRight, btnStart, btnSelect, btnLeftStick, btnRightStick;
