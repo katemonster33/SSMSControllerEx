@@ -75,7 +75,7 @@ public class InputScreenBase {
 
     public void preInput(float advance) {
         for(var btnHandler : buttonHandlers.values()) {
-            btnHandler.advance(advance);
+            //btnHandler.pro(advance);
         }
     }
 
@@ -92,13 +92,13 @@ public class InputScreenBase {
 
     public String[] getScopes() { return new String[]{ SCOPES }; }
 
-    protected void addHandler(String msg, AbstractButtonInputHandler handler) {
-        var indicator = Indicators.fromButton(handler.getButtons());
+    protected void addHandler(String msg, LogicalButtons logicalButtons, Consumer<Float> btnPressHandler) {
+        var indicator = Indicators.fromButton(logicalButtons);
         if(indicator == null) {
             Global.getLogger(getClass()).warn("given button doesn't translate to indicator! " + handler.getButtons());
             return;
         }
-        buttonHandlers.put(indicator, handler);
+        buttonHandlers.put(logicalButtons, btnPressHandler);
         indicators.add(new Pair<>(indicator, msg));
     }
 

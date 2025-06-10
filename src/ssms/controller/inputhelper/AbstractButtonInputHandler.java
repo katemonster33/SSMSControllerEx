@@ -32,8 +32,8 @@ public abstract class AbstractButtonInputHandler {
     public void handleEvent(boolean newState) {
 
         switch(buttonMode) {
-            case Up: if(!newState) performAction(advance); break;
-            case DownAndHold: handleDownHold(advance);
+            case Up: if(!newState) performAction(0.f); break;
+            case DownAndHold: handleDownHold(0.f);
         }
     }
 
