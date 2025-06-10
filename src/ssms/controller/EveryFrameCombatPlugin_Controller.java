@@ -134,6 +134,7 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
         //TODO menu entry for ending combat/simulation
         man.startFrame();
         man.preInput(amount);
+        man.processControllerEvents(amount, handler.getButtonEvents(), handler.getAxisEvents());
 
     }
     // UIPanelAPI getScreenPanel()

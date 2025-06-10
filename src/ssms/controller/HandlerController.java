@@ -230,7 +230,7 @@ public class HandlerController {
         return getButtonEvent(btn, buttonEvents);
     }
 
-    ReadableVector2f getJoystickValues(AxisMapping xMapping, AxisMapping yMapping) {
+    Vector2f getJoystickValues(AxisMapping xMapping, AxisMapping yMapping) {
         Vector2f joystick = new Vector2f();
         if(axisIndexByMapping.containsKey(xMapping)) {
             joystick.x = controller.getAxisValue(axisIndexByMapping.get(xMapping));
@@ -245,14 +245,14 @@ public class HandlerController {
         return joystick;
     }
     
-    public ReadableVector2f getLeftStick() {
+    public Vector2f getLeftStick() {
         //TODO we could clamp the steering to something like 120 distinct values so that the directional input is more stable.
         //custom deadzone that takes into account the length of the vector to determine if it should be zero. That way we can steer with full precision in 360° 
         //but ignore a poorly resting joystick.
         return getJoystickValues(AxisMapping.LeftStickX, AxisMapping.LeftStickY);
     }
     
-    public ReadableVector2f getRightStick() {
+    public Vector2f getRightStick() {
         return getJoystickValues(AxisMapping.RightStickX, AxisMapping.RightStickY);
     }
     
@@ -285,6 +285,10 @@ public class HandlerController {
         return controller.getPovY();
     }
 
+    Vector2f getDpad() {
+        return new Vector2f(getDpadX(), getDpadY());
+    }
+
     float getAxisValue(AxisMapping axisMapping) {
         float val = 0.f;
         try {
@@ -302,6 +306,14 @@ public class HandlerController {
             return controller.isButtonPressed(btnIdx);
         }
         return false;
+    }
+
+    public List<Pair<LogicalButtons, Boolean>> getButtonEvents() {
+        return new ArrayList<>(buttonEvents);
+    }
+
+    public List<Pair<AxisMapping, Float>> getAxisEvents() {
+        return new ArrayList<>(axisEvents);
     }
 
     public boolean isButtonPressed(LogicalButtons btn) {

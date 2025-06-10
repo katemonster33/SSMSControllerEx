@@ -13,7 +13,6 @@ import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.MessageBoxScreen;
-import ssms.controller.inputhelper.ButtonInputHandler;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.*;
 
@@ -39,25 +38,25 @@ public class TradeScreen extends InputScreenBase {
         indicators = new ArrayList<>();
         indicators.add(new Pair<>(Indicators.LeftStick, "Navigate list"));
 
-        addHandler("Pick up stack", new ButtonInputHandler(LogicalButtons.X, (float advance) ->
-                clickStack(playerGridSelected ? playerDataGrid : otherDataGrid)));
+        addButtonPressHandler("Pick up stack", LogicalButtons.X, (float advance) ->
+                clickStack(playerGridSelected ? playerDataGrid : otherDataGrid));
 
-        addHandler("Take all", new KeySender(LogicalButtons.Y, Keyboard.KEY_R, 'r'));
+        addButtonPressHandler("Take all", LogicalButtons.Y, new KeySender(Keyboard.KEY_R, 'r'));
 
-        addHandler("Abort", new KeySender(LogicalButtons.B, Keyboard.KEY_T, 't'));
+        addButtonPressHandler("Abort", LogicalButtons.B, new KeySender(Keyboard.KEY_T, 't'));
 
-        addHandler("Confirm", new KeySender(LogicalButtons.A, Keyboard.KEY_G, 'g'));
+        addButtonPressHandler("Confirm", LogicalButtons.A, new KeySender(Keyboard.KEY_G, 'g'));
 
-        addHandler("Toggle hangar", new ButtonInputHandler(LogicalButtons.Select, (float advance) -> {
+        addButtonPressHandler("Toggle hangar", LogicalButtons.Select, (float advance) -> {
             playerGridSelected = !playerGridSelected;
             selectedRow = selectedCol = -1;
-        }));
+        });
 
-        addHandler("Close", new KeySender(LogicalButtons.Start, Keyboard.KEY_ESCAPE));
+        addButtonPressHandler("Close", LogicalButtons.Start, new KeySender(Keyboard.KEY_ESCAPE));
         isCargoTab = Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.CARGO;
         if(isCargoTab) {
-            addHandler("Select refit tab", new KeySender(LogicalButtons.BumperLeft, Keyboard.KEY_R, 'r'));
-            addHandler("Select map tab", new KeySender(LogicalButtons.BumperRight, Keyboard.KEY_TAB));
+            addButtonPressHandler("Select refit tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_R, 'r'));
+            addButtonPressHandler("Select map tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_TAB));
         }
 
         playerDataGrid = tradeUiReflector.getPlayerCargoView();

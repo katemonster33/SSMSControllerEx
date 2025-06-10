@@ -20,9 +20,14 @@ package ssms.controller;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.fs.starfarer.api.util.Pair;
 import org.apache.log4j.Level;
+import org.lwjgl.util.vector.Vector2f;
+import ssms.controller.enums.AxisMapping;
+import ssms.controller.enums.LogicalButtons;
 
 /**
  *
@@ -255,6 +260,10 @@ public class InputScreenManager {
     
     public void preInput(float advance) {
         currentScreen.preInput(advance);
+    }
+
+    public void processControllerEvents(float advance, List<Pair<LogicalButtons, Boolean>> buttonEvents, List<Pair<AxisMapping, Float>> axisEvents) {
+        currentScreen.processControllerEvents(advance, buttonEvents, axisEvents);
     }
     
     public void postIntput(float advance) {

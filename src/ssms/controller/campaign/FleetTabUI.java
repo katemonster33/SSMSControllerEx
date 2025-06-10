@@ -11,7 +11,6 @@ import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.LogicalButtons;
-import ssms.controller.inputhelper.ButtonInputHandler;
 import ssms.controller.reflection.FleetTabReflector;
 import ssms.controller.reflection.UIPanelReflector;
 
@@ -64,8 +63,8 @@ public class FleetTabUI extends InputScreenBase {
         if (indicators == null) {
             indicators = new ArrayList<>();
             indicators.add(new Pair<>(Indicators.LeftStick, "Navigate ships"));
-            addHandler("Cycle ship info", new ButtonInputHandler(LogicalButtons.LeftStickButton, (float advance) ->
-                    incrementItemInfoOffset()));
+            addButtonPressHandler("Cycle ship info", LogicalButtons.LeftStickButton, (float advance) ->
+                    incrementItemInfoOffset());
             if(itemInfoOffset == -1) {
                 //addHandler("Move ship");
                 indicators.add(new Pair<>(Indicators.A, "Move ship"));

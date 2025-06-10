@@ -3,6 +3,7 @@ package ssms.controller.inputhelper;
 import com.fs.starfarer.api.ui.PositionAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.util.Pair;
+import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.InputShim;
 import ssms.controller.SSMSControllerModPluginEx;
@@ -11,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public abstract class DirectionalUINavigator {
+public abstract class DirectionalUINavigator implements JoystickHandler {
     List<Pair<UIComponentAPI, Object>> navigationObjects;
     int curIndex = -1;
     public DirectionalUINavigator(List<Pair<UIComponentAPI, Object>> navigationObjects)
@@ -58,33 +59,34 @@ public abstract class DirectionalUINavigator {
         return Math.max(1.f, Math.abs(a - b));
     }
 
-    public boolean handleInput(float advance) {
-        if(SSMSControllerModPluginEx.controller.getButtonEvent(LogicalButtons.DpadLeft) == 1) {
-            moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
-                    (int)((o1.getPosition().getX() - o2.getPosition().getX()) *
-                            getDeltaOrOne(o1.getPosition().getY(), o2.getPosition().getY())));
-            return true;
-        } else if(SSMSControllerModPluginEx.controller.getButtonEvent(LogicalButtons.DpadRight) == 1) {
-            moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
-                    (int)((o2.getPosition().getX() - o1.getPosition().getX()) *
-                            getDeltaOrOne(o1.getPosition().getY(), o2.getPosition().getY())));
-            return true;
-        } else if(SSMSControllerModPluginEx.controller.getButtonEvent(LogicalButtons.DpadUp) == 1) {
-            moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
-                    (int)((o2.getPosition().getY() - o1.getPosition().getY()) *
-                            getDeltaOrOne(o1.getPosition().getX(), o2.getPosition().getX())));
-            return true;
-        } else if(SSMSControllerModPluginEx.controller.getButtonEvent(LogicalButtons.DpadDown) == 1) {
-            moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
-                    (int)((o2.getPosition().getY() - o1.getPosition().getY()) *
-                            getDeltaOrOne(o1.getPosition().getX(), o2.getPosition().getX())));
-            return true;
-        } else if(SSMSControllerModPluginEx.controller.getButtonEvent(LogicalButtons.A) == 1) {
-            if(curIndex != -1) {
-                onConfirm(navigationObjects.get(curIndex));
-            }
-            return true;
-        }
-        return false;
+    public void performAction(float advance, Vector2f joystickVal) {
+    }
+
+    public void performLeftAction(float advance) {
+        moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
+                (int) ((o1.getPosition().getX() - o2.getPosition().getX()) *
+                        getDeltaOrOne(o1.getPosition().getY(), o2.getPosition().getY())));
+    }
+
+    public void performRightAction(float advance) {
+        moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
+                (int) ((o2.getPosition().getX() - o1.getPosition().getX()) *
+                        getDeltaOrOne(o1.getPosition().getY(), o2.getPosition().getY())));
+    }
+
+    public void performUpAction(float advance) {
+        moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
+                (int) ((o2.getPosition().getY() - o1.getPosition().getY()) *
+                        getDeltaOrOne(o1.getPosition().getX(), o2.getPosition().getX())));
+    }
+
+    public void performDownAction(float advance) {
+        moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
+                (int) ((o2.getPosition().getY() - o1.getPosition().getY()) *
+                        getDeltaOrOne(o1.getPosition().getX(), o2.getPosition().getX())));
+    }
+
+    public Pair<UIComponentAPI, Object> getSelected() {
+        return navigationObjects.get(curIndex);
     }
 }

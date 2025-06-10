@@ -24,17 +24,19 @@ import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import ssms.controller.enums.AxisMapping;
 import ssms.controller.enums.Indicators;
+import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
-import ssms.controller.inputhelper.AbstractButtonInputHandler;
+import ssms.controller.inputhelper.AxisHandler;
+import ssms.controller.inputhelper.ButtonHandler;
+import ssms.controller.inputhelper.AnalogJoystickHandler;
+import ssms.controller.inputhelper.JoystickHandler;
 import ssms.controller.reflection.CampaignStateReflector;
 import ssms.controller.reflection.CombatStateReflector;
 import ssms.controller.reflection.TitleScreenStateReflector;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  *
@@ -45,15 +47,15 @@ public class InputScreenBase {
     public static final String ID = "NoScreen";
     public static final String SCOPES = InputScopeBase.ID;
     protected List<Pair<Indicators, String>> indicators;
-    protected HashMap<LogicalButtons, Consumer<Boolean>> buttonHandlers;
-    protected HashMap<AxisMapping, Object> axisHandlers;
-    protected Object leftJoystickHandler;
-    protected Object rightJoystickHandler;
+    protected EnumMap<LogicalButtons, ButtonHandler> buttonHandlers;
+    protected EnumMap<AxisMapping, AxisHandler> axisHandlers;
+    protected EnumMap<Joystick, JoystickHandler> joystickHandlers;
     protected HandlerController controller;
 
     public InputScreenBase() {
-        buttonHandlers = new HashMap<>();
+        buttonHandlers = new EnumMap<>(LogicalButtons.class);
         indicators = new ArrayList<>();
+        axisHandlers = new EnumMap<>(AxisMapping.class);
         controller = SSMSControllerModPluginEx.controller;
     }
 
@@ -74,14 +76,33 @@ public class InputScreenBase {
     }
 
     public void preInput(float advance) {
-        for(var btnHandler : buttonHandlers.values()) {
-            //btnHandler.pro(advance);
-        }
     }
 
-    public final void processButtonEvents(List<Pair<LogicalButtons, Boolean>> buttonEvents) {
+    public final void processControllerEvents(float advance, List<Pair<LogicalButtons, Boolean>> buttonEvents, List<Pair<AxisMapping, Float>> axisEvents) {
         for(var btnEvent : buttonEvents) {
-
+            if(buttonHandlers.containsKey(btnEvent.one) && !btnEvent.two) {
+                buttonHandlers.get(btnEvent.one).performAction(advance);
+            }
+        }
+        boolean fireLeftStickEvent = false, fireRightStickEvent = false, fireDpadEvent = false;
+        for(var axisEvent : axisEvents) {
+            if(axisHandlers.containsKey(axisEvent.one)) {
+                axisHandlers.get(axisEvent.one).performAction(advance, axisEvent.two);
+            }
+            switch(axisEvent.one) {
+                case LeftStickX, LeftStickY -> fireLeftStickEvent = true;
+                case RightStickX, RightStickY -> fireRightStickEvent = true;
+                case DPadX, DPadY -> fireDpadEvent = true;
+            }
+        }
+        if(leftAnalogJoystickHandler != null && fireLeftStickEvent) {
+            leftAnalogJoystickHandler.performAction(advance, controller.getLeftStick());
+        }
+        if(rightAnalogJoystickHandler != null && fireRightStickEvent) {
+            rightAnalogJoystickHandler.performAction(advance, controller.getRightStick());
+        }
+        if(dpadHandler != null && fireDpadEvent) {
+            dpadHandler.performAction(advance, controller.getDpad());
         }
     }
 
@@ -92,18 +113,35 @@ public class InputScreenBase {
 
     public String[] getScopes() { return new String[]{ SCOPES }; }
 
-    protected void addHandler(String msg, LogicalButtons logicalButtons, Consumer<Float> btnPressHandler) {
+    protected void addButtonPressHandler(String msg, LogicalButtons logicalButtons, ButtonHandler btnPressHandler) {
         var indicator = Indicators.fromButton(logicalButtons);
         if(indicator == null) {
-            Global.getLogger(getClass()).warn("given button doesn't translate to indicator! " + handler.getButtons());
+            Global.getLogger(getClass()).warn("given button doesn't translate to indicator! " + logicalButtons);
             return;
         }
         buttonHandlers.put(logicalButtons, btnPressHandler);
         indicators.add(new Pair<>(indicator, msg));
     }
 
+    protected void addAxisHandler(String msg, AxisMapping axisMapping, AxisHandler axisHandler) {
+
+        var indicator = Indicators.DPad; //Indicators.fromAxisMapping(logicalButtons);
+//        if(indicator == null) {
+//            Global.getLogger(getClass()).warn("given button doesn't translate to indicator! " + logicalButtons);
+//            return;
+//        }
+        axisHandlers.put(axisMapping, axisHandler);
+        indicators.add(new Pair<>(indicator, msg));
+    }
+
+    protected void addJoystickHandler(String msg, Joystick joystick, JoystickHandler joystickHandler) {
+
+    }
+
     protected void clearHandlers() {
         buttonHandlers.clear();
+        axisHandlers.clear();
+        joystickHandlers.clear();
     }
 
     public UIPanelAPI getPanelForIndicators() {

@@ -45,6 +45,7 @@ public class TitleScreenUI extends InputScreenBase {
 
     public TitleScreenUI() {
         indicators = new ArrayList<>();
+
         indicators.add(new Pair<>(Indicators.LeftStick, "Navigate Menu"));
         indicators.add(new Pair<>(Indicators.A, "Confirm"));
         indicators.add(new Pair<>(Indicators.B, "Cancel"));
@@ -124,7 +125,6 @@ public class TitleScreenUI extends InputScreenBase {
 
     @Override
     public void preInput(float advance) {
-        directionalUINavigator.handleInput(advance);
 //        if ( controller.getButtonEvent(Buttons.LeftStickDown) == 1 ) {
 //            selectNextButton();
 //        } else if ( controller.getButtonEvent(Buttons.LeftStickUp) == 1 ) {
