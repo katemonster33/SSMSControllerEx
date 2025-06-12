@@ -23,14 +23,19 @@ public enum Joystick {
         };
     }
 
-    public LogicalButtons[] getButtons() {
+    public AxisMapping getXAxisMapping() {
         return switch (this) {
-            case Left ->
-                    new LogicalButtons[]{LogicalButtons.LeftStickUp, LogicalButtons.LeftStickDown, LogicalButtons.LeftStickLeft, LogicalButtons.LeftStickRight};
-            case Right ->
-                    new LogicalButtons[]{LogicalButtons.RightStickUp, LogicalButtons.RightStickDown, LogicalButtons.RightStickLeft, LogicalButtons.RightStickRight};
-            case DPad ->
-                    new LogicalButtons[]{LogicalButtons.DpadUp, LogicalButtons.DpadDown, LogicalButtons.DpadLeft, LogicalButtons.DpadRight};
+            case Left -> AxisMapping.LeftStickX;
+            case Right -> AxisMapping.RightStickX;
+            case DPad -> AxisMapping.DPadX;
+        };
+    }
+
+    public AxisMapping getYAxisMapping() {
+        return switch (this) {
+            case Left -> AxisMapping.LeftStickY;
+            case Right -> AxisMapping.RightStickY;
+            case DPad -> AxisMapping.DPadY;
         };
     }
 }

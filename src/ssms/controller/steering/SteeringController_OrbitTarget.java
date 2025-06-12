@@ -28,6 +28,7 @@ import java.util.List;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
+import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.HandlerController;
 import ssms.controller.enums.Indicators;
@@ -96,7 +97,7 @@ public class SteeringController_OrbitTarget extends SteeringController_Base {
             desiredDistance += Math.max(ps.getEngineController().getMaxSpeedWithoutBoost(), 400f) * timeAdvanced;
         }
 
-        ReadableVector2f vDesiredHeading = handler.getLeftStick();
+        ReadableVector2f vDesiredHeading = handler.getJoystick(Joystick.Left);
         if ( vDesiredHeading.getX() == 0 || vDesiredHeading.getY() == 0 ) {
             vDesiredHeading = vDesiredHeadingLastValidInput;
         }
@@ -116,7 +117,7 @@ public class SteeringController_OrbitTarget extends SteeringController_Base {
     public void renderInWorldCoords(ViewportAPI viewport, float offsetFacingAngle) {
         if ( !isTargetValid() ) return;
         
-        ReadableVector2f heading = handler.getLeftStick();
+        ReadableVector2f heading = handler.getJoystick(Joystick.Left);
         if ( heading.getX() == 0 && heading.getY() == 0 ) {
             heading = Util.getHeadingFromFacing(ps.getFacing());
         }

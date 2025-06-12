@@ -22,13 +22,17 @@ import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
+import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import ssms.controller.enums.Indicators;
+import ssms.controller.enums.Joystick;
+import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.DirectionalUINavigator;
+import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.TitleScreenStateReflector;
 import ssms.controller.reflection.UIPanelReflector;
 
@@ -38,106 +42,39 @@ import ssms.controller.reflection.UIPanelReflector;
  */
 public class TitleScreenUI extends InputScreenBase {
     public static final String ID = "TitleScreen";
-    List<ButtonAPI> titleScreenButtons = null;
-    UIPanelAPI mainMenuPanel = null;
-    int selectedButton = -1;
-    DirectionalUINavigator  directionalUINavigator;
-
-    public TitleScreenUI() {
-        indicators = new ArrayList<>();
-
-        indicators.add(new Pair<>(Indicators.LeftStick, "Navigate Menu"));
-        indicators.add(new Pair<>(Indicators.A, "Confirm"));
-        indicators.add(new Pair<>(Indicators.B, "Cancel"));
-        indicators.add(new Pair<>(Indicators.Select, "Reset keybindings"));
-    }
-
+    DirectionalUINavigator directionalUINavigator;
     @Override
     public void activate(Object ...args) {
-        UIPanelAPI panel = TitleScreenStateReflector.GetInstance().getScreenPanel();;
+        UIPanelAPI panel = TitleScreenStateReflector.GetInstance().getScreenPanel();
         UIPanelReflector.initialize(panel.getClass());
-        var buttons = UIPanelReflector.getChildButtons(panel, true);
+        //var buttons = UIPanelReflector.getChildButtons(panel, true);
+        var buttons = TitleScreenStateReflector.GetInstance().getMainMenuButtons();
+
         List<Pair<UIComponentAPI, Object>> directionalUiElements = new ArrayList<>();
         for(var btn : buttons) {
             directionalUiElements.add(new Pair<>(btn, null));
         };
-        directionalUINavigator = new DirectionalUINavigator(directionalUiElements) {
-            @Override
-            public void onConfirm(Pair<UIComponentAPI, Object> selectedPair) {
-                var btn =  selectedPair.one;
-                InputShim.mouseMove((int) btn.getPosition().getCenterX(), (int) btn.getPosition().getCenterY());
-                InputShim.mouseDownUp((int) btn.getPosition().getCenterX(), (int) btn.getPosition().getCenterY(), InputEventMouseButton.LEFT);
-            }
-        };
-    }
 
-    public void selectNextButton()
-    {
-        if(titleScreenButtons != null && !titleScreenButtons.isEmpty()) {
-            int oldSelectedButton = selectedButton;
-            if(selectedButton == -1) {
-                selectedButton = 0;
-            } else if(selectedButton < (titleScreenButtons.size() - 1)) {
-                selectedButton++;
-            }
-            if(!titleScreenButtons.get(selectedButton).isEnabled()) {
-                selectedButton++;
-            }
-            if(selectedButton >= titleScreenButtons.size()) {
-                selectedButton = 0;
-            }
-            if(selectedButton != oldSelectedButton && oldSelectedButton != -1) {
-                titleScreenButtons.get(oldSelectedButton).unhighlight();
-            }
-            titleScreenButtons.get(selectedButton).highlight();
-        }
-    }
+        indicators = new ArrayList<>();
 
-    public void selectPrevButton()
-    {
-        if(titleScreenButtons != null && !titleScreenButtons.isEmpty()) {
-            int oldSelectedButton = selectedButton;
-            if(selectedButton == -1) {
-                selectedButton = 0;
-            } else if(selectedButton > 0) {
-                selectedButton--;
-            }
-            if(!titleScreenButtons.get(selectedButton).isEnabled()) {
-                selectedButton--;
-            }
-            if(selectedButton < 0) {
-                selectedButton = titleScreenButtons.size() - 1;
-            }
-            if(selectedButton != oldSelectedButton && oldSelectedButton != -1) {
-                titleScreenButtons.get(oldSelectedButton).unhighlight();
-            }
-            titleScreenButtons.get(selectedButton).highlight();
-        }
+        directionalUINavigator = new DirectionalUINavigator(directionalUiElements);
+        addJoystickHandler("Navigate Menu", Joystick.DPad, directionalUINavigator);
+        addButtonPressHandler("Confirm", LogicalButtons.A, (float advance) -> clickButton());
+        addButtonPressHandler("Cancel", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+        addButtonPressHandler("Reset keybindings", LogicalButtons.Select, (float advance) -> InputScreenManager.getInstance().transitionToScreen(AutoMapperUI.ID));
     }
 
     public void clickButton()
     {
-        if(selectedButton != -1 && titleScreenButtons != null && selectedButton < titleScreenButtons.size()) {
-            var btn =  titleScreenButtons.get(selectedButton);
+        if(directionalUINavigator.getSelected() != null) {
+            var btn = directionalUINavigator.getSelected().one;
             InputShim.mouseMove((int) btn.getPosition().getCenterX(), (int) btn.getPosition().getCenterY());
+            InputShim.mouseDownUp((int) btn.getPosition().getCenterX(), (int) btn.getPosition().getCenterY(), InputEventMouseButton.LEFT);
         }
     }
 
     @Override
     public void preInput(float advance) {
-//        if ( controller.getButtonEvent(Buttons.LeftStickDown) == 1 ) {
-//            selectNextButton();
-//        } else if ( controller.getButtonEvent(Buttons.LeftStickUp) == 1 ) {
-//            selectPrevButton();
-//        } else if ( controller.getButtonEvent(Buttons.A) == 1 ) {
-//            clickButton();
-//        } else if ( controller.getButtonEvent(Buttons.Select) == 1 ) {
-//            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, AutoMapperUI.ID, new Object[]{});
-//        } else if (controller.getButtonEvent(Buttons.DpadDown) == 1) {
-//            selectNextButton();
-//        } else if (controller.getButtonEvent(Buttons.DpadUp) == 1) {
-//            selectPrevButton();
-//        }
     }
 
     @Override

@@ -3,12 +3,17 @@ package ssms.controller.generic;
 import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.ui.ButtonAPI;
+import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
 import ssms.controller.combat.BattleScope;
 import ssms.controller.enums.Indicators;
+import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.inputhelper.DirectionalUINavigator;
+import ssms.controller.inputhelper.KeySender;
+import ssms.controller.reflection.ButtonReflector;
 import ssms.controller.reflection.ClassReflector;
 import ssms.controller.reflection.MessageBoxReflector;
 import ssms.controller.reflection.MethodReflector;
@@ -23,7 +28,7 @@ public class MessageBoxScreen extends InputScreenBase {
     HandlerController controller;
     MessageBoxReflector dialogReflector;
     List<ButtonAPI> dialogOptions;
-    int selectedButton = -1;
+    DirectionalUINavigator directionalUINavigator;
     Object getButtonCheckboxRenderer;
 
     public MessageBoxScreen() {
@@ -31,7 +36,6 @@ public class MessageBoxScreen extends InputScreenBase {
 
     @Override
     public void activate(Object ...args) {
-        selectedButton = -1;
         controller = SSMSControllerModPluginEx.controller;
         dialogReflector = (MessageBoxReflector) args[0];
         uiToReturnTo = (String) args[1];
@@ -39,80 +43,28 @@ public class MessageBoxScreen extends InputScreenBase {
 
         indicators = new ArrayList<>();
         if(!dialogOptions.isEmpty()) {
-            selectedButton = 0;
             dialogOptions.get(0).highlight();
-            indicators.add(new Pair<>(Indicators.LeftStick, "Navigate items"));
-            indicators.add(new Pair<>(Indicators.A, "Confirm option"));
+            List<Pair<UIComponentAPI, Object>> directionalUiElements = new ArrayList<>();
+            for(var btn : dialogOptions) {
+                directionalUiElements.add(new Pair<>(btn, null));
+            }
+            directionalUINavigator = new DirectionalUINavigator(directionalUiElements);
+            addJoystickHandler("Navigate items", Joystick.DPad, directionalUINavigator);
+            addButtonPressHandler("Select option", LogicalButtons.A, (float advance) -> clickButton());
         }
-        indicators.add(new Pair<>(Indicators.B, "Dismiss"));
-    }
-
-
-    public void selectNextButton()
-    {
-        if(dialogOptions != null && !dialogOptions.isEmpty()) {
-            int oldSelectedButton = selectedButton;
-            if(selectedButton == -1) {
-                selectedButton = 0;
-            } else if(selectedButton < (dialogOptions.size() - 1)) {
-                selectedButton++;
-            }
-            if(!dialogOptions.get(selectedButton).isEnabled()) {
-                selectedButton++;
-            }
-            if(selectedButton >= dialogOptions.size()) {
-                selectedButton = 0;
-            }
-            if(selectedButton != oldSelectedButton && oldSelectedButton != -1) {
-                dialogOptions.get(oldSelectedButton).unhighlight();
-            }
-            dialogOptions.get(selectedButton).highlight();
-        }
-    }
-
-    public void selectPrevButton()
-    {
-        if(dialogOptions != null && !dialogOptions.isEmpty()) {
-            int oldSelectedButton = selectedButton;
-            if(selectedButton == -1) {
-                selectedButton = 0;
-            } else if(selectedButton > 0) {
-                selectedButton--;
-            }
-            if(!dialogOptions.get(selectedButton).isEnabled()) {
-                selectedButton--;
-            }
-            if(selectedButton < 0) {
-                selectedButton = dialogOptions.size() - 1;
-            }
-            if(selectedButton != oldSelectedButton && oldSelectedButton != -1) {
-                dialogOptions.get(oldSelectedButton).unhighlight();
-            }
-            dialogOptions.get(selectedButton).highlight();
-        }
+        addButtonPressHandler("Confirm", LogicalButtons.Y, new KeySender(Keyboard.KEY_RETURN));
+        addButtonPressHandler("Dismiss", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
     }
 
     public void clickButton()
     {
-        if(selectedButton != -1 && dialogOptions != null && selectedButton < dialogOptions.size()) {
-            var btn = dialogOptions.get(selectedButton);
-            if(getButtonCheckboxRenderer == null) {
-                try {
-                    getButtonCheckboxRenderer = ClassReflector.GetInstance().findDeclaredMethod(btn.getClass(), "getRendererCheckbox");
-                } catch(Throwable ex) {
-                    Global.getLogger(getClass()).warn("Couldn't infer checkbox rendering method from button class!", ex);
-                }
-            }
-            boolean isCheckbox = false;
-            try {
-                isCheckbox = MethodReflector.GetInstance().invoke(getButtonCheckboxRenderer, btn) != null;
-            } catch(Throwable ex) {
-                Global.getLogger(getClass()).warn("Couldn't tell if button is a check box! :(", ex);
-            }
-            if(isCheckbox) {
+        if(directionalUINavigator != null && directionalUINavigator.getSelected() != null) {
+            var btn = (ButtonAPI) directionalUINavigator.getSelected();
+
+            if(ButtonReflector.isCheckbox(btn)) {
                 btn.setChecked(!btn.isChecked());
             } else {
-                dialogReflector.doActionPerformed(null, dialogOptions.get(selectedButton));
+                dialogReflector.doActionPerformed(null, btn);
             }
         }
     }
@@ -126,17 +78,6 @@ public class MessageBoxScreen extends InputScreenBase {
             } else {
                 InputScreenManager.getInstance().transitionToScreen(uiToReturnTo);
             }
-        }
-        if(controller.getButtonEvent(LogicalButtons.LeftStickDown) == 1) {
-            selectNextButton();
-        } else if(controller.getButtonEvent(LogicalButtons.LeftStickUp) == 1) {
-            selectPrevButton();
-        } else if(controller.getButtonEvent(LogicalButtons.A) == 1) {
-            clickButton();
-        } else if(controller.getButtonEvent(LogicalButtons.B) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-        } else if(controller.getButtonEvent(LogicalButtons.Y) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_RETURN, '\0');
         }
     }
 

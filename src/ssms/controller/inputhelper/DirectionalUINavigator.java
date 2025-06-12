@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public abstract class DirectionalUINavigator implements JoystickHandler {
+public class DirectionalUINavigator implements JoystickHandler {
     List<Pair<UIComponentAPI, Object>> navigationObjects;
     int curIndex = -1;
     public DirectionalUINavigator(List<Pair<UIComponentAPI, Object>> navigationObjects)
@@ -25,8 +25,6 @@ public abstract class DirectionalUINavigator implements JoystickHandler {
         PositionAPI pos = selectedPair.one.getPosition();
         InputShim.mouseMove((int) pos.getCenterX(),(int) pos.getCenterY());
     }
-
-    public abstract void onConfirm(Pair<UIComponentAPI, Object> selectedPair);
 
     void moveSelection(Comparator<UIComponentAPI> comparator) {
         var newPair = getClosest(comparator);
@@ -77,12 +75,12 @@ public abstract class DirectionalUINavigator implements JoystickHandler {
     public void performUpAction(float advance) {
         moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
                 (int) ((o2.getPosition().getY() - o1.getPosition().getY()) *
-                        getDeltaOrOne(o1.getPosition().getX(), o2.getPosition().getX())));
+                        getDeltaOrOne(o2.getPosition().getX(), o1.getPosition().getX())));
     }
 
     public void performDownAction(float advance) {
         moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
-                (int) ((o2.getPosition().getY() - o1.getPosition().getY()) *
+                (int) ((o1.getPosition().getY() - o2.getPosition().getY()) *
                         getDeltaOrOne(o1.getPosition().getX(), o2.getPosition().getX())));
     }
 

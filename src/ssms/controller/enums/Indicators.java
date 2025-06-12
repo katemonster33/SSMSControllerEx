@@ -55,4 +55,12 @@ public enum Indicators {
             default -> null;
         };
     }
+
+    public static Indicators fromJoystick(Joystick joystick) {
+        return switch(joystick) {
+            case Left -> LeftStick;
+            case Right -> RightStick;
+            case DPad -> DPad;
+        };
+    }
 }

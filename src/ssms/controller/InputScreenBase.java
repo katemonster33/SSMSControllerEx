@@ -48,14 +48,13 @@ public class InputScreenBase {
     public static final String SCOPES = InputScopeBase.ID;
     protected List<Pair<Indicators, String>> indicators;
     protected EnumMap<LogicalButtons, ButtonHandler> buttonHandlers;
-    protected EnumMap<AxisMapping, AxisHandler> axisHandlers;
     protected EnumMap<Joystick, JoystickHandler> joystickHandlers;
     protected HandlerController controller;
 
     public InputScreenBase() {
         buttonHandlers = new EnumMap<>(LogicalButtons.class);
         indicators = new ArrayList<>();
-        axisHandlers = new EnumMap<>(AxisMapping.class);
+        joystickHandlers = new EnumMap<>(Joystick.class);
         controller = SSMSControllerModPluginEx.controller;
     }
 
@@ -83,26 +82,32 @@ public class InputScreenBase {
             if(buttonHandlers.containsKey(btnEvent.one) && !btnEvent.two) {
                 buttonHandlers.get(btnEvent.one).performAction(advance);
             }
+            if(btnEvent.two) {
+                Joystick joystick = Joystick.fromButton(btnEvent.one);
+                var btnAxis = AxisMapping.fromButton(btnEvent.one);
+                if (joystick != null && btnAxis != null && joystickHandlers.containsKey(joystick)) {
+                    var handler = joystickHandlers.get(joystick);
+                    if (btnAxis == joystick.getXAxisMapping()) {
+                        if (btnEvent.one == btnAxis.getLowerLimitButton()) handler.performLeftAction(advance);
+                        else if (btnEvent.one == btnAxis.getUpperLimitButton()) handler.performRightAction(advance);
+                    } else if (btnAxis == joystick.getYAxisMapping()) {
+                        if (btnEvent.one == btnAxis.getLowerLimitButton()) handler.performDownAction(advance);
+                        else if (btnEvent.one == btnAxis.getUpperLimitButton()) handler.performUpAction(advance);
+                    }
+                }
+            }
         }
-        boolean fireLeftStickEvent = false, fireRightStickEvent = false, fireDpadEvent = false;
+        EnumMap<Joystick, Boolean> joystickHandlersToFire = new EnumMap<>(Joystick.class);
         for(var axisEvent : axisEvents) {
-            if(axisHandlers.containsKey(axisEvent.one)) {
-                axisHandlers.get(axisEvent.one).performAction(advance, axisEvent.two);
-            }
-            switch(axisEvent.one) {
-                case LeftStickX, LeftStickY -> fireLeftStickEvent = true;
-                case RightStickX, RightStickY -> fireRightStickEvent = true;
-                case DPadX, DPadY -> fireDpadEvent = true;
+            Joystick joystick = Joystick.fromAxisMapping(axisEvent.one);
+            if(joystick != null) {
+                joystickHandlersToFire.put(joystick, true);
             }
         }
-        if(leftAnalogJoystickHandler != null && fireLeftStickEvent) {
-            leftAnalogJoystickHandler.performAction(advance, controller.getLeftStick());
-        }
-        if(rightAnalogJoystickHandler != null && fireRightStickEvent) {
-            rightAnalogJoystickHandler.performAction(advance, controller.getRightStick());
-        }
-        if(dpadHandler != null && fireDpadEvent) {
-            dpadHandler.performAction(advance, controller.getDpad());
+        for(Joystick joystick : joystickHandlersToFire.keySet()) {
+            if(joystickHandlers.containsKey(joystick)) {
+                joystickHandlers.get(joystick).performAction(advance, controller.getJoystick(joystick));
+            }
         }
     }
 
@@ -123,24 +128,16 @@ public class InputScreenBase {
         indicators.add(new Pair<>(indicator, msg));
     }
 
-    protected void addAxisHandler(String msg, AxisMapping axisMapping, AxisHandler axisHandler) {
-
-        var indicator = Indicators.DPad; //Indicators.fromAxisMapping(logicalButtons);
-//        if(indicator == null) {
-//            Global.getLogger(getClass()).warn("given button doesn't translate to indicator! " + logicalButtons);
-//            return;
-//        }
-        axisHandlers.put(axisMapping, axisHandler);
-        indicators.add(new Pair<>(indicator, msg));
-    }
-
     protected void addJoystickHandler(String msg, Joystick joystick, JoystickHandler joystickHandler) {
-
+        Indicators joystickIndicator = Indicators.fromJoystick(joystick);
+        if(joystickIndicator != null) {
+            indicators.add(new Pair<>(joystickIndicator, msg));
+        }
+        joystickHandlers.put(joystick, joystickHandler);
     }
 
     protected void clearHandlers() {
         buttonHandlers.clear();
-        axisHandlers.clear();
         joystickHandlers.clear();
     }
 

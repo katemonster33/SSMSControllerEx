@@ -4,6 +4,7 @@ import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
+import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.InputShim;
 import ssms.controller.SSMSControllerModPluginEx;
@@ -32,7 +33,7 @@ public class MapInputHandler{
 
     public void advance(float advance) {
         var controller = SSMSControllerModPluginEx.controller;
-        ReadableVector2f leftStick = controller.getLeftStick(), rightStick = controller.getRightStick();
+        ReadableVector2f leftStick = controller.getJoystick(Joystick.Left), rightStick = controller.getJoystick(Joystick.Right);
         boolean leftStickActive = isStickActive(leftStick), rightStickActive = isStickActive(rightStick);
         if (leftStickActive && !rightStickActive) {
             if(isMovingMap) {

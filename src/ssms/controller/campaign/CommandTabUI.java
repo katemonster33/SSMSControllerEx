@@ -10,6 +10,7 @@ import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
+import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 
 import java.util.ArrayList;
@@ -56,7 +57,7 @@ public class CommandTabUI  extends InputScreenBase {
             return;
         }
 
-        ReadableVector2f leftStick = controller.getLeftStick();
+        ReadableVector2f leftStick = controller.getJoystick(Joystick.Left);
         if (leftStick.getX() != 0 || leftStick.getY() != 0) {
             if (desiredMousePos == null) {
                 desiredMousePos = new Vector2f((int) viewportAPI.convertWorldXtoScreenX(viewportAPI.getCenter().getX()), (int) viewportAPI.convertWorldYtoScreenY(viewportAPI.getCenter().getY()));

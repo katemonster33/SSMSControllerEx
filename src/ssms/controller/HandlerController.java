@@ -27,10 +27,7 @@ import org.lwjgl.input.Controllers;
 import org.lwjgl.util.input.ControllerAdapter;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
-import ssms.controller.enums.AxisId;
-import ssms.controller.enums.AxisMapping;
-import ssms.controller.enums.ButtonMapping;
-import ssms.controller.enums.LogicalButtons;
+import ssms.controller.enums.*;
 
 /**
  * Provides abstracted access to a game controller based on a {@link ssms.controller.ControllerMapping ControllerMapping}. 
@@ -42,9 +39,9 @@ public class HandlerController {
     final public ControllerMapping mapping;
     public float axisBtnConversionDeadzone, joystickDeadzone;
     AxisMapping[] axisMappingByIndex;
-    EnumMap<AxisMapping, Integer> axisIndexByMapping;
+    EnumMap<AxisMapping, Integer> axisIndexByMapping = new EnumMap<>(AxisMapping.class);
     ButtonMapping[] btnMappingByIndex;
-    EnumMap<ButtonMapping, Integer> btnIndexByMapping;
+    EnumMap<ButtonMapping, Integer> btnIndexByMapping = new EnumMap<>(ButtonMapping.class);
     List<Pair<LogicalButtons, Boolean>> buttonEvents = new ArrayList<>();
     List<Pair<AxisMapping, Float>> axisEvents = new ArrayList<>();
     float[] lastFrameAxisValues;
@@ -66,13 +63,23 @@ public class HandlerController {
             axisMappingByIndex = new AxisMapping[controller.getAxisCount()];
             for(var axisData : mapping.getMappedAxes()) {
                 var index = getAxisIndex(axisData.getAxisId(), axisData.getAxisIndex(), axisIndices, controller.getAxisCount());
-                axisMappingByIndex[index] = axisData.getAxisMapping();
-                axisIndexByMapping.put(axisData.getAxisMapping(), axisData.getAxisIndex());
+                if(index != -1) {
+                    if (index != 0xFF) {
+                        axisMappingByIndex[index] = axisData.getAxisMapping();
+                    }
+                    axisIndexByMapping.put(axisData.getAxisMapping(), axisData.getAxisIndex());
+                }
             }
+            btnMappingByIndex = new ButtonMapping[controller.getButtonCount()];
             for(var btnData : mapping.getMappedButtons()) {
                 var index = getIndexCoercingNull(btnData.getButtonIndex(), controller.getButtonCount());
-                btnMappingByIndex[index] = btnData.getButtonMapping();
-                btnIndexByMapping.put(btnData.getButtonMapping(), index);
+                if(index != -1) {
+                    btnMappingByIndex[index] = btnData.getButtonMapping();
+                    if(btnMappingByIndex[index] == null) {
+                        Global.getLogger(getClass()).warn("Accidentally put a null mapping in the btnMappingByIndex list!");
+                    }
+                    btnIndexByMapping.put(btnData.getButtonMapping(), index);
+                }
             }
             this.axisBtnConversionDeadzone = mapping.axisBtnConversionDeadzone;
             this.joystickDeadzone = mapping.joystickDeadzone * mapping.joystickDeadzone;
@@ -139,7 +146,7 @@ public class HandlerController {
     }
 
     boolean isUpperAxisBtnLimitReached(float val) {
-        return val < axisBtnConversionDeadzone;
+        return val > axisBtnConversionDeadzone;
     }
 
     boolean generateAxisButtonEvent(LogicalButtons btn, float curVal, float lastFrameVal, Function<Float, Boolean> isLimitReached) {
@@ -151,20 +158,8 @@ public class HandlerController {
         return false;
     }
 
-    void generateJoystickButtonEvents(LogicalButtons lowerLimitBtn, LogicalButtons upperLimitBtn, float curVal, float lastFrameVal) {
-        if (!generateAxisButtonEvent(lowerLimitBtn, curVal, lastFrameVal, this::isUpperAxisBtnLimitReached)) {
-            generateAxisButtonEvent(upperLimitBtn, curVal, lastFrameVal, this::isLowerAxisBtnLimitReached);
-        }
-    }
-
     void generateAxisButtonEvents(AxisMapping axisMapping, float curVal, float lastFrameVal) {
         switch(axisMapping) {
-            case LeftStickX -> generateJoystickButtonEvents(LogicalButtons.LeftStickLeft, LogicalButtons.LeftStickRight, curVal, lastFrameVal);
-            case LeftStickY -> generateJoystickButtonEvents(LogicalButtons.LeftStickUp, LogicalButtons.LeftStickDown, curVal, lastFrameVal);
-            case RightStickX -> generateJoystickButtonEvents(LogicalButtons.RightStickLeft, LogicalButtons.RightStickRight, curVal, lastFrameVal);
-            case RightStickY -> generateJoystickButtonEvents(LogicalButtons.RightStickUp, LogicalButtons.RightStickDown, curVal, lastFrameVal);
-            case DPadX -> generateJoystickButtonEvents(LogicalButtons.DpadLeft, LogicalButtons.DpadRight, curVal, lastFrameVal);
-            case DPadY -> generateJoystickButtonEvents(LogicalButtons.DpadUp, LogicalButtons.DpadDown, curVal, lastFrameVal);
             case LeftTrigger -> generateAxisButtonEvent(LogicalButtons.LeftTrigger, curVal, lastFrameVal, this::isUpperAxisBtnLimitReached);
             case RightTrigger -> {
                 if(axisIndexByMapping.containsKey(AxisMapping.LeftTrigger)) {
@@ -173,16 +168,23 @@ public class HandlerController {
                     generateAxisButtonEvent(LogicalButtons.RightTrigger, curVal, lastFrameVal, this::isUpperAxisBtnLimitReached);
                 }
             }
+            default -> {
+                if (!generateAxisButtonEvent(axisMapping.getLowerLimitButton(), curVal, lastFrameVal, this::isUpperAxisBtnLimitReached)) {
+                    generateAxisButtonEvent(axisMapping.getUpperLimitButton(), curVal, lastFrameVal, this::isLowerAxisBtnLimitReached);
+                }
+            }
         }
     }
 
     // the actual polling happens outside our control, Starsector itself calls Controllers.poll() every frame, this method just assembles the LWJGL controller events into mapped events
     public void poll() {
+        buttonEvents.clear();
+        axisEvents.clear();
         while (Controllers.next()) {
             if(Controllers.getEventSource() == controller) {
                 if(Controllers.isEventButton()) {
                     int btnIdx = Controllers.getEventControlIndex();
-                    if(btnMappingByIndex != null && btnMappingByIndex.length > btnIdx) {
+                    if(btnMappingByIndex != null && btnMappingByIndex.length > btnIdx && btnMappingByIndex[btnIdx] != null) {
                         var btn = LogicalButtons.fromMapping(btnMappingByIndex[btnIdx]);
                         if(btn != null) {
                             buttonEvents.add(new Pair<>(btn, Controllers.getEventButtonState()));
@@ -192,13 +194,11 @@ public class HandlerController {
                     int axisIdx = Controllers.getEventControlIndex();
                     if(axisMappingByIndex != null && axisMappingByIndex.length > axisIdx) {
                         var axisMapping = axisMappingByIndex[axisIdx];
-                        float axisVal = controller.getAxisValue(axisIdx);
-                        if(axisVal >= -joystickDeadzone && axisVal <= joystickDeadzone) {
-                            axisVal = 0.f;
-                        }
+                        float axisVal = getAxisValue(axisMapping);
                         // Controller.poll compares the joystick value to last frame already,
                         //  we do it again here to not have multiple events of 0.0f because of our manual deadzone code
                         if(axisVal != lastFrameAxisValues[axisIdx]) {
+                            lastFrameAxisValues[axisIdx] = axisVal;
                             axisEvents.add(new Pair<>(axisMapping, axisVal));
 
                             generateAxisButtonEvents(axisMapping, axisVal, lastFrameAxisValues[axisIdx]);
@@ -207,14 +207,12 @@ public class HandlerController {
                 } else if(Controllers.isEventPovX() && controller.getPovX() != lastFramePovX) {
                     generateAxisButtonEvents(AxisMapping.DPadX, controller.getPovX(), lastFramePovX);
                 } else if(Controllers.isEventPovY() && controller.getPovY() != lastFramePovY) {
-                    generateAxisButtonEvents(AxisMapping.DPadX, controller.getPovX(), lastFramePovX);
+                    generateAxisButtonEvents(AxisMapping.DPadY, controller.getPovY(), lastFramePovY);
                 }
             }
         }
-
-        for(int axisIdx = 0; axisIdx < controller.getAxisCount(); axisIdx++) {
-            lastFrameAxisValues[axisIdx] = controller.getAxisValue(axisIdx);
-        }
+        lastFramePovX = controller.getPovX();
+        lastFramePovY = controller.getPovY();
     }
 
     int getButtonEvent(LogicalButtons btn, List<Pair<LogicalButtons, Boolean>> eventsLst) {
@@ -233,10 +231,14 @@ public class HandlerController {
     Vector2f getJoystickValues(AxisMapping xMapping, AxisMapping yMapping) {
         Vector2f joystick = new Vector2f();
         if(axisIndexByMapping.containsKey(xMapping)) {
-            joystick.x = controller.getAxisValue(axisIndexByMapping.get(xMapping));
+            var xIndex = axisIndexByMapping.get(xMapping);
+            if(xIndex == 0xFF) joystick.x = controller.getPovX();
+            else joystick.x = controller.getAxisValue(xIndex);
         }
         if(axisIndexByMapping.containsKey(yMapping)) {
-            joystick.y = controller.getAxisValue(axisIndexByMapping.get(yMapping));
+            var yIndex = axisIndexByMapping.get(yMapping);
+            if(yIndex == 0xFF) joystick.y = controller.getPovY();
+            else joystick.y = controller.getAxisValue(yIndex);
         }
         if ( joystick.lengthSquared() < joystickDeadzone ) {
             joystick.x = 0;
@@ -244,18 +246,11 @@ public class HandlerController {
         }
         return joystick;
     }
-    
-    public Vector2f getLeftStick() {
-        //TODO we could clamp the steering to something like 120 distinct values so that the directional input is more stable.
-        //custom deadzone that takes into account the length of the vector to determine if it should be zero. That way we can steer with full precision in 360° 
-        //but ignore a poorly resting joystick.
-        return getJoystickValues(AxisMapping.LeftStickX, AxisMapping.LeftStickY);
+
+    public Vector2f getJoystick(Joystick joystick) {
+        return getJoystickValues(joystick.getXAxisMapping(), joystick.getYAxisMapping());
     }
-    
-    public Vector2f getRightStick() {
-        return getJoystickValues(AxisMapping.RightStickX, AxisMapping.RightStickY);
-    }
-    
+
     boolean isTriggerRight() {
         if(axisIndexByMapping.containsKey(AxisMapping.RightTrigger)) {
             return controller.getAxisValue(axisIndexByMapping.get(AxisMapping.RightTrigger)) >= axisBtnConversionDeadzone;
@@ -265,47 +260,18 @@ public class HandlerController {
         return false;
     }
 
-    float getDpadX() {
-        if(axisIndexByMapping.containsKey(AxisMapping.DPadX)) {
-            int axisIdx = axisIndexByMapping.get(AxisMapping.DPadX);
-            if(axisIdx != 0xFF) {
-                return controller.getAxisValue(axisIdx);
-            }
-        }
-        return controller.getPovX();
-    }
-
-    float getDpadY() {
-        if(axisIndexByMapping.containsKey(AxisMapping.DPadY)) {
-            int axisIdx = axisIndexByMapping.get(AxisMapping.DPadY);
-            if(axisIdx != 0xFF) {
-                return controller.getAxisValue(axisIdx);
-            }
-        }
-        return controller.getPovY();
-    }
-
-    Vector2f getDpad() {
-        return new Vector2f(getDpadX(), getDpadY());
-    }
-
     float getAxisValue(AxisMapping axisMapping) {
         float val = 0.f;
         try {
             int index = axisIndexByMapping.get(axisMapping);
             val = controller.getAxisValue(index);
+            if(val >= -joystickDeadzone && val <= joystickDeadzone) {
+                val = 0.f;
+            }
         } catch(IllegalArgumentException ex) {
             Global.getLogger(getClass()).info("Axis not mapped :" + axisMapping.toString());
         }
         return val;
-    }
-
-    boolean getNormalBtnState(ButtonMapping btn) {
-        if(btnIndexByMapping.containsKey(btn)) {
-            int btnIdx = btnIndexByMapping.get(btn);
-            return controller.isButtonPressed(btnIdx);
-        }
-        return false;
     }
 
     public List<Pair<LogicalButtons, Boolean>> getButtonEvents() {
@@ -317,23 +283,25 @@ public class HandlerController {
     }
 
     public boolean isButtonPressed(LogicalButtons btn) {
-        //var axisMapping =
-        return switch(btn) {
-            case LeftStickLeft -> getAxisValue(AxisMapping.LeftStickX) <= -axisBtnConversionDeadzone;
-            case LeftStickRight -> getAxisValue(AxisMapping.LeftStickX) >= axisBtnConversionDeadzone;
-            case LeftStickUp -> getAxisValue(AxisMapping.LeftStickY) <= -axisBtnConversionDeadzone;
-            case LeftStickDown -> getAxisValue(AxisMapping.LeftStickY) >= axisBtnConversionDeadzone;
-            case RightStickLeft -> getAxisValue(AxisMapping.RightStickX) <= -axisBtnConversionDeadzone;
-            case RightStickRight -> getAxisValue(AxisMapping.RightStickX) >= axisBtnConversionDeadzone;
-            case RightStickUp -> getAxisValue(AxisMapping.RightStickY) <= -axisBtnConversionDeadzone;
-            case RightStickDown -> getAxisValue(AxisMapping.RightStickY) >= axisBtnConversionDeadzone;
-            case LeftTrigger -> getAxisValue(AxisMapping.LeftTrigger) <= -axisBtnConversionDeadzone;
-            case RightTrigger -> isTriggerRight();
-            case DpadUp -> getDpadY() <= -axisBtnConversionDeadzone;
-            case DpadDown -> getDpadY() >= axisBtnConversionDeadzone;
-            case DpadLeft -> getDpadX() <= -axisBtnConversionDeadzone;
-            case DpadRight -> getDpadX() >= axisBtnConversionDeadzone;
-            default -> getNormalBtnState(ButtonMapping.fromButton(btn));
-        };
+        var btnMapping = ButtonMapping.fromButton(btn);
+        if(btnMapping != null && btnIndexByMapping.containsKey(btnMapping)) {
+            int btnIdx = btnIndexByMapping.get(btnMapping);
+            return controller.isButtonPressed(btnIdx);
+        } else if (btn == LogicalButtons.LeftTrigger) {
+            return getAxisValue(AxisMapping.LeftTrigger) <= -axisBtnConversionDeadzone;
+        } else if (btn == LogicalButtons.RightTrigger) {
+            return isTriggerRight();
+        } else {
+            var joystick = Joystick.fromButton(btn);
+            var axisMapping = AxisMapping.fromButton(btn);
+            if (joystick != null && axisMapping != null) {
+                if (btn == axisMapping.getLowerLimitButton()) {
+                    return getAxisValue(axisMapping) <= -axisBtnConversionDeadzone;
+                } else if (btn == axisMapping.getUpperLimitButton()) {
+                    return getAxisValue(axisMapping) >= axisBtnConversionDeadzone;
+                } else Global.getLogger(getClass()).warn("Called isButtonPressed with a joystick-button that couldn't be resolved!");
+            }
+        }
+        return false;
     }
 }

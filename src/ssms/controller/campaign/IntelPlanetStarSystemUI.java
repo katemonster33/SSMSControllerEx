@@ -15,6 +15,7 @@ import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
+import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.reflection.*;
 
@@ -142,7 +143,7 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
                 InputShim.mouseWheel((int) desiredMousePos.getX(), (int)desiredMousePos.getY(), -1);
             }
         } else {
-            ReadableVector2f leftStick = controller.getLeftStick();
+            ReadableVector2f leftStick = controller.getJoystick(Joystick.Left);
             if (leftStick.getX() != 0 || leftStick.getY() != 0) {
                 if (desiredMousePos == null) {
                     var map = planetTabReflector.getMap();

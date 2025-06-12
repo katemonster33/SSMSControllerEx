@@ -9,6 +9,7 @@ import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
+import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.reflection.*;
 
@@ -72,7 +73,7 @@ public class WarroomScreen extends InputScreenBase {
             desiredMousePos = null;
         }
 
-        ReadableVector2f leftStick = controller.getLeftStick();
+        ReadableVector2f leftStick = controller.getJoystick(Joystick.Left);
         if(leftStick.getX() != 0 || leftStick.getY() != 0) {
             if(selectingButton) {
                 selectedButton = selectedButtonGroup = -1;

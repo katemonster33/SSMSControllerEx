@@ -8,8 +8,7 @@ public enum AxisMapping {
     LeftTrigger,
     RightTrigger,
     DPadX,
-    DPadY,
-    Invalid;
+    DPadY;
 
     public static AxisMapping fromButton(LogicalButtons logicalButtons) {
         return switch(logicalButtons) {
@@ -22,6 +21,32 @@ public enum AxisMapping {
             case DpadLeft, DpadRight -> DPadX;
             case DpadUp, DpadDown -> DPadY;
             default -> null;
+        };
+    }
+
+    public LogicalButtons getUpperLimitButton() {
+        return switch(this) {
+            case LeftStickX -> LogicalButtons.LeftStickRight;
+            case LeftStickY -> LogicalButtons.LeftStickUp;
+            case RightStickX -> LogicalButtons.RightStickRight;
+            case RightStickY -> LogicalButtons.RightStickUp;
+            case LeftTrigger -> LogicalButtons.LeftTrigger;
+            case RightTrigger -> LogicalButtons.RightTrigger;
+            case DPadX -> LogicalButtons.DpadRight;
+            case DPadY -> LogicalButtons.DpadUp;
+        };
+    }
+
+    public LogicalButtons getLowerLimitButton() {
+        return switch(this) {
+            case LeftStickX -> LogicalButtons.LeftStickLeft;
+            case LeftStickY -> LogicalButtons.LeftStickDown;
+            case RightStickX -> LogicalButtons.RightStickLeft;
+            case RightStickY -> LogicalButtons.RightStickDown;
+            case LeftTrigger -> LogicalButtons.LeftTrigger;
+            case RightTrigger -> LogicalButtons.RightTrigger;
+            case DPadX -> LogicalButtons.DpadLeft;
+            case DPadY -> LogicalButtons.DpadDown;
         };
     }
 }

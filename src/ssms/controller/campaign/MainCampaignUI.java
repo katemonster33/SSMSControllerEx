@@ -17,6 +17,7 @@ import java.util.ArrayList;
 
 import ssms.controller.enums.Indicators;
 import ssms.controller.combat.BattleScope;
+import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.reflection.*;
@@ -70,7 +71,7 @@ public class MainCampaignUI extends InputScreenBase {
         if(pf == null) {
             return;
         }
-        ReadableVector2f desiredHeading = controller.getLeftStick();
+        ReadableVector2f desiredHeading = controller.getJoystick(Joystick.Left);
         if ( desiredHeading.getX() == 0 && desiredHeading.getY() == 0) {
             if(lastHeading != null && (desiredHeading.getX() != lastHeading.getX() || desiredHeading.getY() != lastHeading.getY())) {
                 mousePos.x = pf.getLocation().getX();

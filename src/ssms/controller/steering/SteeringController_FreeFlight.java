@@ -27,6 +27,7 @@ import java.util.List;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
+import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.HandlerController;
 import ssms.controller.enums.Indicators;
@@ -104,7 +105,7 @@ public class SteeringController_FreeFlight extends SteeringController_Base {
             }
         }
         if ( allowTurning ) {
-            ReadableVector2f vDesiredHeading = handler.getLeftStick();
+            ReadableVector2f vDesiredHeading = handler.getJoystick(Joystick.Left);
             if ( vDesiredHeading.getX() != 0 || vDesiredHeading.getY() != 0 ) {
                 float desiredFacing = Util.getFacingFromHeading((Vector2f)vDesiredHeading);
                 turnToAngle(ps,desiredFacing,timeAdvanced);
@@ -115,7 +116,7 @@ public class SteeringController_FreeFlight extends SteeringController_Base {
     @Override
     public void renderInWorldCoords(ViewportAPI viewport, float offsetFacingAngle) {
         Vector2f shipLocation = ps.getLocation();
-        ReadableVector2f heading = handler.getLeftStick();
+        ReadableVector2f heading = handler.getJoystick(Joystick.Left);
         if ( heading.getX() == 0 && heading.getY() == 0 ) {
             heading = Util.getHeadingFromFacing(ps.getFacing());
         }
