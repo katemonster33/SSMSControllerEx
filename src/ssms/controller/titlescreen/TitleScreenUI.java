@@ -53,28 +53,24 @@ public class TitleScreenUI extends InputScreenBase {
         List<Pair<UIComponentAPI, Object>> directionalUiElements = new ArrayList<>();
         for(var btn : buttons) {
             directionalUiElements.add(new Pair<>(btn, null));
-        };
+        }
 
         indicators = new ArrayList<>();
 
         directionalUINavigator = new DirectionalUINavigator(directionalUiElements);
         addJoystickHandler("Navigate Menu", Joystick.DPad, directionalUINavigator);
-        addButtonPressHandler("Confirm", LogicalButtons.A, (float advance) -> clickButton());
+        addButtonPressHandler("Confirm", LogicalButtons.A, this::clickButton);
         addButtonPressHandler("Cancel", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
         addButtonPressHandler("Reset keybindings", LogicalButtons.Select, (float advance) -> InputScreenManager.getInstance().transitionToScreen(AutoMapperUI.ID));
     }
 
-    public void clickButton()
+    public void clickButton(float advance)
     {
         if(directionalUINavigator.getSelected() != null) {
             var btn = directionalUINavigator.getSelected().one;
             InputShim.mouseMove((int) btn.getPosition().getCenterX(), (int) btn.getPosition().getCenterY());
             InputShim.mouseDownUp((int) btn.getPosition().getCenterX(), (int) btn.getPosition().getCenterY(), InputEventMouseButton.LEFT);
         }
-    }
-
-    @Override
-    public void preInput(float advance) {
     }
 
     @Override
