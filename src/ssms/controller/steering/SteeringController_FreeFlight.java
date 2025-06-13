@@ -105,8 +105,9 @@ public class SteeringController_FreeFlight extends SteeringController_Base {
             }
         }
         if ( allowTurning ) {
-            ReadableVector2f vDesiredHeading = handler.getJoystick(Joystick.Left);
+            var vDesiredHeading = handler.getJoystick(Joystick.Left);
             if ( vDesiredHeading.getX() != 0 || vDesiredHeading.getY() != 0 ) {
+                vDesiredHeading.setY(-vDesiredHeading.getY());
                 float desiredFacing = Util.getFacingFromHeading((Vector2f)vDesiredHeading);
                 turnToAngle(ps,desiredFacing,timeAdvanced);
             }
@@ -116,7 +117,8 @@ public class SteeringController_FreeFlight extends SteeringController_Base {
     @Override
     public void renderInWorldCoords(ViewportAPI viewport, float offsetFacingAngle) {
         Vector2f shipLocation = ps.getLocation();
-        ReadableVector2f heading = handler.getJoystick(Joystick.Left);
+        var heading = handler.getJoystick(Joystick.Left);
+        heading.setY(-heading.getY());
         if ( heading.getX() == 0 && heading.getY() == 0 ) {
             heading = Util.getHeadingFromFacing(ps.getFacing());
         }

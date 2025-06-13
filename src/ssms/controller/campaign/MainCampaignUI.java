@@ -97,9 +97,9 @@ public class MainCampaignUI extends InputScreenBase {
         }
         mousePos.x = viewport.convertWorldXtoScreenX(xpos);
         if(desiredHeading.getY() < 0) {
-            ypos = shipPos.y + desiredHeading.getY() * (shipPos.y - minY);
+            ypos = shipPos.y - desiredHeading.getY() * (shipPos.y - minY);
         } else {
-            ypos = shipPos.y + desiredHeading.getY() * (maxY - shipPos.y);
+            ypos = shipPos.y - desiredHeading.getY() * (maxY - shipPos.y);
         }
         mousePos.y = viewport.convertWorldYtoScreenY(ypos);
         InputShim.mouseMove((int)mousePos.x, (int)mousePos.y);

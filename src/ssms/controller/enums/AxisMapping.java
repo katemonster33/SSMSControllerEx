@@ -27,26 +27,26 @@ public enum AxisMapping {
     public LogicalButtons getUpperLimitButton() {
         return switch(this) {
             case LeftStickX -> LogicalButtons.LeftStickRight;
-            case LeftStickY -> LogicalButtons.LeftStickUp;
+            case LeftStickY -> LogicalButtons.LeftStickDown;
             case RightStickX -> LogicalButtons.RightStickRight;
-            case RightStickY -> LogicalButtons.RightStickUp;
+            case RightStickY -> LogicalButtons.RightStickDown;
             case LeftTrigger -> LogicalButtons.LeftTrigger;
             case RightTrigger -> LogicalButtons.RightTrigger;
             case DPadX -> LogicalButtons.DpadRight;
-            case DPadY -> LogicalButtons.DpadUp;
+            case DPadY -> LogicalButtons.DpadDown;
         };
     }
 
     public LogicalButtons getLowerLimitButton() {
         return switch(this) {
             case LeftStickX -> LogicalButtons.LeftStickLeft;
-            case LeftStickY -> LogicalButtons.LeftStickDown;
+            case LeftStickY -> LogicalButtons.LeftStickUp;
             case RightStickX -> LogicalButtons.RightStickLeft;
-            case RightStickY -> LogicalButtons.RightStickDown;
+            case RightStickY -> LogicalButtons.RightStickUp;
             case LeftTrigger -> LogicalButtons.LeftTrigger;
             case RightTrigger -> LogicalButtons.RightTrigger;
             case DPadX -> LogicalButtons.DpadLeft;
-            case DPadY -> LogicalButtons.DpadDown;
+            case DPadY -> LogicalButtons.DpadUp;
         };
     }
 }

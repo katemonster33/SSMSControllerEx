@@ -59,7 +59,7 @@ public class MessageBoxScreen extends InputScreenBase {
     public void clickButton()
     {
         if(directionalUINavigator != null && directionalUINavigator.getSelected() != null) {
-            var btn = (ButtonAPI) directionalUINavigator.getSelected();
+            var btn = (ButtonAPI) directionalUINavigator.getSelected().one;
 
             if(ButtonReflector.isCheckbox(btn)) {
                 btn.setChecked(!btn.isChecked());

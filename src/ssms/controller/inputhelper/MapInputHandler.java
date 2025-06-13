@@ -35,13 +35,16 @@ public class MapInputHandler{
         var controller = SSMSControllerModPluginEx.controller;
         ReadableVector2f leftStick = controller.getJoystick(Joystick.Left), rightStick = controller.getJoystick(Joystick.Right);
         boolean leftStickActive = isStickActive(leftStick), rightStickActive = isStickActive(rightStick);
+        if(desiredMousePos == null) {
+            centerMousePos();
+        }
         if (leftStickActive && !rightStickActive) {
             if(isMovingMap) {
                 InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
                 centerMousePos();
                 isMovingMap = false;
             } else {
-                desiredMousePos.set(desiredMousePos.getX() + (leftStick.getX() * mouseMoveFactor), desiredMousePos.getY() + (leftStick.getY() * mouseMoveFactor));
+                desiredMousePos.set(desiredMousePos.getX() + (leftStick.getX() * mouseMoveFactor), desiredMousePos.getY() - (leftStick.getY() * mouseMoveFactor));
                 InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
             }
         } else if(rightStickActive && !leftStickActive) {

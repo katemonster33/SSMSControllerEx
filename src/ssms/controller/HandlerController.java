@@ -169,8 +169,8 @@ public class HandlerController {
                 }
             }
             default -> {
-                if (!generateAxisButtonEvent(axisMapping.getLowerLimitButton(), curVal, lastFrameVal, this::isUpperAxisBtnLimitReached)) {
-                    generateAxisButtonEvent(axisMapping.getUpperLimitButton(), curVal, lastFrameVal, this::isLowerAxisBtnLimitReached);
+                if (!generateAxisButtonEvent(axisMapping.getLowerLimitButton(), curVal, lastFrameVal, this::isLowerAxisBtnLimitReached)) {
+                    generateAxisButtonEvent(axisMapping.getUpperLimitButton(), curVal, lastFrameVal, this::isUpperAxisBtnLimitReached);
                 }
             }
         }
@@ -198,10 +198,10 @@ public class HandlerController {
                         // Controller.poll compares the joystick value to last frame already,
                         //  we do it again here to not have multiple events of 0.0f because of our manual deadzone code
                         if(axisVal != lastFrameAxisValues[axisIdx]) {
-                            lastFrameAxisValues[axisIdx] = axisVal;
                             axisEvents.add(new Pair<>(axisMapping, axisVal));
 
                             generateAxisButtonEvents(axisMapping, axisVal, lastFrameAxisValues[axisIdx]);
+                            lastFrameAxisValues[axisIdx] = axisVal;
                         }
                     }
                 } else if(Controllers.isEventPovX() && controller.getPovX() != lastFramePovX) {

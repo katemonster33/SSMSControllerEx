@@ -91,8 +91,8 @@ public class InputScreenBase {
                         if (btnEvent.one == btnAxis.getLowerLimitButton()) handler.performLeftAction(advance);
                         else if (btnEvent.one == btnAxis.getUpperLimitButton()) handler.performRightAction(advance);
                     } else if (btnAxis == joystick.getYAxisMapping()) {
-                        if (btnEvent.one == btnAxis.getLowerLimitButton()) handler.performDownAction(advance);
-                        else if (btnEvent.one == btnAxis.getUpperLimitButton()) handler.performUpAction(advance);
+                        if (btnEvent.one == btnAxis.getLowerLimitButton()) handler.performUpAction(advance);
+                        else if (btnEvent.one == btnAxis.getUpperLimitButton()) handler.performDownAction(advance);
                     }
                 }
             }

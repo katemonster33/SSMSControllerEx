@@ -43,7 +43,7 @@ public class SteeringController_OrbitTarget extends SteeringController_Base {
     protected ShipAPI ps;
     protected HandlerController handler;
     protected float desiredDistance;
-    protected ReadableVector2f vDesiredHeadingLastValidInput;
+    protected Vector2f vDesiredHeadingLastValidInput;
     protected List<Pair<Indicators, String>> indicators;
 
     @Override
@@ -97,7 +97,8 @@ public class SteeringController_OrbitTarget extends SteeringController_Base {
             desiredDistance += Math.max(ps.getEngineController().getMaxSpeedWithoutBoost(), 400f) * timeAdvanced;
         }
 
-        ReadableVector2f vDesiredHeading = handler.getJoystick(Joystick.Left);
+        var vDesiredHeading = handler.getJoystick(Joystick.Left);
+        vDesiredHeading.setY(-vDesiredHeading.getY());
         if ( vDesiredHeading.getX() == 0 || vDesiredHeading.getY() == 0 ) {
             vDesiredHeading = vDesiredHeadingLastValidInput;
         }
@@ -117,7 +118,8 @@ public class SteeringController_OrbitTarget extends SteeringController_Base {
     public void renderInWorldCoords(ViewportAPI viewport, float offsetFacingAngle) {
         if ( !isTargetValid() ) return;
         
-        ReadableVector2f heading = handler.getJoystick(Joystick.Left);
+        var heading = handler.getJoystick(Joystick.Left);
+        heading.setY(-heading.getY());
         if ( heading.getX() == 0 && heading.getY() == 0 ) {
             heading = Util.getHeadingFromFacing(ps.getFacing());
         }

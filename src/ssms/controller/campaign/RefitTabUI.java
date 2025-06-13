@@ -62,7 +62,7 @@ public class RefitTabUI extends InputScreenBase {
             if (desiredMousePos == null) {
                 desiredMousePos = new Vector2f((int) viewportAPI.convertWorldXtoScreenX(viewportAPI.getCenter().getX()), (int) viewportAPI.convertWorldYtoScreenY(viewportAPI.getCenter().getY()));
             } else {
-                desiredMousePos.set(desiredMousePos.getX() + (leftStick.getX() * mouseMoveFactor), desiredMousePos.getY() + (leftStick.getY() * mouseMoveFactor));
+                desiredMousePos.set(desiredMousePos.getX() + (leftStick.getX() * mouseMoveFactor), desiredMousePos.getY() - (leftStick.getY() * mouseMoveFactor));
             }
             InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
         }
