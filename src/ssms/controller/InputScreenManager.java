@@ -161,6 +161,7 @@ public class InputScreenManager {
                     try {
                         if ( currentScreen != null ) {
                             currentScreen.deactivate();
+                            currentScreen.clearHandlers();
                         }
                     } catch ( Throwable t ) {
                         Global.getLogger(SSMSControllerModPluginEx.class).warn("Failed to deactivate screen, ignoring: "+currentScreen, t);
@@ -203,6 +204,7 @@ public class InputScreenManager {
                     try {
                         if ( currentScreen != null ) {
                             currentScreen.deactivate();
+                            currentScreen.clearHandlers();
                         }
                     } catch ( Throwable t ) {
                         Global.getLogger(SSMSControllerModPluginEx.class).warn("Failed to deactivate screen, ignoring: "+currentScreen, t);
@@ -245,6 +247,7 @@ public class InputScreenManager {
                 try {
                     if ( currentScreen!= null ) {
                         currentScreen.deactivate();
+                        currentScreen.clearHandlers();
                     }
                 } catch ( Throwable t ) {
                     Global.getLogger(SSMSControllerModPluginEx.class).warn("Failed to deactivate screen, ignoring: "+currentScreen);

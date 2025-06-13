@@ -105,8 +105,9 @@ public class InputScreenBase {
             }
         }
         for(Joystick joystick : joystickHandlersToFire.keySet()) {
-            if(joystickHandlers.containsKey(joystick)) {
-                joystickHandlers.get(joystick).performAction(advance, controller.getJoystick(joystick));
+            var handler = joystickHandlers.get(joystick);
+            if(handler != null) {
+                handler.performAction(advance, controller.getJoystick(joystick));
             }
         }
     }

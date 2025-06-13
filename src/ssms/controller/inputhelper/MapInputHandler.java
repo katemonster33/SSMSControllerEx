@@ -18,6 +18,12 @@ public class MapInputHandler{
         this.viewportAPI = viewportAPI;
     }
 
+    public void init() {
+        centerMousePos();
+
+
+    }
+
     boolean isStickActive(ReadableVector2f stick) {
         return stick.getX() != 0 || stick.getY() != 0;
     }
@@ -35,9 +41,6 @@ public class MapInputHandler{
         var controller = SSMSControllerModPluginEx.controller;
         ReadableVector2f leftStick = controller.getJoystick(Joystick.Left), rightStick = controller.getJoystick(Joystick.Right);
         boolean leftStickActive = isStickActive(leftStick), rightStickActive = isStickActive(rightStick);
-        if(desiredMousePos == null) {
-            centerMousePos();
-        }
         if (leftStickActive && !rightStickActive) {
             if(isMovingMap) {
                 InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);

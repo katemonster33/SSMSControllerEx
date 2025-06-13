@@ -48,6 +48,7 @@ public class MapTabUI extends InputScreenBase {
         mapReflector = (MapReflector) args[0];
         campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
         mapInputHandler = new MapInputHandler(viewportAPI);
+        mapInputHandler.init();
     }
 
     @Override
