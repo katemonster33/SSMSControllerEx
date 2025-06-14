@@ -8,6 +8,7 @@ import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.inputhelper.KeySender;
 import ssms.controller.inputhelper.MapInputHandler;
 import ssms.controller.reflection.MapReflector;
 
@@ -20,18 +21,6 @@ public class MapTabUI extends InputScreenBase {
     CampaignScope campaignScope;
 
     MapReflector mapReflector;
-
-    public MapTabUI() {
-        indicators = new ArrayList<>();
-        indicators.add(new Pair<>(Indicators.LeftStick, "Move cursor"));
-        indicators.add(new Pair<>(Indicators.LeftStick, "(press) Toggle map move"));
-        indicators.add(new Pair<>(Indicators.A, "Select point"));
-        indicators.add(new Pair<>(Indicators.B, "Close dialog"));
-        indicators.add(new Pair<>(Indicators.LeftTrigger, "Open sector view"));
-        indicators.add(new Pair<>(Indicators.B, "Open system view"));
-        indicators.add(new Pair<>(Indicators.BumperLeft, "Select cargo tab"));
-        indicators.add(new Pair<>(Indicators.BumperRight, "Select intel tab"));
-    }
 
     @Override
     public String getId() {
@@ -47,8 +36,12 @@ public class MapTabUI extends InputScreenBase {
         viewportAPI = Global.getSector().getViewport();
         mapReflector = (MapReflector) args[0];
         campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
-        mapInputHandler = new MapInputHandler(viewportAPI);
-        mapInputHandler.init();
+        indicators = new ArrayList<>();
+        mapInputHandler = addMapHandler(viewportAPI);
+
+        addButtonPressHandler("Close dialog", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+        addButtonPressHandler("Select cargo tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_I, 'i'));
+        addButtonPressHandler("Select intel tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_E, 'e'));
     }
 
     @Override

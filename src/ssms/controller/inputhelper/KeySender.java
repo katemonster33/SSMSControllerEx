@@ -2,7 +2,7 @@ package ssms.controller.inputhelper;
 
 import ssms.controller.InputShim;
 
-public class KeySender implements ButtonHandler {
+public class KeySender implements ButtonPressHandler {
     int keyCode;
     char keyChar;
     public KeySender(int keyCode) {

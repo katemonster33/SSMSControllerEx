@@ -4,15 +4,13 @@ import com.fs.starfarer.api.ui.PositionAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.util.vector.Vector2f;
-import ssms.controller.enums.LogicalButtons;
 import ssms.controller.InputShim;
-import ssms.controller.SSMSControllerModPluginEx;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class DirectionalUINavigator implements JoystickHandler {
+public class DirectionalUINavigator implements DigitalJoystickHandler {
     List<Pair<UIComponentAPI, Object>> navigationObjects;
     int curIndex = -1;
     public DirectionalUINavigator(List<Pair<UIComponentAPI, Object>> navigationObjects)
@@ -49,8 +47,8 @@ public class DirectionalUINavigator implements JoystickHandler {
             }
             if(curIndex >= navigationObjects.size()) {
                 curIndex = 0;
+                onSelect(navigationObjects.get(curIndex));
             }
-            onSelect(navigationObjects.get(curIndex));
         } else {
             curIndex = 0;
             onSelect(navigationObjects.get(curIndex));

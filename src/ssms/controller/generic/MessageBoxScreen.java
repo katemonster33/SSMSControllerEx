@@ -14,9 +14,7 @@ import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.ButtonReflector;
-import ssms.controller.reflection.ClassReflector;
 import ssms.controller.reflection.MessageBoxReflector;
-import ssms.controller.reflection.MethodReflector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +47,7 @@ public class MessageBoxScreen extends InputScreenBase {
                 directionalUiElements.add(new Pair<>(btn, null));
             }
             directionalUINavigator = new DirectionalUINavigator(directionalUiElements);
-            addJoystickHandler("Navigate items", Joystick.DPad, directionalUINavigator);
+            addDigitalJoystickHandler("Navigate items", Joystick.DPad, directionalUINavigator);
             addButtonPressHandler("Select option", LogicalButtons.A, (float advance) -> clickButton());
         }
         addButtonPressHandler("Confirm", LogicalButtons.Y, new KeySender(Keyboard.KEY_RETURN));

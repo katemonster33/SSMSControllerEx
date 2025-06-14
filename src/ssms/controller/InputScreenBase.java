@@ -26,10 +26,7 @@ import ssms.controller.enums.AxisMapping;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
-import ssms.controller.inputhelper.AxisHandler;
-import ssms.controller.inputhelper.ButtonHandler;
-import ssms.controller.inputhelper.AnalogJoystickHandler;
-import ssms.controller.inputhelper.JoystickHandler;
+import ssms.controller.inputhelper.*;
 import ssms.controller.reflection.CampaignStateReflector;
 import ssms.controller.reflection.CombatStateReflector;
 import ssms.controller.reflection.TitleScreenStateReflector;
@@ -47,14 +44,18 @@ public class InputScreenBase {
     public static final String ID = "NoScreen";
     public static final String SCOPES = InputScopeBase.ID;
     protected List<Pair<Indicators, String>> indicators;
-    protected EnumMap<LogicalButtons, ButtonHandler> buttonHandlers;
-    protected EnumMap<Joystick, JoystickHandler> joystickHandlers;
+    protected EnumMap<LogicalButtons, ButtonPressHandler> buttonHandlers;
+    protected EnumMap<LogicalButtons, ButtonChangeHandler> buttonExHandlers;
+    protected EnumMap<Joystick, DigitalJoystickHandler> digitalJoystickHandlers;
+    protected EnumMap<Joystick, AnalogJoystickHandler> analogJoystickHandlers;
     protected HandlerController controller;
 
     public InputScreenBase() {
         buttonHandlers = new EnumMap<>(LogicalButtons.class);
+        buttonExHandlers = new EnumMap<>(LogicalButtons.class);
         indicators = new ArrayList<>();
-        joystickHandlers = new EnumMap<>(Joystick.class);
+        digitalJoystickHandlers = new EnumMap<>(Joystick.class);
+        analogJoystickHandlers = new EnumMap<>(Joystick.class);
         controller = SSMSControllerModPluginEx.controller;
     }
 
@@ -78,37 +79,41 @@ public class InputScreenBase {
     }
 
     public final void processControllerEvents(float advance, List<Pair<LogicalButtons, Boolean>> buttonEvents, List<Pair<AxisMapping, Float>> axisEvents) {
-        for(var btnEvent : buttonEvents) {
-            if(buttonHandlers.containsKey(btnEvent.one) && !btnEvent.two) {
-                buttonHandlers.get(btnEvent.one).performAction(advance);
+        for (var btnEvent : buttonEvents) {
+            if (!btnEvent.two) {
+                var btnHandler = buttonHandlers.get(btnEvent.one);
+                if (btnHandler != null) btnHandler.performAction(advance);
             }
-            if(btnEvent.two) {
+            var btnExHandler = buttonExHandlers.get(btnEvent.one);
+            if (btnExHandler != null) btnExHandler.performAction(advance, btnEvent.two);
+
+            if (btnEvent.two) {
                 Joystick joystick = Joystick.fromButton(btnEvent.one);
                 var btnAxis = AxisMapping.fromButton(btnEvent.one);
-                if (joystick != null && btnAxis != null && joystickHandlers.containsKey(joystick)) {
-                    var handler = joystickHandlers.get(joystick);
-                    if (btnAxis == joystick.getXAxisMapping()) {
-                        if (btnEvent.one == btnAxis.getLowerLimitButton()) handler.performLeftAction(advance);
-                        else if (btnEvent.one == btnAxis.getUpperLimitButton()) handler.performRightAction(advance);
-                    } else if (btnAxis == joystick.getYAxisMapping()) {
-                        if (btnEvent.one == btnAxis.getLowerLimitButton()) handler.performUpAction(advance);
-                        else if (btnEvent.one == btnAxis.getUpperLimitButton()) handler.performDownAction(advance);
+                if (joystick != null && btnAxis != null) {
+                    var handler = digitalJoystickHandlers.get(joystick);
+                    if (handler != null) {
+                        if (btnAxis == joystick.getXAxisMapping()) {
+                            if (btnEvent.one == btnAxis.getLowerLimitButton()) handler.performLeftAction(advance);
+                            else if (btnEvent.one == btnAxis.getUpperLimitButton()) handler.performRightAction(advance);
+                        } else if (btnAxis == joystick.getYAxisMapping()) {
+                            if (btnEvent.one == btnAxis.getLowerLimitButton()) handler.performUpAction(advance);
+                            else if (btnEvent.one == btnAxis.getUpperLimitButton()) handler.performDownAction(advance);
+                        }
                     }
                 }
             }
         }
         EnumMap<Joystick, Boolean> joystickHandlersToFire = new EnumMap<>(Joystick.class);
-        for(var axisEvent : axisEvents) {
+        for (var axisEvent : axisEvents) {
             Joystick joystick = Joystick.fromAxisMapping(axisEvent.one);
-            if(joystick != null) {
+            if (joystick != null) {
                 joystickHandlersToFire.put(joystick, true);
             }
         }
-        for(Joystick joystick : joystickHandlersToFire.keySet()) {
-            var handler = joystickHandlers.get(joystick);
-            if(handler != null) {
-                handler.performAction(advance, controller.getJoystick(joystick));
-            }
+        for (Joystick joystick : joystickHandlersToFire.keySet()) {
+            var handler = analogJoystickHandlers.get(joystick);
+            if (handler != null) handler.performAction(advance, controller.getJoystick(joystick));
         }
     }
 
@@ -119,7 +124,7 @@ public class InputScreenBase {
 
     public String[] getScopes() { return new String[]{ SCOPES }; }
 
-    protected void addButtonPressHandler(String msg, LogicalButtons logicalButtons, ButtonHandler btnPressHandler) {
+    protected void addButtonPressHandler(String msg, LogicalButtons logicalButtons, ButtonPressHandler btnPressHandler) {
         var indicator = Indicators.fromButton(logicalButtons);
         if(indicator == null) {
             Global.getLogger(getClass()).warn("given button doesn't translate to indicator! " + logicalButtons);
@@ -129,17 +134,52 @@ public class InputScreenBase {
         indicators.add(new Pair<>(indicator, msg));
     }
 
-    protected void addJoystickHandler(String msg, Joystick joystick, JoystickHandler joystickHandler) {
+    protected void addButtonChangeHandler(String msg, LogicalButtons logicalButtons, ButtonChangeHandler btnChangeHandler) {
+        var indicator = Indicators.fromButton(logicalButtons);
+        if(indicator == null) {
+            Global.getLogger(getClass()).warn("given button doesn't translate to indicator! " + logicalButtons);
+            return;
+        }
+        buttonExHandlers.put(logicalButtons, btnChangeHandler);
+        indicators.add(new Pair<>(indicator, msg));
+    }
+
+    protected void addDigitalJoystickHandler(String msg, Joystick joystick, DigitalJoystickHandler digitalJoystickHandler) {
         Indicators joystickIndicator = Indicators.fromJoystick(joystick);
         if(joystickIndicator != null) {
             indicators.add(new Pair<>(joystickIndicator, msg));
         }
-        joystickHandlers.put(joystick, joystickHandler);
+        digitalJoystickHandlers.put(joystick, digitalJoystickHandler);
+    }
+
+    protected void addAnalogJoystickHandler(String msg, Joystick joystick, AnalogJoystickHandler analogJoystickHandler) {
+        Indicators joystickIndicator = Indicators.fromJoystick(joystick);
+        if(joystickIndicator != null) {
+            indicators.add(new Pair<>(joystickIndicator, msg));
+        }
+        analogJoystickHandlers.put(joystick, analogJoystickHandler);
+    }
+
+    protected MapInputHandler addMapHandler(ViewportAPI viewportAPI) {
+        MapInputHandler mapInputHandler = new MapInputHandler(viewportAPI);
+        addAnalogJoystickHandler("Move cursor", Joystick.Left, mapInputHandler::handleLeftJoystick);
+        addAnalogJoystickHandler("Move map", Joystick.Right, mapInputHandler::handleRightJoystick);
+        addButtonChangeHandler("Select", LogicalButtons.A, mapInputHandler::handleAButton);
+        indicators.add(new Pair<>(Indicators.LeftTrigger, "Zoom out"));
+        indicators.add(new Pair<>(Indicators.LeftTrigger, "Zoom in"));
+        mapInputHandler.centerMousePos();
+        return mapInputHandler;
+    }
+
+    public void refreshIndicators() {
+        indicators = new ArrayList<>();
     }
 
     protected void clearHandlers() {
         buttonHandlers.clear();
-        joystickHandlers.clear();
+        buttonExHandlers.clear();
+        digitalJoystickHandlers.clear();
+        analogJoystickHandlers.clear();
     }
 
     public UIPanelAPI getPanelForIndicators() {

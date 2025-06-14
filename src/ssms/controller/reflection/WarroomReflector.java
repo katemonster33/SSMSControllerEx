@@ -44,4 +44,8 @@ public class WarroomReflector {
         }
         return buttonGroups;
     }
+
+    public List<ButtonAPI> getButtons() {
+        return UIPanelReflector.getChildButtons(buttonGroupPanel, true);
+    }
 }

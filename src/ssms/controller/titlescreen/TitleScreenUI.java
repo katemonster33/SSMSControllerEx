@@ -18,7 +18,6 @@
 package ssms.controller.titlescreen;
 
 import com.fs.starfarer.api.input.InputEventMouseButton;
-import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
@@ -28,7 +27,6 @@ import ssms.controller.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.DirectionalUINavigator;
@@ -58,7 +56,7 @@ public class TitleScreenUI extends InputScreenBase {
         indicators = new ArrayList<>();
 
         directionalUINavigator = new DirectionalUINavigator(directionalUiElements);
-        addJoystickHandler("Navigate Menu", Joystick.DPad, directionalUINavigator);
+        addDigitalJoystickHandler("Navigate Menu", Joystick.DPad, directionalUINavigator);
         addButtonPressHandler("Confirm", LogicalButtons.A, this::clickButton);
         addButtonPressHandler("Cancel", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
         addButtonPressHandler("Reset keybindings", LogicalButtons.Select, (float advance) -> InputScreenManager.getInstance().transitionToScreen(AutoMapperUI.ID));

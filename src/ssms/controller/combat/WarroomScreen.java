@@ -11,6 +11,7 @@ import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.reflection.*;
 
 import java.util.ArrayList;
@@ -36,16 +37,10 @@ public class WarroomScreen extends InputScreenBase {
         indicators = new ArrayList<>();
         indicators.add(new Pair<>(Indicators.Start, "Pause"));
         indicators.add(new Pair<>(Indicators.Select, "Show video feed"));
-        indicators.add(new Pair<>(Indicators.LeftStick, "Move cursor"));
-        indicators.add(new Pair<>(Indicators.LeftStick, "(press) Toggle map move"));
-        //indicators.add(new Pair<>(Indicators.RightStick, "Move map"));
-        indicators.add(new Pair<>(Indicators.A, "Select object/button"));
+        addMapHandler(viewportAPI);
         indicators.add(new Pair<>(Indicators.X, "Target point/object"));
         indicators.add(new Pair<>(Indicators.Y, "Return to deployment screen"));
-        indicators.add((new Pair<>(Indicators.BumperLeft, "Select prev button")));
-        indicators.add((new Pair<>(Indicators.BumperRight, "Select next button")));
-        indicators.add(new Pair<>(Indicators.LeftTrigger, "Select prev button group"));
-        indicators.add(new Pair<>(Indicators.RightTrigger, "Select next button group"));
+        addDigitalJoystickHandler("Select buttons", Joystick.DPad, new DirectionalUINavigator());
     }
 
     @Override

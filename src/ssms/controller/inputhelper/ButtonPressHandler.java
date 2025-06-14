@@ -1,5 +1,5 @@
 package ssms.controller.inputhelper;
 
-public interface ButtonHandler {
+public interface ButtonPressHandler {
     void performAction(float advance);
 }

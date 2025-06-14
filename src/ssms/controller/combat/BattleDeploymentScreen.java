@@ -2,12 +2,10 @@ package ssms.controller.combat;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventMouseButton;
-import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import ssms.controller.*;
-import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.MessageBoxScreen;
@@ -39,8 +37,8 @@ public class BattleDeploymentScreen extends InputScreenBase {
         for(var btn : dui.getAllButtons()) {
             directionalObjects.add(new Pair<>(btn, null));
         }
-
-        addJoystickHandler("Navigate", Joystick.DPad, new DirectionalUINavigator(directionalObjects));
+        directionalUINavigator = new DirectionalUINavigator(directionalObjects);
+        addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
         addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> clickButton());
     }
 

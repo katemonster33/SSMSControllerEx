@@ -14,21 +14,16 @@ public class MapInputHandler{
     boolean isMovingMap = false;
     Vector2f desiredMousePos;
     ViewportAPI viewportAPI;
+    boolean leftStickActive = false, rightStickActive = false;
     public MapInputHandler(ViewportAPI viewportAPI) {
         this.viewportAPI = viewportAPI;
-    }
-
-    public void init() {
-        centerMousePos();
-
-
     }
 
     boolean isStickActive(ReadableVector2f stick) {
         return stick.getX() != 0 || stick.getY() != 0;
     }
 
-    void centerMousePos() {
+    public void centerMousePos() {
         desiredMousePos = new Vector2f(viewportAPI.convertWorldXtoScreenX(viewportAPI.getCenter().getX()), viewportAPI.convertWorldYtoScreenY(viewportAPI.getCenter().getY()));
         InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
     }
@@ -37,37 +32,52 @@ public class MapInputHandler{
         return isMovingMap;
     }
 
-    public void advance(float advance) {
-        var controller = SSMSControllerModPluginEx.controller;
-        ReadableVector2f leftStick = controller.getJoystick(Joystick.Left), rightStick = controller.getJoystick(Joystick.Right);
-        boolean leftStickActive = isStickActive(leftStick), rightStickActive = isStickActive(rightStick);
-        if (leftStickActive && !rightStickActive) {
-            if(isMovingMap) {
-                InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
-                centerMousePos();
-                isMovingMap = false;
-            } else {
-                desiredMousePos.set(desiredMousePos.getX() + (leftStick.getX() * mouseMoveFactor), desiredMousePos.getY() - (leftStick.getY() * mouseMoveFactor));
-                InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
-            }
-        } else if(rightStickActive && !leftStickActive) {
-            if(!isMovingMap) {
+    public void handleLeftJoystick(float advance, Vector2f joystickVal) {
+        leftStickActive = isStickActive(joystickVal);
+        if(rightStickActive || isMovingMap) return;
+
+        desiredMousePos.set(desiredMousePos.getX() - (joystickVal.getX() * mouseMoveFactor), desiredMousePos.getY() - (joystickVal.getY() * mouseMoveFactor));
+        InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
+    }
+
+    public void handleRightJoystick(float advance, Vector2f joystickVal) {
+        rightStickActive = isStickActive(joystickVal);
+        if (leftStickActive) return;
+        if (rightStickActive) {
+            if (!isMovingMap) {
                 centerMousePos();
                 InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
                 isMovingMap = true;
             } else {
-                desiredMousePos.set(desiredMousePos.getX() - (rightStick.getX() * mouseMoveFactor), desiredMousePos.getY() - (rightStick.getY() * mouseMoveFactor));
+                desiredMousePos.set(desiredMousePos.getX() - (joystickVal.getX() * mouseMoveFactor), desiredMousePos.getY() - (joystickVal.getY() * mouseMoveFactor));
+                InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
+            }
+        } else {
+            if (isMovingMap) {
+                InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
+                centerMousePos();
+                isMovingMap = false;
+            } else {
+                desiredMousePos.set(desiredMousePos.getX() + (joystickVal.getX() * mouseMoveFactor), desiredMousePos.getY() - (joystickVal.getY() * mouseMoveFactor));
                 InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
             }
         }
+    }
+
+    public void handleAButton(float advance, boolean buttonVal) {
+        if (buttonVal) {
+            InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
+        } else {
+            InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
+        }
+    }
+
+    public void advance(float advance) {
+        var controller = SSMSControllerModPluginEx.controller;
         if(controller.getButtonEvent(LogicalButtons.LeftTrigger) == 1) {
             InputShim.mouseWheel((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), 1);
         } else if(controller.getButtonEvent(LogicalButtons.RightTrigger) == 1) {
             InputShim.mouseWheel((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), -1);
-        } else if (controller.getButtonEvent(LogicalButtons.A) == 1) {
-            InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
-        } else if (controller.getButtonEvent(LogicalButtons.A) == -1) {
-            InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
         }
     }
 }
