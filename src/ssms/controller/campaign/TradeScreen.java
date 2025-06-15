@@ -30,7 +30,6 @@ public class TradeScreen extends InputScreenBase {
     CargoDataGridViewReflector otherDataGrid;
     CargoTransferHandlerReflector cargoTransferHandler;
     DirectionalUINavigator directionalUINavigator;
-    boolean playerGridSelected;
     int lastFrameChildCount = 0;
     boolean isCargoTab = false;
 
@@ -40,7 +39,6 @@ public class TradeScreen extends InputScreenBase {
             tradeUiReflector = (TradeUiReflector) args[0];
         }
         indicators = new ArrayList<>();
-        //indicators.add(new Pair<>(Indicators.LeftStick, "Navigate list"));
         isCargoTab = Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.CARGO;
         if(isCargoTab) {
             addButtonPressHandler("Select refit tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_R, 'r'));
@@ -64,21 +62,10 @@ public class TradeScreen extends InputScreenBase {
                 InputShim.mouseDownUp((int) pos.getCenterX(), (int) pos.getCenterY(), InputEventMouseButton.LEFT);
             }
         });
-
-        //addButtonPressHandler("Take all", LogicalButtons.Y, new KeySender(Keyboard.KEY_R, 'r'));
-
-        addButtonPressHandler("Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
-
-//        addButtonPressHandler("Toggle hangar", LogicalButtons.Select, (float advance) -> {
-//            playerGridSelected = !playerGridSelected;
-//        });
-
-        //addButtonPressHandler("Close", LogicalButtons.Start, new KeySender(Keyboard.KEY_ESCAPE));
-
+        addButtonPressHandler("Cancel / Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
         playerDataGrid = tradeUiReflector.getPlayerCargoView();
         otherDataGrid = tradeUiReflector.getOtherCargoView();
         cargoTransferHandler = tradeUiReflector.getCargoTransferHandler();
-        playerGridSelected = true;
         ControllerCrosshairRenderer.getControllerRenderer().setSize(100);
         interactionDialogAPI = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
         lastFrameChildCount = UIPanelReflector.getChildItems((UIPanelAPI) tradeUiReflector.getCoreUIAPI()).size();
@@ -131,7 +118,7 @@ public class TradeScreen extends InputScreenBase {
             }
         }
 
-        var buttons = UIPanelReflector.getChildButtons(tradeUiReflector.getParent(), true);
+        var buttons = UIPanelReflector.getChildButtons((UIPanelAPI) tradeUiReflector.getTradePanel(), true);
         List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
         for(var btn : buttons) {
             if(btn.isEnabled()) {

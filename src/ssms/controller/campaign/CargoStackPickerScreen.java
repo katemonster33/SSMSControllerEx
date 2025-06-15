@@ -15,15 +15,18 @@ public class CargoStackPickerScreen  extends InputScreenBase {
     TradeUiReflector tradeUiReflector;
     CargoTransferHandlerReflector cargoTransferHandler;
     int mouseX = -1, mouseY = -1;
-
+    ScrollbarUiReflector scrollbar;
     public CargoStackPickerScreen() {
         indicators = new ArrayList<>();
-        indicators.add(new Pair<>(Indicators.LeftStickLeft, "Select less"));
-        indicators.add(new Pair<>(Indicators.LeftStickRight, "Select more"));
-        indicators.add(new Pair<>(Indicators.LeftStickUp, "Select all"));
-        indicators.add(new Pair<>(Indicators.LeftStickDown, "Select none"));
-        indicators.add(new Pair<>(Indicators.B, "Cancel"));
-        indicators.add(new Pair<>(Indicators.A, "Confirm"));
+        addButtonPressHandler("Select less", LogicalButtons.DpadLeft, (float advance) -> updateMousePos(mouseX - 10));
+        addButtonPressHandler("Select more", LogicalButtons.DpadRight, (float advance) -> updateMousePos(mouseX + 10));
+        addButtonPressHandler("Select all", LogicalButtons.DpadUp, (float advance) -> updateMousePos(Integer.MAX_VALUE));
+        addButtonPressHandler("Select none", LogicalButtons.DpadDown, (float advance) -> updateMousePos(Integer.MIN_VALUE));
+        addButtonPressHandler("Cancel", LogicalButtons.B, (float advance) -> {
+            InputShim.mouseDownUp(mouseX, mouseY, InputEventMouseButton.RIGHT);
+            InputShim.mouseUp(mouseX, mouseY, InputEventMouseButton.LEFT);
+        });
+        addButtonPressHandler("Confirm", LogicalButtons.A, (float advance) -> InputShim.mouseUp(mouseX, mouseY, InputEventMouseButton.LEFT));
     }
 
     @Override
@@ -33,21 +36,12 @@ public class CargoStackPickerScreen  extends InputScreenBase {
         mouseX = mouseY = -1;
     }
 
-    @Override
-    public void deactivate() {
-        InputShim.clearAll();
-    }
-
-    void confirm() {
-        InputShim.mouseUp(mouseX, mouseY, InputEventMouseButton.LEFT);
-    }
-
-    void cancel() {
-        InputShim.mouseDownUp(mouseX, mouseY, InputEventMouseButton.RIGHT);
-        InputShim.mouseUp(mouseX, mouseY, InputEventMouseButton.LEFT);
-    }
-
-    void updateMousePos() {
+    void updateMousePos(int newVal) {
+        if(scrollbar == null) return;
+        var scrollbarPos = scrollbar.getPrivateObj().getPosition();
+        mouseX = newVal;
+        if(mouseX < scrollbarPos.getX()) mouseX = (int)scrollbarPos.getX();
+        else if(mouseX > scrollbarPos.getX() + scrollbarPos.getWidth()) mouseX = (int)(scrollbarPos.getX() + scrollbarPos.getWidth());
         InputShim.mouseMove(mouseX, mouseY);
     }
 
@@ -68,33 +62,13 @@ public class CargoStackPickerScreen  extends InputScreenBase {
     public void preInput(float advance) {
         // sometimes when trade UI calls us, the trade UI is not actually transferring cargo so we need to pass control back to TradeScreen
         // OR user ended trade themselves with mouse
-        ScrollbarUiReflector scrollbar = tryGetScrollbar();
-        if(scrollbar == null) {
-            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{ tradeUiReflector });
+        scrollbar = tryGetScrollbar();
+        if (scrollbar == null) {
+            InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{tradeUiReflector});
             return;
-        } else if(mouseX == -1 || mouseY == -1) {
+        } else if (mouseX == -1 || mouseY == -1) {
             mouseX = (int) scrollbar.getPrivateObj().getPosition().getX();
             mouseY = (int) scrollbar.getPrivateObj().getPosition().getCenterY();
-        }
-        if(controller.getButtonEvent(LogicalButtons.LeftStickLeft) == 1) {
-            // the 10 is hard-coded in the scrollbar source code
-            mouseX -= 10;
-            mouseX = Math.max((int) scrollbar.getPrivateObj().getPosition().getX(), mouseX);
-            updateMousePos();
-        } else if(controller.getButtonEvent(LogicalButtons.LeftStickRight) == 1) {
-            mouseX += 10;
-            mouseX = Math.min((int)(scrollbar.getPrivateObj().getPosition().getX() + scrollbar.getPrivateObj().getPosition().getWidth()), mouseX);
-            updateMousePos();
-        } else if(controller.getButtonEvent(LogicalButtons.LeftStickDown) == 1) {
-            mouseX = (int)scrollbar.getPrivateObj().getPosition().getX();
-            updateMousePos();
-        } else if(controller.getButtonEvent(LogicalButtons.LeftStickUp) == 1) {
-            mouseX = (int)(scrollbar.getPrivateObj().getPosition().getX() + scrollbar.getPrivateObj().getPosition().getWidth());
-            updateMousePos();
-        } else if(controller.getButtonEvent(LogicalButtons.B) == 1) {
-            cancel();
-        } else if(controller.getButtonEvent(LogicalButtons.A) == 1) {
-            confirm();
         }
     }
 

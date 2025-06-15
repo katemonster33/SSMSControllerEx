@@ -21,7 +21,6 @@ import java.util.List;
 
 public class MessageBoxScreen extends InputScreenBase {
     public static final String ID = "MessageBox";
-    List<Pair<Indicators, String>> indicators;
     String uiToReturnTo;
     HandlerController controller;
     MessageBoxReflector dialogReflector;
@@ -82,10 +81,5 @@ public class MessageBoxScreen extends InputScreenBase {
     @Override
     public String getId() {
         return ID;
-    }
-
-    @Override
-    public List<Pair<Indicators, String>> getIndicators() {
-        return indicators;
     }
 }
