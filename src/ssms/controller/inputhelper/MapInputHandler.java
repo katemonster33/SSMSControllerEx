@@ -15,6 +15,8 @@ public class MapInputHandler{
     Vector2f desiredMousePos;
     ViewportAPI viewportAPI;
     boolean leftStickActive = false, rightStickActive = false;
+    Vector2f leftStick, rightStick;
+    boolean handledJoystickEvent = false;
     public MapInputHandler(ViewportAPI viewportAPI) {
         this.viewportAPI = viewportAPI;
     }
@@ -32,16 +34,23 @@ public class MapInputHandler{
         return isMovingMap;
     }
 
+    public Vector2f getDesiredMousePos() {
+        return desiredMousePos;
+    }
+
     public void handleLeftJoystick(float advance, Vector2f joystickVal) {
         leftStickActive = isStickActive(joystickVal);
+        leftStick = joystickVal;
         if(rightStickActive || isMovingMap) return;
 
-        desiredMousePos.set(desiredMousePos.getX() - (joystickVal.getX() * mouseMoveFactor), desiredMousePos.getY() - (joystickVal.getY() * mouseMoveFactor));
+        desiredMousePos.set(desiredMousePos.getX() + (joystickVal.getX() * mouseMoveFactor), desiredMousePos.getY() - (joystickVal.getY() * mouseMoveFactor));
         InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
+        handledJoystickEvent = true;
     }
 
     public void handleRightJoystick(float advance, Vector2f joystickVal) {
         rightStickActive = isStickActive(joystickVal);
+        rightStick = joystickVal;
         if (leftStickActive) return;
         if (rightStickActive) {
             if (!isMovingMap) {
@@ -49,19 +58,15 @@ public class MapInputHandler{
                 InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
                 isMovingMap = true;
             } else {
-                desiredMousePos.set(desiredMousePos.getX() - (joystickVal.getX() * mouseMoveFactor), desiredMousePos.getY() - (joystickVal.getY() * mouseMoveFactor));
+                desiredMousePos.set(desiredMousePos.getX() - (joystickVal.getX() * mouseMoveFactor), desiredMousePos.getY() + (joystickVal.getY() * mouseMoveFactor));
                 InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
             }
-        } else {
-            if (isMovingMap) {
-                InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
-                centerMousePos();
-                isMovingMap = false;
-            } else {
-                desiredMousePos.set(desiredMousePos.getX() + (joystickVal.getX() * mouseMoveFactor), desiredMousePos.getY() - (joystickVal.getY() * mouseMoveFactor));
-                InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
-            }
+        } else if (isMovingMap) {
+            InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
+            centerMousePos();
+            isMovingMap = false;
         }
+        handledJoystickEvent = true;
     }
 
     public void handleAButton(float advance, boolean buttonVal) {
@@ -79,5 +84,10 @@ public class MapInputHandler{
         } else if(controller.getButtonEvent(LogicalButtons.RightTrigger) == 1) {
             InputShim.mouseWheel((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), -1);
         }
+        if(!handledJoystickEvent) {
+            if (leftStickActive) handleLeftJoystick(advance, leftStick);
+            if (rightStickActive) handleRightJoystick(advance, rightStick);
+        }
+        handledJoystickEvent = false;
     }
 }

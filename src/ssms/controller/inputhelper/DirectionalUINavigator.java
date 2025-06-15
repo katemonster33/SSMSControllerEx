@@ -16,8 +16,10 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     public DirectionalUINavigator(List<Pair<UIComponentAPI, Object>> navigationObjects)
     {
         this.navigationObjects = new ArrayList<>(navigationObjects);
-        curIndex = 0;
-        onSelect(navigationObjects.get(curIndex));
+        if(!navigationObjects.isEmpty()) {
+            curIndex = 0;
+            onSelect(navigationObjects.get(curIndex));
+        }
     }
 
     public void onSelect(Pair<UIComponentAPI, Object> selectedPair) {
@@ -26,6 +28,9 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     }
 
     void moveSelection(Comparator<UIComponentAPI> comparator) {
+        if(navigationObjects.isEmpty()) {
+            return;
+        }
         var newPair = getClosest(comparator);
         if(newPair != null) {
             onSelect(newPair);
@@ -34,18 +39,23 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
 
     public void setNavigationObjects(List<Pair<UIComponentAPI, Object>> navigationObjects) {
         PositionAPI curObjPos = null;
-        if(curIndex != -1 && curIndex < navigationObjects.size()) {
+        if (curIndex != -1 && curIndex < navigationObjects.size()) {
             curObjPos = navigationObjects.get(curIndex).one.getPosition();
         }
         this.navigationObjects = new ArrayList<>(navigationObjects);
-        if(curObjPos != null) {
-            for(curIndex = 0; curIndex < navigationObjects.size(); curIndex++) {
+
+        if (navigationObjects.isEmpty()) {
+            curIndex = -1;
+            return;
+        }
+        if (curObjPos != null) {
+            for (curIndex = 0; curIndex < navigationObjects.size(); curIndex++) {
                 UIComponentAPI comp = navigationObjects.get(curIndex).one;
                 if (comp.getPosition().getX() == curObjPos.getX() && comp.getPosition().getY() == curObjPos.getY()) {
                     break;
                 }
             }
-            if(curIndex >= navigationObjects.size()) {
+            if (curIndex >= navigationObjects.size()) {
                 curIndex = 0;
                 onSelect(navigationObjects.get(curIndex));
             }

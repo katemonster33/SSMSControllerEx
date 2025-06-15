@@ -14,6 +14,7 @@ import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
+import ssms.controller.inputhelper.MapInputHandler;
 import ssms.controller.reflection.*;
 
 import java.util.ArrayList;
@@ -24,8 +25,8 @@ public class WarroomScreen extends InputScreenBase {
     CombatStateReflector csr;
     WarroomReflector warroomReflector;
     DirectionalUINavigator directionalUINavigator;
+    MapInputHandler mapInputHandler;
     ViewportAPI viewportAPI;
-    Vector2f desiredMousePos = null;
 
     @Override
     public void activate(Object ... args) {
@@ -39,8 +40,13 @@ public class WarroomScreen extends InputScreenBase {
             csr.HideWarroom();
             csr.SetVideoFeedToPlayerShip();
         });
-        addMapHandler(viewportAPI);
-        addButtonPressHandler("Target point/object", LogicalButtons.X, (float advance) -> InputShim.mouseDownUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT));
+        mapInputHandler = addMapHandler(viewportAPI);
+        addButtonPressHandler("Target point/object", LogicalButtons.X, (float advance) -> {
+            var desiredMousePos = mapInputHandler.getDesiredMousePos();
+            if(desiredMousePos != null) {
+                InputShim.mouseDownUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
+            }
+        });
         addButtonPressHandler("Return to deployment screen", LogicalButtons.Y, new KeySender(Keyboard.KEY_G, 'G'));
         var buttons = warroomReflector.getButtons();
         List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
@@ -68,5 +74,12 @@ public class WarroomScreen extends InputScreenBase {
         } else if(Global.getCombatEngine().getCombatUI().isShowingDeploymentDialog()) {
             InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, BattleDeploymentScreen.ID, new Object[]{ csr });
         }
+        var buttons = warroomReflector.getButtons();
+        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
+        for(var btn : buttons) {
+            directionalObjects.add(new Pair<>(btn, null));
+        }
+        directionalUINavigator.setNavigationObjects(directionalObjects);
+        mapInputHandler.advance(advance);
     }
 }
