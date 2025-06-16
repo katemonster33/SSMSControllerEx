@@ -2,15 +2,17 @@ package ssms.controller.campaign;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventMouseButton;
-import com.fs.starfarer.api.ui.UIPanelAPI;
-import com.fs.starfarer.api.util.Pair;
+ import com.fs.starfarer.api.ui.UIComponentAPI;
+import com.fs.starfarer.campaign.ui.trade.CargoDataGridView;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
-import ssms.controller.enums.Indicators;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.*;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -96,8 +98,17 @@ public class CargoStackPickerScreen  extends InputScreenBase {
                 InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{tradeUiReflector});
             } else if(!movedNewCargoStack) {
                 movedNewCargoStack = true;
-                Object stackView = cargoTransferHandler.getOrigStackSource();
-                var gridToMoveTo = stackView == tradeUiReflector.getPlayerCargoView() ? tradeUiReflector.getOtherCargoView() : tradeUiReflector.getPlayerCargoView();
+                var cargoGridSrc = cargoTransferHandler.getOrigStackSource();
+                if(cargoGridSrc == null) return;
+                CargoDataGridView stackView = null;
+                try {
+                    MethodHandle getCargoDataView = MethodHandles.lookup().findVirtual(cargoGridSrc.getClass(), "getCargoDataView", MethodType.methodType(CargoDataGridView.class));
+                    stackView = (CargoDataGridView) getCargoDataView.invoke(cargoGridSrc);
+                } catch(Throwable ex) {
+                    Global.getLogger(getClass()).error("Couldn't fetch source cargo data grid!", ex);
+                }
+                if(stackView == null) return;
+                var gridToMoveTo = stackView == tradeUiReflector.getPlayerCargoView().getPrivateObject() ? tradeUiReflector.getOtherCargoView() : tradeUiReflector.getPlayerCargoView();
                 var pickedUpStack = cargoTransferHandler.getPickedUpStack();
                 for(var item : gridToMoveTo.getStacks()) {
                     if(Objects.equals(item.getStack().getCommodityId(), pickedUpStack.getCommodityId())) {
@@ -106,7 +117,27 @@ public class CargoStackPickerScreen  extends InputScreenBase {
                         return;
                     }
                 }
+                var gridPos = ((UIComponentAPI)gridToMoveTo.getPrivateObject()).getPosition();
+                for(int row = 0; row < gridToMoveTo.getPrivateObject().getRows(); row++) {
+                    for(int col = 0; col < gridToMoveTo.getPrivateObject().getCols(); col++) {
+                        int xPos = (int)gridPos.getX() + (col * 100);
+                        int yPos = (int)gridPos.getY() + (int)gridPos.getHeight() - 100 - (row * 100);
 
+                        boolean cellFilled = false;
+                        for(var item : gridToMoveTo.getStacks()) {
+                            if(item.getPosition().getX() == xPos && item.getPosition().getY() == yPos) {
+                                cellFilled = true;
+                                break;
+                            }
+                        }
+                        if(!cellFilled) {
+                            mouseX = xPos + 50;
+                            mouseY = yPos + 50;
+                            InputShim.mouseMove(mouseX, mouseY);
+                            return;
+                        }
+                    }
+                }
             }
         } else if (mouseX == -1 || mouseY == -1) {
             mouseX = (int) scrollbar.getPrivateObj().getPosition().getX();
