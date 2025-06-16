@@ -14,6 +14,7 @@ import java.lang.invoke.MethodType;
 public class CargoTransferHandlerReflector {
     CargoTransferHandlerAPI cargoTransferHandler;
     MethodHandle getPickedUpStack;
+    Object getOrigStackSource;
     Object scrollbarField;
     public CargoTransferHandlerReflector(CargoTransferHandlerAPI cargoTransferHandler) throws  Throwable {
 
@@ -31,6 +32,7 @@ public class CargoTransferHandlerReflector {
         }
 
         getPickedUpStack = MethodHandles.lookup().findVirtual(cargoTransferHandler.getClass(), "getPickedUpStack", MethodType.methodType(CargoItemStack.class));
+        getOrigStackSource = ClassReflector.GetInstance().findDeclaredMethod(cargoTransferHandler.getClass(), "getOrigStackSource");
     }
 
     public CargoItemStack getPickedUpStack() {
@@ -38,6 +40,15 @@ public class CargoTransferHandlerReflector {
             return (CargoItemStack) getPickedUpStack.invoke(cargoTransferHandler);
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't invoke getPickedUpStack from cargo transfer handler!", ex);
+            return null;
+        }
+    }
+
+    public UIPanelAPI getOrigStackSource() {
+        try {
+            return (UIPanelAPI) MethodReflector.GetInstance().invoke(getOrigStackSource, cargoTransferHandler);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).warn("Couldn't invoke getOrigStackSource from cargo transfer handler!", ex);
             return null;
         }
     }

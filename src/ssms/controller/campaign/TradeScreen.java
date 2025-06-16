@@ -88,8 +88,7 @@ public class TradeScreen extends InputScreenBase {
     @Override
     public void preInput(float advance) {
         if(cargoTransferHandler != null) {
-            var scrollbar = cargoTransferHandler.getScrollbar();
-            if(scrollbar != null) {
+            if(cargoTransferHandler.getScrollbar() != null || cargoTransferHandler.getPickedUpStack() != null) {
                 InputScreenManager.getInstance().transitionToScreen(CargoStackPickerScreen.ID, tradeUiReflector);
             }
         }
