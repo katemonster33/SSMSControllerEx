@@ -3,12 +3,15 @@ package ssms.controller.campaign;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.ui.ButtonAPI;
+import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.apache.log4j.Level;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
+import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.reflection.BorderedPanelReflector;
 import ssms.controller.reflection.InteractionDialogReflector;
 import ssms.controller.reflection.TradeUiReflector;
@@ -22,25 +25,23 @@ import java.util.List;
 
 public class DialogUI extends InputScreenBase {
     UIPanelAPI optionsPanel;
-    List<ButtonAPI> dialogOptions;
     MethodHandle doButtonClick;
-    int selectedButton = -1;
     InteractionDialogReflector  interactReflector;
     InteractionDialogAPI interactionDialogAPI;
     public static final String ID = "Dialog";
-    public List<Pair<Indicators, String>> indicators;
+    DirectionalUINavigator directionalUINavigator;
 
     public DialogUI() {
-        indicators = new ArrayList<>();
-        indicators.add(new Pair<>(Indicators.LeftStick, "Navigate Menu"));
-        indicators.add(new Pair<>(Indicators.A, "Confirm"));
     }
 
     @Override
     public void activate(Object... args) {
         interactionDialogAPI = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
         interactReflector = InteractionDialogReflector.GetInstance();
-        dialogOptions = null;
+        indicators = new ArrayList<>();
+        directionalUINavigator = new DirectionalUINavigator(new ArrayList<>());
+        addDigitalJoystickHandler("Navigate menu", Joystick.DPad, directionalUINavigator);
+        addButtonPressHandler("Confirm", LogicalButtons.A, (float advance) -> clickButton());
         if(interactionDialogAPI != null) {
             optionsPanel = (UIPanelAPI) interactionDialogAPI.getOptionPanel();
             try {
@@ -51,59 +52,10 @@ public class DialogUI extends InputScreenBase {
         }
     }
 
-    @Override
-    public List<Pair<Indicators, String>> getIndicators() {
-        return indicators;
-    }
-
-    public void selectNextButton()
-    {
-        if(dialogOptions != null && !dialogOptions.isEmpty()) {
-            int oldSelectedButton = selectedButton;
-            if(selectedButton == -1) {
-                selectedButton = 0;
-            } else if(selectedButton < (dialogOptions.size() - 1)) {
-                selectedButton++;
-            }
-            if(!dialogOptions.get(selectedButton).isEnabled()) {
-                selectedButton++;
-            }
-            if(selectedButton >= dialogOptions.size()) {
-                selectedButton = 0;
-            }
-            if(selectedButton != oldSelectedButton && oldSelectedButton != -1) {
-                dialogOptions.get(oldSelectedButton).unhighlight();
-            }
-            dialogOptions.get(selectedButton).highlight();
-        }
-    }
-
-    public void selectPrevButton()
-    {
-        if(dialogOptions != null && !dialogOptions.isEmpty()) {
-            int oldSelectedButton = selectedButton;
-            if(selectedButton == -1) {
-                selectedButton = 0;
-            } else if(selectedButton > 0) {
-                selectedButton--;
-            }
-            if(!dialogOptions.get(selectedButton).isEnabled()) {
-                selectedButton--;
-            }
-            if(selectedButton < 0) {
-                selectedButton = dialogOptions.size() - 1;
-            }
-            if(selectedButton != oldSelectedButton && oldSelectedButton != -1) {
-                dialogOptions.get(oldSelectedButton).unhighlight();
-            }
-            dialogOptions.get(selectedButton).highlight();
-        }
-    }
-
     public void clickButton() {
-        if(selectedButton != -1 && dialogOptions != null && selectedButton < dialogOptions.size()) {
+        if(directionalUINavigator.getSelected() != null && directionalUINavigator.getSelected().one instanceof ButtonAPI selectedButton) {
             try {
-                doButtonClick.invoke(optionsPanel, null, dialogOptions.get(selectedButton));
+                doButtonClick.invoke(optionsPanel, null, selectedButton);
             } catch(Throwable ex) {
                 Global.getLogger(getClass()).log(Level.ERROR, "couldn't fire button event!");
             }
@@ -113,38 +65,28 @@ public class DialogUI extends InputScreenBase {
     @Override
     public void preInput(float advance) {
         if(!Global.getSector().getCampaignUI().isShowingDialog()) {
-            InputScreenManager.getInstance().transitionToScope(CampaignScope.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
-            return;
-        }
-        var interactionCoreUi = interactReflector.getCoreUI(interactionDialogAPI);
-        if(interactionCoreUi != null && interactionCoreUi.getTradeMode() != null) {
-            var dialogChildren = UIPanelReflector.getChildItems((UIPanelAPI) interactionDialogAPI);
-            if(dialogChildren.contains(interactionCoreUi)) {
-                BorderedPanelReflector borderPanel = BorderedPanelReflector.TryGet(interactionCoreUi);
-                if(borderPanel != null) {
-                    var tradeUi = TradeUiReflector.TryGet(interactionCoreUi, borderPanel);
-                    if (tradeUi != null && tradeUi.getTradePanel() != null && tradeUi.getTradePanel().getOpacity() != 0.f) {
-                        InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{tradeUi});
-                        return;
+            InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
+        } else {
+            var interactionCoreUi = interactReflector.getCoreUI(interactionDialogAPI);
+            if (interactionCoreUi != null && interactionCoreUi.getTradeMode() != null) {
+                var dialogChildren = UIPanelReflector.getChildItems((UIPanelAPI) interactionDialogAPI);
+                if (dialogChildren.contains(interactionCoreUi)) {
+                    BorderedPanelReflector borderPanel = BorderedPanelReflector.TryGet(interactionCoreUi);
+                    if (borderPanel != null) {
+                        var tradeUi = TradeUiReflector.TryGet(interactionCoreUi, borderPanel);
+                        if (tradeUi != null && tradeUi.getTradePanel() != null && tradeUi.getTradePanel().getOpacity() != 0.f) {
+                            InputScreenManager.getInstance().transitionToScreen(TradeScreen.ID, tradeUi);
+                        }
                     }
                 }
             }
         }
-        if(dialogOptions == null) {
-            selectedButton = -1;
-            dialogOptions = new ArrayList<>(UIPanelReflector.getChildButtons(optionsPanel));
-            if(!dialogOptions.isEmpty()) {
-                selectNextButton();
-            }
+        var btns = new ArrayList<>(UIPanelReflector.getChildButtons(optionsPanel));
+        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
+        for(var btn : btns) {
+            directionalObjects.add(new Pair<>(btn, null));
         }
-        if(controller.getButtonEvent(LogicalButtons.LeftStickDown) == 1) {
-            selectNextButton();
-        } else if(controller.getButtonEvent(LogicalButtons.LeftStickUp) == 1) {
-            selectPrevButton();
-        } else if(controller.getButtonEvent(LogicalButtons.A) == 1) {
-            clickButton();
-            dialogOptions = null;
-        }
+        directionalUINavigator.setNavigationObjects(directionalObjects);
     }
 
     @Override

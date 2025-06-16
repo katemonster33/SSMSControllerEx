@@ -7,6 +7,7 @@ import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
+import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.inputhelper.MapInputHandler;
@@ -42,6 +43,8 @@ public class MapTabUI extends InputScreenBase {
         addButtonPressHandler("Close dialog", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
         addButtonPressHandler("Select cargo tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_I, 'i'));
         addButtonPressHandler("Select intel tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_E, 'e'));
+        addButtonPressHandler("Select sector view", LogicalButtons.LeftTrigger, new KeySender(Keyboard.KEY_I, 'i'));
+        addButtonPressHandler("Select system view", LogicalButtons.RightTrigger, new KeySender(Keyboard.KEY_E, 'e'));
     }
 
     @Override
@@ -51,18 +54,5 @@ public class MapTabUI extends InputScreenBase {
             return;
         }
         mapInputHandler.advance(amount);
-        if(!mapInputHandler.getIsMovingMap()) {
-            if (controller.getButtonEvent(LogicalButtons.B) == 1) {
-                InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-            } else if (controller.getButtonEvent(LogicalButtons.LeftTrigger) == 1) {
-                InputShim.keyDownUp(Keyboard.KEY_Q, 'q');
-            } else if (controller.getButtonEvent(LogicalButtons.RightTrigger) == 1) {
-                InputShim.keyDownUp(Keyboard.KEY_W, 'w');
-            } else if (controller.getButtonEvent(LogicalButtons.BumperLeft) == 1) {
-                InputShim.keyDownUp(Keyboard.KEY_I, 'i');
-            } else if (controller.getButtonEvent(LogicalButtons.BumperRight) == 1) {
-                InputShim.keyDownUp(Keyboard.KEY_E, 'e');
-            }
-        }
     }
 }

@@ -10,7 +10,9 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
+import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.reflection.FleetTabReflector;
 import ssms.controller.reflection.UIPanelReflector;
 
@@ -19,7 +21,6 @@ import java.util.List;
 
 public class FleetTabUI extends InputScreenBase {
     public static final String ID = "FleetTab";
-    List<Pair<Indicators, String>> indicators;
     int numCols = -1;
     int curRow = -1, curCol = -1;
     int itemCount = -1;
@@ -27,7 +28,6 @@ public class FleetTabUI extends InputScreenBase {
     Vector2f topLeftPos;
     Vector2f mousePos;
     FleetTabReflector fleetTabReflector;
-    float leftStickDownTime = 0.f;
     float buttonXDownTime = 0.f;
     float buttonYDownTime = 0.f;
     float buttonADownTime = 0.f;
@@ -35,6 +35,7 @@ public class FleetTabUI extends InputScreenBase {
     List<Vector2f> itemInfoOffsets;
     boolean allRepairsSuspended = false;
     CampaignScope campaignScope;
+    DirectionalUINavigator directionalUINavigator;
 
     @Override
     public String getId() {
@@ -62,6 +63,7 @@ public class FleetTabUI extends InputScreenBase {
     public List<Pair<Indicators, String>> getIndicators() {
         if (indicators == null) {
             indicators = new ArrayList<>();
+            addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
             indicators.add(new Pair<>(Indicators.LeftStick, "Navigate ships"));
             addButtonPressHandler("Cycle ship info", LogicalButtons.LeftStickButton, (float advance) ->
                     incrementItemInfoOffset());
@@ -99,6 +101,11 @@ public class FleetTabUI extends InputScreenBase {
         numCols = fleetTabReflector.getColumns();
         mousePos = new Vector2f(0.f, 0.f);
 
+        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
+        for(var btn : fleetTabReflector.getButtons()) {
+            directionalObjects.add(new Pair<>(btn, null));
+        }
+        directionalUINavigator = new DirectionalUINavigator(directionalObjects);
         var items = fleetTabReflector.getItems();
         itemCount = items.size();
         itemInfoOffsets = new ArrayList<>();
@@ -130,7 +137,7 @@ public class FleetTabUI extends InputScreenBase {
             topLeftPos = new Vector2f(-1.f, -1.f);
 
         }
-        buttonXDownTime = leftStickDownTime = buttonYDownTime = buttonADownTime = -1.f;
+        buttonXDownTime = buttonYDownTime = buttonADownTime = -1.f;
     }
 
     @Override
@@ -139,6 +146,11 @@ public class FleetTabUI extends InputScreenBase {
             InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
         }
 
+        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
+        for(var btn : fleetTabReflector.getButtons()) {
+            directionalObjects.add(new Pair<>(btn, null));
+        }
+        directionalUINavigator.setNavigationObjects(directionalObjects);
         if (controller.getButtonEvent(LogicalButtons.LeftStickLeft) == 1) {
             if (curCol == -1 || curRow == -1) {
                 curCol = curRow = 0;

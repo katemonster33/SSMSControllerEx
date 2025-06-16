@@ -17,6 +17,7 @@ import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.inputhelper.MapInputHandler;
 import ssms.controller.reflection.*;
 
 import java.lang.invoke.MethodHandle;
@@ -32,21 +33,15 @@ public class IntelTabUI extends InputScreenBase {
     int lastFrameSelectedIndex = -1;
     CampaignScope campaignScope;
     EventsTabReflector eventsTabReflector;
+    MapInputHandler mapInputHandler;
     int selectedIndex = -1;
     Vector2f desiredMousePos = null;
     float mouseMoveFactor = 4.f;
 
     enum IntelTabFocusMode {
-        IntelList,
-        Map,
-        FilterButtons
+        Buttons,
+        Map
     };
-    enum MapMode {
-        MoveCursor,
-        MoveMap,
-        Zoom
-    };
-    MapMode currentMapMode = MapMode.MoveCursor;
     IntelTabFocusMode currentTabFocus = IntelTabFocusMode.IntelList;
     @Override
     public String getId() {
@@ -62,19 +57,14 @@ public class IntelTabUI extends InputScreenBase {
     public List<Pair<Indicators, String>> getIndicators() {
         if(indicators == null) {
             indicators = new ArrayList<>();
-            indicators.add(new Pair<>(Indicators.LeftStick, "Navigate"));
             if(currentTabFocus == IntelTabFocusMode.Map) {
-                switch(currentMapMode) {
-                    case MoveCursor -> indicators.add(new Pair<>(Indicators.LeftStickButton, "Toggle move map"));
-                    case MoveMap -> indicators.add(new Pair<>(Indicators.LeftStickButton, "Toggle zoom map"));
-                    case Zoom -> indicators.add(new Pair<>(Indicators.LeftStickButton, "Toggle move cursor"));
-                }
+                mapInputHandler = addMapHandler(Global.getSector().getViewport());
             }
-            indicators.add(new Pair<>(Indicators.RightStickUp, "Focus map"));
-            indicators.add(new Pair<>(Indicators.RightStickLeft, "Focus intel list"));
+            indicators.add(new Pair<>(Indicators.LeftStick, "Navigate"));
+            indicators.add(new Pair<>(Indicators.RightStickUp, "Focus intel list"));
             indicators.add(new Pair<>(Indicators.RightStickDown, "Focus intel tag buttons"));
             indicators.add(new Pair<>(Indicators.RightTrigger, "Select planet tab"));
-            if(currentTabFocus == IntelTabFocusMode.IntelList) {
+            if(currentTabFocus == IntelTabFocusMode.Buttons) {
                 indicators.add(new Pair<>(Indicators.Y, "Show on map"));
             } else if(currentTabFocus == IntelTabFocusMode.Map) {
                 indicators.add(new Pair<>(Indicators.X, "Toggle sector/system view"));
@@ -96,7 +86,6 @@ public class IntelTabUI extends InputScreenBase {
         currentTabFocus = IntelTabFocusMode.IntelList;
         desiredMousePos = null;
         campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
-        currentMapMode = MapMode.MoveCursor;
         // this can throw an exception, we will just pass the exception upstream so that the screen doesn't get activated
         eventsTabReflector = new EventsTabReflector(intelTabReflector.getEventsPanel());
     }
@@ -142,25 +131,6 @@ public class IntelTabUI extends InputScreenBase {
                     desiredMousePos.set(desiredMousePos.getX() + (leftStick.getX() * mouseMoveFactor), desiredMousePos.getY() - (leftStick.getY() * mouseMoveFactor));
 
                 InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
-            }
-        }
-        if (controller.getButtonEvent(LogicalButtons.LeftStickButton) == 1) {
-            if (currentMapMode == MapMode.MoveCursor) InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
-            else if(currentMapMode == MapMode.MoveMap) InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
-
-            currentMapMode = switch(currentMapMode) {
-                case MoveCursor -> MapMode.MoveMap;
-                case MoveMap -> MapMode.Zoom;
-                case Zoom -> MapMode.MoveCursor;
-            };
-            indicators = null;
-            InputScreenManager.getInstance().refreshIndicators();
-        }
-        if (currentMapMode == MapMode.MoveCursor) {
-            if (desiredMousePos != null) {
-                if (controller.getButtonEvent(LogicalButtons.A) == 1) {
-                    InputShim.mouseDownUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
-                }
             }
         }
 

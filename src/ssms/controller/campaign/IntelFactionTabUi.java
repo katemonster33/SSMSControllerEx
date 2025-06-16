@@ -11,7 +11,10 @@ import com.fs.starfarer.campaign.ui.intel.FactionIntelPanel;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
+import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.inputhelper.DirectionalUINavigator;
+import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.ClassReflector;
 import ssms.controller.reflection.IntelTabReflector;
 import ssms.controller.reflection.MethodReflector;
@@ -27,8 +30,7 @@ public class IntelFactionTabUi extends InputScreenBase {
     IntelTabReflector intelTabReflector;
     IntelFactionTabReflector intelFactionTabReflector;
     IntelTabData intelTabData;
-    List<UIComponentAPI> factionButtons;
-    int selectedIndex = -1;
+    DirectionalUINavigator directionalUINavigator;
     @Override
     public String getId() {
         return ID;
@@ -43,34 +45,24 @@ public class IntelFactionTabUi extends InputScreenBase {
     public void activate(Object ... args) throws Throwable {
         intelTabReflector = (IntelTabReflector) args[0];
         intelFactionTabReflector = new IntelFactionTabReflector(intelTabReflector.getFactionIntelPanel());
-        factionButtons = intelFactionTabReflector.getFactionButtons();
         intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
-        selectedIndex = -1;
-    }
-
-    @Override
-    public List<Pair<Indicators, String>> getIndicators() {
-        if (indicators == null) {
-            indicators = new ArrayList<>();
-
-            indicators.add(new Pair<>(Indicators.LeftStick, "Navigate"));
-            indicators.add(new Pair<>(Indicators.A, "Select"));
-            indicators.add(new Pair<>(Indicators.B, "Close"));
-            indicators.add(new Pair<>(Indicators.LeftTrigger, "Select planet tab"));
+        indicators = new ArrayList<>();
+        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
+        for(var btn : intelFactionTabReflector.getFactionButtons()) {
+            directionalObjects.add(new Pair<>(btn, null));
         }
-        return indicators;
-    }
+        directionalUINavigator = new DirectionalUINavigator(directionalObjects);
+        addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
 
-    void navigateButton() {
-        if(factionButtons == null || factionButtons.isEmpty()) {
-            selectedIndex = -1;
-            return;
-        }
-        else if(selectedIndex < 0) selectedIndex = 0;
-        else if(selectedIndex >= factionButtons.size()) selectedIndex = factionButtons.size() - 1;
+        addButtonPressHandler("Select planet tab", LogicalButtons.LeftTrigger, new KeySender(Keyboard.KEY_2, '2'));
 
-        var pos = factionButtons.get(selectedIndex).getPosition();
-        InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
+        addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> {
+            if(directionalUINavigator.getSelected() != null) {
+                var pos = directionalUINavigator.getSelected().one.getPosition();
+                InputShim.mouseDownUp((int) pos.getCenterX(), (int) pos.getCenterY(), InputEventMouseButton.LEFT);
+            }
+        });
+        addButtonPressHandler("Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
     }
 
     @Override
@@ -78,21 +70,6 @@ public class IntelFactionTabUi extends InputScreenBase {
         if(Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.INTEL) InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
         else if(intelTabData.getSelectedTabIndex() == 0) InputScreenManager.getInstance().transitionDelayed(IntelTabUI.ID, intelTabReflector);
         else if(intelTabData.getSelectedTabIndex() == 1) InputScreenManager.getInstance().transitionDelayed(IntelPlanetTabUi.ID, intelTabReflector);
-
-        if(controller.getButtonEvent(LogicalButtons.LeftStickUp) == 1) {
-            selectedIndex--;
-            navigateButton();
-            if(selectedIndex != -1) intelFactionTabReflector.ensureVisible(factionButtons.get(selectedIndex));
-        } else if(controller.getButtonEvent(LogicalButtons.LeftStickDown) == 1) {
-            selectedIndex++;
-            navigateButton();
-            if(selectedIndex != -1) intelFactionTabReflector.ensureVisible(factionButtons.get(selectedIndex));
-        } else if(controller.getButtonEvent(LogicalButtons.A) == 1 && selectedIndex != -1 && selectedIndex < factionButtons.size()) {
-            var pos = factionButtons.get(selectedIndex).getPosition();
-            InputShim.mouseDownUp((int) pos.getCenterX(), (int) pos.getCenterY(), InputEventMouseButton.LEFT);
-        } else if(controller.getButtonEvent(LogicalButtons.LeftTrigger) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_2, '2');
-        }
     }
 
     public static class IntelFactionTabReflector

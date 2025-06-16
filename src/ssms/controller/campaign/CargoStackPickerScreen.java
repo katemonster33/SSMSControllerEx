@@ -20,8 +20,6 @@ public class CargoStackPickerScreen  extends InputScreenBase {
     public static final String ID = "CargoStackPicker";
     TradeUiReflector tradeUiReflector;
     CargoTransferHandlerReflector cargoTransferHandler;
-    CargoDataGridViewReflector playerDataGrid;
-    CargoDataGridViewReflector otherDataGrid;
     int mouseX = -1, mouseY = -1;
     ScrollbarUiReflector scrollbar;
     boolean wasScrollerVisible = false;
@@ -31,8 +29,6 @@ public class CargoStackPickerScreen  extends InputScreenBase {
     public void activate(Object ... args) {
         tradeUiReflector = (TradeUiReflector) args[0];
         cargoTransferHandler = tradeUiReflector.getCargoTransferHandler();
-        playerDataGrid = tradeUiReflector.getPlayerCargoView();
-        otherDataGrid = tradeUiReflector.getOtherCargoView();
         mouseX = mouseY = -1;
         scrollbar = tryGetScrollbar();
         wasScrollerVisible = scrollbar != null;

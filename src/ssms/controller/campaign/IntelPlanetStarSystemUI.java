@@ -17,6 +17,8 @@ import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.inputhelper.DirectionalUINavigator;
+import ssms.controller.inputhelper.MapInputHandler;
 import ssms.controller.reflection.*;
 
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
     int lastFrameSelectedIndex = -1;
     CampaignScope campaignScope;
     IntelPlanetTabUi.PlanetTabReflector planetTabReflector;
+    DirectionalUINavigator directionalUINavigator;
     int selectedIndex = -1;
     Vector2f desiredMousePos = null;
     float mouseMoveFactor = 4.f;
@@ -38,13 +41,8 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
         Map,
         PlanetList
     };
-    enum MapMode {
-        MoveCursor,
-        MoveMap,
-        Zoom
-    };
-    MapMode currentMapMode = MapMode.MoveCursor;
     StarSystemTabFocusMode currentTabFocus = StarSystemTabFocusMode.PlanetAttributes;
+    MapInputHandler mapInputHandler;
 
     @Override
     public String getId() {
@@ -60,13 +58,11 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
     public List<Pair<Indicators, String>> getIndicators() {
         if(indicators == null) {
             indicators = new ArrayList<>();
+            directionalUINavigator = new DirectionalUINavigator(new ArrayList<>());
+            addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
             indicators.add(new Pair<>(Indicators.LeftStick, "Navigate"));
             if(currentTabFocus == StarSystemTabFocusMode.Map) {
-                switch(currentMapMode) {
-                    case MoveCursor -> indicators.add(new Pair<>(Indicators.LeftStickButton, "Toggle move map"));
-                    case MoveMap -> indicators.add(new Pair<>(Indicators.LeftStickButton, "Toggle zoom map"));
-                    case Zoom -> indicators.add(new Pair<>(Indicators.LeftStickButton, "Toggle move cursor"));
-                }
+                mapInputHandler = addMapHandler(Global.getSector().getViewport());
             }
             indicators.add(new Pair<>(Indicators.RightStickLeft, "Focus map"));
             indicators.add(new Pair<>(Indicators.RightStickUp, "Focus planet attributes"));
@@ -94,20 +90,7 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
         currentTabFocus = StarSystemTabFocusMode.PlanetAttributes;
         desiredMousePos = null;
         campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
-        currentMapMode = MapMode.MoveCursor;
         planetTabReflector = new IntelPlanetTabUi.PlanetTabReflector(intelTabReflector.getPlanetTabData());
-    }
-
-    void navigateButton(List<UIComponentAPI> eventsButtons) {
-        if(eventsButtons == null || eventsButtons.isEmpty()) {
-            selectedIndex = -1;
-            return;
-        }
-        else if(selectedIndex < 0) selectedIndex = 0;
-        else if(selectedIndex >= eventsButtons.size()) selectedIndex = eventsButtons.size() - 1;
-
-        var pos = eventsButtons.get(selectedIndex).getPosition();
-        InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
     }
 
     void preInputPlanetAttributes(float amount) {
@@ -125,14 +108,6 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
             }
             return (int)(left.getPosition().getX() - right.getPosition().getX());
         });
-        //var lst = starSystemReflector.getIntelFilters();
-        if(controller.getButtonEvent(LogicalButtons.LeftStickLeft) == 1) {
-            selectedIndex--;
-            navigateButton(lst);
-        } else if(controller.getButtonEvent(LogicalButtons.LeftStickRight) == 1) {
-            selectedIndex++;
-            navigateButton(lst);
-        }
     }
 
     void preInputMap(float amount) {
@@ -208,6 +183,9 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
         else if(intelTabData.getSelectedTabIndex() == 1 && planetTabReflector.getStarSystem() == null) InputScreenManager.getInstance().transitionDelayed(IntelPlanetTabUi.ID, intelTabReflector);
         else if(intelTabData.getSelectedTabIndex() == 2) InputScreenManager.getInstance().transitionDelayed(IntelFactionTabUi.ID, intelTabReflector);
         lastFrameSelectedIndex = intelTabData.getSelectedTabIndex();
+
+        var planetPanel = planetTabReflector.getPlanetInfoPanel();
+        List<ButtonAPI> buttons = UIPanelReflector.getChildButtons(planetPanel);
         switch(currentTabFocus) {
             case PlanetAttributes -> preInputPlanetList(amount);
             case Map -> preInputMap(amount);

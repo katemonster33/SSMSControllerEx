@@ -15,6 +15,7 @@ import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.MessageBoxScreen;
+import ssms.controller.inputhelper.ButtonPressOrHoldHandler;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.*;
@@ -47,19 +48,15 @@ public class TradeScreen extends InputScreenBase {
         directionalUINavigator = new DirectionalUINavigator(new ArrayList<>());
         addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
 
-        addButtonPressHandler("Take partial stack", LogicalButtons.X, (float advance) -> {
-            var selected = directionalUINavigator.getSelected();
-            if(selected != null && selected.one instanceof CargoStackView cargoStackView && selected.two instanceof CargoDataGridViewReflector cargoDataGridViewReflector) {
-                clickStack(cargoDataGridViewReflector, cargoStackView);
+        addButtonPressOrHoldHandler("Press button / take partial stack", "Take whole stack", LogicalButtons.A, new ButtonPressOrHoldHandler() {
+            @Override
+            public void performHoldAction(float advance) {
+                clickSelected(true);
             }
-        });
 
-        addButtonPressHandler("Click button / Pick up entire stack", LogicalButtons.A, (float advance) -> {
-            var selected = directionalUINavigator.getSelected();
-            if(selected != null) {
-                var pos = selected.one.getPosition();
-                InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
-                InputShim.mouseDownUp((int) pos.getCenterX(), (int) pos.getCenterY(), InputEventMouseButton.LEFT);
+            @Override
+            public void performPressAction(float advance) {
+                clickSelected(false);
             }
         });
         addButtonPressHandler("Cancel / Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
@@ -69,6 +66,19 @@ public class TradeScreen extends InputScreenBase {
         ControllerCrosshairRenderer.getControllerRenderer().setSize(100);
         interactionDialogAPI = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
         lastFrameChildCount = UIPanelReflector.getChildItems((UIPanelAPI) tradeUiReflector.getCoreUIAPI()).size();
+    }
+
+    void clickSelected(boolean takeAllIfStack) {
+        var selected = directionalUINavigator.getSelected();
+        if(selected != null) {
+            if(selected.one instanceof CargoStackView cargoStackView && selected.two instanceof CargoDataGridViewReflector cargoDataGridViewReflector && !takeAllIfStack) {
+                clickStack(cargoDataGridViewReflector, cargoStackView);
+            } else {
+                var pos = selected.one.getPosition();
+                InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
+                InputShim.mouseDownUp((int) pos.getCenterX(), (int) pos.getCenterY(), InputEventMouseButton.LEFT);
+            }
+        }
     }
 
     void clickStack(CargoDataGridViewReflector gridView, CargoStackView stackView) {

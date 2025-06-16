@@ -115,6 +115,11 @@ public class InputScreenBase {
             var handler = analogJoystickHandlers.get(joystick);
             if (handler != null) handler.performAction(advance, controller.getJoystick(joystick));
         }
+        for(var handler : buttonExHandlers.values()) {
+            if(handler instanceof ButtonPressOrHoldHandler buttonPressOrHoldHandler) {
+                buttonPressOrHoldHandler.advance(advance);
+            }
+        }
     }
 
     public void postInput(float advance) {
@@ -142,6 +147,17 @@ public class InputScreenBase {
         }
         buttonExHandlers.put(logicalButtons, btnChangeHandler);
         indicators.add(new Pair<>(indicator, msg));
+    }
+
+    protected  void addButtonPressOrHoldHandler(String pressMsg, String holdMsg, LogicalButtons logicalButtons, ButtonPressOrHoldHandler btnPressHoldHandler) {
+        var indicator = Indicators.fromButton(logicalButtons);
+        if(indicator == null) {
+            Global.getLogger(getClass()).warn("given button doesn't translate to indicator! " + logicalButtons);
+            return;
+        }
+        buttonExHandlers.put(logicalButtons, btnPressHoldHandler);
+        indicators.add(new Pair<>(indicator, "(Quick press) " + pressMsg));
+        indicators.add(new Pair<>(indicator, "(Press & Hold) " + holdMsg));
     }
 
     protected void addDigitalJoystickHandler(String msg, Joystick joystick, DigitalJoystickHandler digitalJoystickHandler) {

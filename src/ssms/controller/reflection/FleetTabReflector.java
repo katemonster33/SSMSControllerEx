@@ -2,6 +2,7 @@ package ssms.controller.reflection;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUIAPI;
+import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 
 import java.lang.invoke.MethodHandle;
@@ -25,6 +26,12 @@ public class FleetTabReflector {
         this.fleetListObj = fleetListObj;
         this.sidePanelObj = sidePanelObj;
         this.fleetGridPanelObj = fleetGridPanelObj;
+    }
+
+    public List<ButtonAPI> getButtons() {
+        var buttons = UIPanelReflector.getChildButtons(fleetListObj, true);
+        buttons.addAll(UIPanelReflector.getChildButtons(sidePanelObj, true));
+        return buttons;
     }
 
     public float getItemHeight() {
