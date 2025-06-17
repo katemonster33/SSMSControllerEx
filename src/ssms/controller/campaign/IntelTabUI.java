@@ -42,7 +42,7 @@ public class IntelTabUI extends InputScreenBase {
         Buttons,
         Map
     };
-    IntelTabFocusMode currentTabFocus = IntelTabFocusMode.IntelList;
+    IntelTabFocusMode currentTabFocus = IntelTabFocusMode.Buttons;
     @Override
     public String getId() {
         return ID;
@@ -74,6 +74,7 @@ public class IntelTabUI extends InputScreenBase {
             indicators.add(new Pair<>(Indicators.A, "Select"));
             indicators.add(new Pair<>(Indicators.BumperLeft, "Select map tab"));
             indicators.add(new Pair<>(Indicators.BumperRight, "Select command tab"));
+
         }
         return indicators;
     }

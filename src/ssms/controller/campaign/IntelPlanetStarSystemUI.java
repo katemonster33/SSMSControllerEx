@@ -18,6 +18,7 @@ import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.DirectionalUINavigator;
+import ssms.controller.inputhelper.KeySender;
 import ssms.controller.inputhelper.MapInputHandler;
 import ssms.controller.reflection.*;
 
@@ -32,9 +33,11 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
     CampaignScope campaignScope;
     IntelPlanetTabUi.PlanetTabReflector planetTabReflector;
     DirectionalUINavigator directionalUINavigator;
+    UIComponentAPI mapComponent;
+    List<ButtonAPI> planetAttributeButtons;
+    List<ButtonAPI> planetListButtons;
     int selectedIndex = -1;
     Vector2f desiredMousePos = null;
-    float mouseMoveFactor = 4.f;
 
     enum StarSystemTabFocusMode {
         PlanetAttributes,
@@ -58,25 +61,41 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
     public List<Pair<Indicators, String>> getIndicators() {
         if(indicators == null) {
             indicators = new ArrayList<>();
-            directionalUINavigator = new DirectionalUINavigator(new ArrayList<>());
+            directionalUINavigator = new DirectionalUINavigator(new ArrayList<>()) {
+                @Override
+                public void onSelect(Pair<UIComponentAPI, Object> obj) {
+                    super.onSelect(obj);
+                    if(obj.one == mapComponent && currentTabFocus != StarSystemTabFocusMode.Map) {
+                        currentTabFocus = StarSystemTabFocusMode.Map;
+                        clearHandlers();
+                    } else if(currentTabFocus != StarSystemTabFocusMode.PlanetAttributes && obj.one instanceof ButtonAPI buttonAPI && planetAttributeButtons.contains(buttonAPI)) {
+                        currentTabFocus = StarSystemTabFocusMode.PlanetAttributes;
+                        clearHandlers();
+                    } else if(currentTabFocus != StarSystemTabFocusMode.PlanetList && obj.one instanceof ButtonAPI buttonAPI && planetListButtons.contains(buttonAPI)) {
+                        currentTabFocus = StarSystemTabFocusMode.PlanetAttributes;
+                        clearHandlers();
+                    }
+                }
+            };
             addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
             indicators.add(new Pair<>(Indicators.LeftStick, "Navigate"));
             if(currentTabFocus == StarSystemTabFocusMode.Map) {
                 mapInputHandler = addMapHandler(Global.getSector().getViewport());
             }
-            indicators.add(new Pair<>(Indicators.RightStickLeft, "Focus map"));
-            indicators.add(new Pair<>(Indicators.RightStickUp, "Focus planet attributes"));
-            indicators.add(new Pair<>(Indicators.RightStickDown, "Focus celestials"));
-            indicators.add(new Pair<>(Indicators.LeftTrigger, "Select intel tab"));
-            indicators.add(new Pair<>(Indicators.RightTrigger, "Select faction tab"));
-            indicators.add(new Pair<>(Indicators.X, "Show on map"));
-            indicators.add(new Pair<>(Indicators.Y, "Lay in course"));
+            addButtonPressHandler("Select intel tab", LogicalButtons.LeftTrigger, new KeySender(Keyboard.KEY_1, '1'));
+            addButtonPressHandler("Select faction tab", LogicalButtons.RightTrigger, new KeySender(Keyboard.KEY_3, '3'));
+            addButtonPressHandler("Show on map", LogicalButtons.X, new KeySender(Keyboard.KEY_S, 's'));
+            addButtonPressHandler("Lay in course", LogicalButtons.Y, new KeySender(Keyboard.KEY_A, 'a'));
             if(currentTabFocus == StarSystemTabFocusMode.PlanetAttributes) {
-                indicators.add(new Pair<>(Indicators.A, "Open Codex"));
+                addButtonPressHandler("Open Codex", LogicalButtons.A, new KeySender(Keyboard.KEY_F2));
             } else {
-                indicators.add(new Pair<>(Indicators.A, "Select"));
+                addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> {
+                    if(InputShim.getMouseX() != null && InputShim.getMouseY() != null) {
+                        InputShim.mouseDownUp(InputShim.getMouseX(), InputShim.getMouseY(), InputEventMouseButton.LEFT);
+                    }
+                });
             }
-            indicators.add(new Pair<>(Indicators.B, "Return to planets list"));
+            addButtonPressHandler("Return to planets list", LogicalButtons.B, new KeySender(Keyboard.KEY_Q, 'q'));
             indicators.addAll(campaignScope.getIndicators());
         }
         return indicators;
@@ -91,89 +110,9 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
         desiredMousePos = null;
         campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
         planetTabReflector = new IntelPlanetTabUi.PlanetTabReflector(intelTabReflector.getPlanetTabData());
-    }
-
-    void preInputPlanetAttributes(float amount) {
-        var planetPanel = planetTabReflector.getStarSystemDisplay();
-        var items = UIPanelReflector.getChildItems(planetPanel);
-        List<UIComponentAPI> lst = new ArrayList<>();
-        for(var item : items) {
-            if(ButtonAPI.class.isAssignableFrom(item.getClass())) {
-                lst.add((UIComponentAPI) item);
-            }
-        }
-        lst.sort((UIComponentAPI left, UIComponentAPI right) -> {
-            if(left.getPosition().getX() == right.getPosition().getX()) {
-                return (int)(left.getPosition().getY() - right.getPosition().getY());
-            }
-            return (int)(left.getPosition().getX() - right.getPosition().getX());
-        });
-    }
-
-    void preInputMap(float amount) {
-        if(currentMapMode == MapMode.Zoom) {
-            if(controller.isButtonPressed(LogicalButtons.LeftStickUp)) {
-                InputShim.mouseWheel((int) desiredMousePos.getX(), (int)desiredMousePos.getY(), 1);
-            } else if(controller.isButtonPressed(LogicalButtons.LeftStickDown)) {
-                InputShim.mouseWheel((int) desiredMousePos.getX(), (int)desiredMousePos.getY(), -1);
-            }
-        } else {
-            ReadableVector2f leftStick = controller.getJoystick(Joystick.Left);
-            if (leftStick.getX() != 0 || leftStick.getY() != 0) {
-                if (desiredMousePos == null) {
-                    var map = planetTabReflector.getMap();
-                    desiredMousePos = new Vector2f((int) map.getPosition().getCenterX(), (int) map.getPosition().getCenterY());
-                } else {
-                    desiredMousePos.set(desiredMousePos.getX() + (leftStick.getX() * mouseMoveFactor), desiredMousePos.getY() - (leftStick.getY() * mouseMoveFactor));
-                }
-                InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
-            }
-        }
-        if (controller.getButtonEvent(LogicalButtons.LeftStickButton) == 1) {
-            if (currentMapMode == MapMode.MoveCursor) InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
-            else if(currentMapMode == MapMode.MoveMap) InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
-
-            currentMapMode = switch(currentMapMode) {
-                case MoveCursor -> MapMode.MoveMap;
-                case MoveMap -> MapMode.Zoom;
-                case Zoom -> MapMode.MoveCursor;
-            };
-            indicators = null;
-            InputScreenManager.getInstance().refreshIndicators();
-        }
-        if (currentMapMode == MapMode.MoveCursor) {
-            if (desiredMousePos != null) {
-                if (controller.getButtonEvent(LogicalButtons.A) == 1) {
-                    InputShim.mouseDownUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
-                }
-            }
-        }
-    }
-
-    void preInputPlanetList(float amount) {
-        var planetPanel = planetTabReflector.getPlanetInfoPanel();
-        var items = UIPanelReflector.getChildItems(planetPanel);
-        List<UIComponentAPI> lst = new ArrayList<>();
-        for(var item : items) {
-            if(MarketConditionsWidget.class.isAssignableFrom(item.getClass())) {
-                for(var filterBtn : UIPanelReflector.getChildItems((UIPanelAPI) item)) {
-                    if (ButtonAPI.class.isAssignableFrom(filterBtn.getClass())) {
-                        lst.add((UIComponentAPI) filterBtn);
-                    }
-                }
-            }
-        }
-        lst.sort((UIComponentAPI left, UIComponentAPI right) -> (int)(left.getPosition().getX() - right.getPosition().getX()));
-        //var lst = starSystemReflector.getIntelButtons();
-        if(controller.getButtonEvent(LogicalButtons.LeftStickLeft) == 1) {
-            selectedIndex--;
-            navigateButton(lst);
-            //if(selectedIndex != -1) starSystemReflector.ensureIntelButtonVisible(lst.get(selectedIndex));
-        } else if(controller.getButtonEvent(LogicalButtons.LeftStickRight) == 1) {
-            selectedIndex++;
-            navigateButton(lst);
-            //if(selectedIndex != -1) starSystemReflector.ensureIntelButtonVisible(lst.get(selectedIndex));
-        }
+        planetListButtons = new ArrayList<>();
+        planetAttributeButtons = new ArrayList<>();
+        mapComponent = planetTabReflector.getMap();
     }
 
     @Override
@@ -184,52 +123,12 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
         else if(intelTabData.getSelectedTabIndex() == 2) InputScreenManager.getInstance().transitionDelayed(IntelFactionTabUi.ID, intelTabReflector);
         lastFrameSelectedIndex = intelTabData.getSelectedTabIndex();
 
-        var planetPanel = planetTabReflector.getPlanetInfoPanel();
-        List<ButtonAPI> buttons = UIPanelReflector.getChildButtons(planetPanel);
+        planetAttributeButtons = UIPanelReflector.getChildButtons(planetTabReflector.getPlanetInfoPanel());
+        planetListButtons = UIPanelReflector.getChildButtons(planetTabReflector.getStarSystemDisplay());
         switch(currentTabFocus) {
             case PlanetAttributes -> preInputPlanetList(amount);
             case Map -> preInputMap(amount);
             case PlanetList -> preInputPlanetAttributes(amount);
-        }
-        if(controller.getButtonEvent(LogicalButtons.B) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_Q, 'q');
-        } else if(controller.getButtonEvent(LogicalButtons.X) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_S, 's');
-        } else if(controller.getButtonEvent(LogicalButtons.Y) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_A, 'a');
-        } else if(controller.getButtonEvent(LogicalButtons.A) == 1) {
-            if(currentTabFocus == StarSystemTabFocusMode.PlanetAttributes) {
-                InputShim.keyDownUp(Keyboard.KEY_F2, '\0');
-            } else if(desiredMousePos != null) {
-                InputShim.mouseDownUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
-            }
-            InputShim.keyDownUp(Keyboard.KEY_A, 'a');
-        } else if(controller.getButtonEvent(LogicalButtons.LeftTrigger) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_1, '1');
-        } else if(controller.getButtonEvent(LogicalButtons.RightTrigger) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_3, '3');
-        } else if(controller.getButtonEvent(LogicalButtons.RightStickLeft) == 1) {
-            var map = planetTabReflector.getMap();
-            currentMapMode = MapMode.MoveCursor;
-            desiredMousePos = new Vector2f((int) map.getPosition().getCenterX(), (int) map.getPosition().getCenterY());
-            InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
-            currentTabFocus = StarSystemTabFocusMode.Map;
-            indicators = null;
-            InputScreenManager.getInstance().refreshIndicators();
-        } else if(controller.getButtonEvent(LogicalButtons.RightStickRight) == 1) {
-            //var lst = starSystemReflector.getIntelFilters();
-            selectedIndex = 0;
-            //navigateButton(lst);
-            currentTabFocus = StarSystemTabFocusMode.PlanetList;
-            indicators = null;
-            InputScreenManager.getInstance().refreshIndicators();
-        } else if(controller.getButtonEvent(LogicalButtons.RightStickUp) == 1) {
-            //var lst = starSystemReflector.getIntelButtons();
-            selectedIndex = 0;
-            //navigateButton(lst);
-            currentTabFocus = StarSystemTabFocusMode.PlanetAttributes;
-            indicators = null;
-            InputScreenManager.getInstance().refreshIndicators();
         }
         campaignScope.handleInput(amount, true);
     }

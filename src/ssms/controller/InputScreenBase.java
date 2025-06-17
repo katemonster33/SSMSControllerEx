@@ -196,6 +196,7 @@ public class InputScreenBase {
         buttonExHandlers.clear();
         digitalJoystickHandlers.clear();
         analogJoystickHandlers.clear();
+        indicators = null;
     }
 
     public UIPanelAPI getPanelForIndicators() {
