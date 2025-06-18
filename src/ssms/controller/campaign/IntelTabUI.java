@@ -3,6 +3,7 @@ package ssms.controller.campaign;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.input.InputEventMouseButton;
+import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.TagDisplayAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
@@ -17,6 +18,8 @@ import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.inputhelper.DirectionalUINavigator;
+import ssms.controller.inputhelper.KeySender;
 import ssms.controller.inputhelper.MapInputHandler;
 import ssms.controller.reflection.*;
 
@@ -25,18 +28,19 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class IntelTabUI extends InputScreenBase {
     public static final String ID = "IntelTab";
     IntelTabReflector intelTabReflector;
     IntelTabData intelTabData;
     int lastFrameSelectedIndex = -1;
-    CampaignScope campaignScope;
     EventsTabReflector eventsTabReflector;
     MapInputHandler mapInputHandler;
-    int selectedIndex = -1;
-    Vector2f desiredMousePos = null;
-    float mouseMoveFactor = 4.f;
+    List<UIComponentAPI> filterButtons;
+    List<UIComponentAPI> intelButtons;
+    UIComponentAPI mapComponent;
+    DirectionalUINavigator directionalUINavigator;
 
     enum IntelTabFocusMode {
         Buttons,
@@ -58,23 +62,44 @@ public class IntelTabUI extends InputScreenBase {
         if(indicators == null) {
             indicators = new ArrayList<>();
             if(currentTabFocus == IntelTabFocusMode.Map) {
-                mapInputHandler = addMapHandler(Global.getSector().getViewport());
+                mapInputHandler = addMapHandler(eventsTabReflector.getMap());
+            } else {
+                addButtonPressHandler("Select planet tab", LogicalButtons.RightTrigger, new KeySender(Keyboard.KEY_2, '2'));
             }
-            indicators.add(new Pair<>(Indicators.LeftStick, "Navigate"));
-            indicators.add(new Pair<>(Indicators.RightStickUp, "Focus intel list"));
-            indicators.add(new Pair<>(Indicators.RightStickDown, "Focus intel tag buttons"));
-            indicators.add(new Pair<>(Indicators.RightTrigger, "Select planet tab"));
             if(currentTabFocus == IntelTabFocusMode.Buttons) {
-                indicators.add(new Pair<>(Indicators.Y, "Show on map"));
+                addButtonPressHandler("Show on map", LogicalButtons.Y, new KeySender(Keyboard.KEY_S, 's'));
             } else if(currentTabFocus == IntelTabFocusMode.Map) {
-                indicators.add(new Pair<>(Indicators.X, "Toggle sector/system view"));
-                indicators.add(new Pair<>(Indicators.Y, "Show fuel range"));
+                //indicators.add(new Pair<>(Indicators.X, "Toggle sector/system view"));
+                addButtonPressHandler("Show fuel range", LogicalButtons.Y, new KeySender(Keyboard.KEY_W, 'w'));
             }
-            indicators.add(new Pair<>(Indicators.B, "Return to campaign view"));
-            indicators.add(new Pair<>(Indicators.A, "Select"));
-            indicators.add(new Pair<>(Indicators.BumperLeft, "Select map tab"));
-            indicators.add(new Pair<>(Indicators.BumperRight, "Select command tab"));
-
+            addButtonPressHandler("Return to campaign view", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+            addButtonChangeHandler("Select", LogicalButtons.A, (float advance, boolean state) -> {
+                if(InputShim.getMouseX() != null && InputShim.getMouseY() != null) {
+                    if (state) InputShim.mouseDown(InputShim.getMouseX(), InputShim.getMouseY(), InputEventMouseButton.LEFT);
+                    else InputShim.mouseUp(InputShim.getMouseX(), InputShim.getMouseY(), InputEventMouseButton.LEFT);
+                }
+            });
+            addButtonPressHandler("Select map tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_TAB));
+            addButtonPressHandler("Select command tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_D, 'd'));
+            if(directionalUINavigator == null) {
+                directionalUINavigator = new DirectionalUINavigator(new ArrayList<>()) {
+                    @Override
+                    public void onSelect(Pair<UIComponentAPI, Object> objPair) {
+                        super.onSelect(objPair);
+                        if(currentTabFocus != IntelTabFocusMode.Map && objPair.one == mapComponent) {
+                            currentTabFocus = IntelTabFocusMode.Map;
+                            clearHandlers();
+                            InputScreenManager.getInstance().refreshIndicators();
+                        } else if(currentTabFocus == IntelTabFocusMode.Map && objPair.one != mapComponent) {
+                            currentTabFocus = IntelTabFocusMode.Buttons;
+                            clearHandlers();
+                            InputScreenManager.getInstance().refreshIndicators();
+                        }
+                    }
+                };
+            }
+            addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
+            refreshDirectionalUi();
         }
         return indicators;
     }
@@ -84,75 +109,23 @@ public class IntelTabUI extends InputScreenBase {
         intelTabReflector = (IntelTabReflector) args[0];
         intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
         lastFrameSelectedIndex = intelTabData.getSelectedTabIndex();
-        currentTabFocus = IntelTabFocusMode.IntelList;
-        desiredMousePos = null;
-        campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
         // this can throw an exception, we will just pass the exception upstream so that the screen doesn't get activated
         eventsTabReflector = new EventsTabReflector(intelTabReflector.getEventsPanel());
+        filterButtons = eventsTabReflector.getIntelFilters();
+        intelButtons = eventsTabReflector.getIntelButtons();
+        mapComponent = eventsTabReflector.getMap();
+        indicators = null;
     }
 
-    void navigateButton(List<UIComponentAPI> eventsButtons) {
-        if(eventsButtons == null || eventsButtons.isEmpty()) {
-            selectedIndex = -1;
-            return;
+    void refreshDirectionalUi() {
+        List<UIComponentAPI> buttons = new ArrayList<>(filterButtons);
+        buttons.addAll(intelButtons);
+        buttons.add(mapComponent);
+        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
+        for(var btn : buttons) {
+            directionalObjects.add(new Pair<>(btn, null));
         }
-        else if(selectedIndex < 0) selectedIndex = 0;
-        else if(selectedIndex >= eventsButtons.size()) selectedIndex = eventsButtons.size() - 1;
-
-        desiredMousePos = new Vector2f(eventsButtons.get(selectedIndex).getPosition().getCenterX(), eventsButtons.get(selectedIndex).getPosition().getCenterY());
-        InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
-    }
-
-    void preInputFilterButtons(float amount) {
-        var lst = eventsTabReflector.getIntelFilters();
-        if(controller.getButtonEvent(LogicalButtons.LeftStickLeft) == 1) {
-            selectedIndex--;
-            navigateButton(lst);
-        } else if(controller.getButtonEvent(LogicalButtons.LeftStickRight) == 1) {
-            selectedIndex++;
-            navigateButton(lst);
-        }
-    }
-
-    void preInputMap(float amount) {
-        if(currentMapMode == MapMode.Zoom) {
-            if(controller.isButtonPressed(LogicalButtons.LeftStickUp)) {
-                InputShim.mouseWheel((int) desiredMousePos.getX(), (int)desiredMousePos.getY(), 1);
-                //InputShim.mouseDownUp((int) desiredMousePos.getX(), (int)desiredMousePos.getY(), InputEventMouseButton.);
-            } else if(controller.isButtonPressed(LogicalButtons.LeftStickDown)) {
-                InputShim.mouseWheel((int) desiredMousePos.getX(), (int)desiredMousePos.getY(), -1);
-            }
-        } else {
-            ReadableVector2f leftStick = controller.getJoystick(Joystick.Left);
-            var map = eventsTabReflector.getMap();
-            if (leftStick.getX() != 0 || leftStick.getY() != 0) {
-                if (desiredMousePos == null)
-                    desiredMousePos = new Vector2f((int) map.getPosition().getCenterX(), (int) map.getPosition().getCenterY());
-                else
-                    desiredMousePos.set(desiredMousePos.getX() + (leftStick.getX() * mouseMoveFactor), desiredMousePos.getY() - (leftStick.getY() * mouseMoveFactor));
-
-                InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
-            }
-        }
-
-        if (controller.getButtonEvent(LogicalButtons.Y) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_W, 'w');
-        }
-    }
-
-    void preInputIntelList(float amount) {
-        var lst = eventsTabReflector.getIntelButtons();
-        if(controller.getButtonEvent(LogicalButtons.LeftStickUp) == 1) {
-            selectedIndex++;
-            navigateButton(lst);
-            if(selectedIndex != -1) eventsTabReflector.ensureIntelButtonVisible(lst.get(selectedIndex));
-        } else if(controller.getButtonEvent(LogicalButtons.LeftStickDown) == 1) {
-            selectedIndex--;
-            navigateButton(lst);
-            if(selectedIndex != -1) eventsTabReflector.ensureIntelButtonVisible(lst.get(selectedIndex));
-        } else if(controller.getButtonEvent(LogicalButtons.Y) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_S, 's');
-        }
+        directionalUINavigator.setNavigationObjects(directionalObjects);
     }
 
     @Override
@@ -161,43 +134,8 @@ public class IntelTabUI extends InputScreenBase {
         else if(intelTabData.getSelectedTabIndex() == 1) InputScreenManager.getInstance().transitionDelayed(IntelPlanetTabUi.ID, intelTabReflector);
         else if(intelTabData.getSelectedTabIndex() == 2) InputScreenManager.getInstance().transitionDelayed(IntelFactionTabUi.ID, intelTabReflector);
         lastFrameSelectedIndex = intelTabData.getSelectedTabIndex();
-        switch(currentTabFocus) {
-            case IntelList -> preInputIntelList(amount);
-            case Map -> preInputMap(amount);
-            case FilterButtons -> preInputFilterButtons(amount);
-        }
-        if(controller.getButtonEvent(LogicalButtons.B) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-        } else if(currentTabFocus != IntelTabFocusMode.Map && desiredMousePos != null && controller.getButtonEvent(LogicalButtons.A) == 1) {
-            InputShim.mouseDownUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
-        } else if(controller.getButtonEvent(LogicalButtons.RightTrigger) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_2, '2');
-        } else if(controller.getButtonEvent(LogicalButtons.RightStickLeft) == 1) {
-            var lst = eventsTabReflector.getIntelButtons();
-            selectedIndex = 0;
-            navigateButton(lst);
-            currentTabFocus = IntelTabFocusMode.IntelList;
-            indicators = null;
-            InputScreenManager.getInstance().refreshIndicators();
-        } else if(controller.getButtonEvent(LogicalButtons.RightStickDown) == 1) {
-            var lst = eventsTabReflector.getIntelFilters();
-            selectedIndex = 0;
-            navigateButton(lst);
-            currentTabFocus = IntelTabFocusMode.FilterButtons;
-            indicators = null;
-            InputScreenManager.getInstance().refreshIndicators();
-        } else if(controller.getButtonEvent(LogicalButtons.RightStickUp) == 1) {
-            var map = eventsTabReflector.getMap();
-            currentMapMode = MapMode.MoveCursor;
-            desiredMousePos = new Vector2f((int) map.getPosition().getCenterX(), (int) map.getPosition().getCenterY());
-            InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
-            currentTabFocus = IntelTabFocusMode.Map;
-            indicators = null;
-            InputScreenManager.getInstance().refreshIndicators();
-        } else if(controller.getButtonEvent(LogicalButtons.BumperLeft) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_TAB, '\0');
-        } else if(controller.getButtonEvent(LogicalButtons.BumperRight) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_D, 'd');
+        if(mapInputHandler != null && currentTabFocus == IntelTabFocusMode.Map) {
+            mapInputHandler.advance(amount);
         }
     }
 

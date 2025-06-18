@@ -50,30 +50,12 @@ public class BattleDeploymentScreen extends InputScreenBase {
         }
     }
 
-    Object getUiOnTop() {
-        var panel = CombatStateReflector.GetInstance().getWidgetPanel();
-        if (panel != null) {
-            var items = UIPanelReflector.getChildItems(panel);
-            if (!items.isEmpty()) {
-                var lastChild = items.get(items.size() - 1);
-                if(InputScreenManager.getInstance().getDisplayPanel() != null && lastChild == InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
-                    lastChild = items.get(items.size() - 2);
-                }
-                if(lastChild == dui.getDialogObject()) {
-                    return null;
-                }
-                return lastChild;
-            }
-        }
-        return null;
-    }
-
-    Object lastUIOnTop = null;
+    UIComponentAPI lastUIOnTop = null;
     @Override
     public void preInput(float advance) {
         if(Global.getCombatEngine().getCombatUI().isShowingDeploymentDialog()) {
-            var lastChild = getUiOnTop();
-            if(lastChild != lastUIOnTop && lastChild instanceof UIPanelAPI lastChildPanel) {
+            var lastChild = UIPanelReflector.getLastChild(CombatStateReflector.GetInstance().getWidgetPanel());
+            if(lastChild != lastUIOnTop && lastChild != dui.getDialogObject() && lastChild instanceof UIPanelAPI lastChildPanel) {
                 lastUIOnTop = lastChild;
                 // this nonsense tries to tell if the topmost UI element is the message box that shows up the first time we enter combat
                 MessageBoxReflector dr = MessageBoxReflector.TryGet(lastChildPanel);

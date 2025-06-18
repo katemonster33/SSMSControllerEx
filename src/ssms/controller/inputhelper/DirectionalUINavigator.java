@@ -51,7 +51,7 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
         if (curObjPos != null) {
             for (curIndex = 0; curIndex < navigationObjects.size(); curIndex++) {
                 UIComponentAPI comp = navigationObjects.get(curIndex).one;
-                if (comp.getPosition().getX() == curObjPos.getX() && comp.getPosition().getY() == curObjPos.getY()) {
+                if (comp.getPosition().getCenterX() == curObjPos.getCenterX() && comp.getPosition().getCenterY() == curObjPos.getCenterY()) {
                     break;
                 }
             }
@@ -89,31 +89,28 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
         return Math.max(1.f, Math.abs(a - b));
     }
 
-    public void performAction(float advance, Vector2f joystickVal) {
-    }
-
     public void performLeftAction(float advance) {
         moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
-                (int) ((o1.getPosition().getX() - o2.getPosition().getX()) *
-                        getDeltaOrOne(o1.getPosition().getY(), o2.getPosition().getY())));
+                (int) ((o1.getPosition().getCenterX() - o2.getPosition().getCenterX()) *
+                        getDeltaOrOne(o1.getPosition().getCenterY(), o2.getPosition().getCenterY())));
     }
 
     public void performRightAction(float advance) {
         moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
-                (int) ((o2.getPosition().getX() - o1.getPosition().getX()) *
+                (int) ((o2.getPosition().getCenterX() - o1.getPosition().getCenterX()) *
                         getDeltaOrOne(o1.getPosition().getY(), o2.getPosition().getY())));
     }
 
     public void performUpAction(float advance) {
         moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
-                (int) ((o2.getPosition().getY() - o1.getPosition().getY()) *
-                        getDeltaOrOne(o2.getPosition().getX(), o1.getPosition().getX())));
+                (int) ((o2.getPosition().getCenterY() - o1.getPosition().getCenterY()) *
+                        getDeltaOrOne(o2.getPosition().getCenterX(), o1.getPosition().getCenterX())));
     }
 
     public void performDownAction(float advance) {
         moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
-                (int) ((o1.getPosition().getY() - o2.getPosition().getY()) *
-                        getDeltaOrOne(o1.getPosition().getX(), o2.getPosition().getX())));
+                (int) ((o1.getPosition().getCenterY() - o2.getPosition().getCenterY()) *
+                        getDeltaOrOne(o1.getPosition().getCenterX(), o2.getPosition().getCenterX())));
     }
 
     public Pair<UIComponentAPI, Object> getSelected() {

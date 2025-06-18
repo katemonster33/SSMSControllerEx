@@ -17,7 +17,10 @@ import com.fs.starfarer.campaign.ui.intel.StarSystemDisplay;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
+import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.inputhelper.DigitalJoystickHandler;
+import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.*;
 
 import java.lang.invoke.MethodHandle;
@@ -37,17 +40,8 @@ public class IntelPlanetTabUi extends InputScreenBase {
     int selectedColumn = -1;
     List<UIComponentAPI> selectedRowColumns;
     UIPanelAPI selectedPlanet;
+    int selectedPlanetX, selectedPlanetY;
     boolean selectingPlanetFilters = false;
-
-    public IntelPlanetTabUi() {
-        indicators = new ArrayList<>();
-
-        indicators.add(new Pair<>(Indicators.LeftStick, "Navigate"));
-        indicators.add(new Pair<>(Indicators.A, "Select"));
-        indicators.add(new Pair<>(Indicators.B, "Close"));
-        indicators.add(new Pair<>(Indicators.LeftTrigger, "Select intel tab"));
-        indicators.add(new Pair<>(Indicators.RightTrigger, "Select planet tab"));
-    }
 
     @Override
     public String getId() {
@@ -76,6 +70,42 @@ public class IntelPlanetTabUi extends InputScreenBase {
                 }
             }
         }
+        indicators = new ArrayList<>();
+
+        addDigitalJoystickHandler("Navigate", Joystick.DPad, new DigitalJoystickHandler() {
+            @Override
+            public void performUpAction(float advance) {
+                selectedRowIndex--;
+                selectedColumn = 0;
+                hoverSelectedItem();
+            }
+
+            @Override
+            public void performDownAction(float advance) {
+                selectedRowIndex++;
+                selectedColumn = 0;
+                hoverSelectedItem();
+            }
+
+            @Override
+            public void performLeftAction(float advance) {
+                selectedColumn--;
+                hoverSelectedItem();
+            }
+
+            @Override
+            public void performRightAction(float advance) {
+                selectedColumn++;
+                hoverSelectedItem();
+            }
+        });
+        addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> performActionOnHoveredItem());
+        addButtonPressHandler("Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+        addButtonPressHandler("Select map tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_TAB));
+        addButtonPressHandler("Select command tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_D, 'd'));
+        addButtonPressHandler("Select intel tab", LogicalButtons.LeftTrigger, new KeySender(Keyboard.KEY_1, '1'));
+        addButtonPressHandler("Select planet tab", LogicalButtons.RightTrigger, new KeySender(Keyboard.KEY_3, '3'));
+        selectedPlanetX = selectedPlanetY = -1;
     }
 
     void updateSelectedRowColumns() {
@@ -130,6 +160,10 @@ public class IntelPlanetTabUi extends InputScreenBase {
         var pos = selectedCell.getPosition();
         if(!selectingPlanetFilters && selectedPlanet != null) {
             planetTabReflector.ensurePlanetVisible(selectedPlanet);
+            selectedPlanetX = (int) pos.getX();
+            selectedPlanetY = (int) pos.getY();
+        } else {
+            selectedPlanetX = selectedPlanetY = -1;
         }
         InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
     }
@@ -140,32 +174,13 @@ public class IntelPlanetTabUi extends InputScreenBase {
         else if(intelTabData.getSelectedTabIndex() == 0) InputScreenManager.getInstance().transitionDelayed(IntelTabUI.ID, intelTabReflector);
         else if(intelTabData.getSelectedTabIndex() == 1 && planetTabReflector.getStarSystem() != null) InputScreenManager.getInstance().transitionDelayed(IntelPlanetStarSystemUI.ID, intelTabReflector);
         else if(intelTabData.getSelectedTabIndex() == 2) InputScreenManager.getInstance().transitionDelayed(IntelFactionTabUi.ID, intelTabReflector);
-        if (controller.getButtonEvent(LogicalButtons.LeftStickDown) == 1) {
-            selectedRowIndex++;
-            selectedColumn = 0;
-            hoverSelectedItem();
-        } else if (controller.getButtonEvent(LogicalButtons.LeftStickUp) == 1) {
-            selectedRowIndex--;
-            selectedColumn = 0;
-            hoverSelectedItem();
-        } else if (controller.getButtonEvent(LogicalButtons.LeftStickLeft) == 1) {
-            selectedColumn--;
-            hoverSelectedItem();
-        } else if (controller.getButtonEvent(LogicalButtons.LeftStickRight) == 1) {
-            selectedColumn++;
-            hoverSelectedItem();
+
+        if(selectedPlanet != null) {
+            int selPlanetCurX = (int) selectedPlanet.getPosition().getX(), selPlanetCurY = (int) selectedPlanet.getPosition().getY();
+            if(selPlanetCurX != selectedPlanetX || selPlanetCurY != selectedPlanetY) {
+                hoverSelectedItem();
+            }
         }
-        if (controller.getButtonEvent(LogicalButtons.A) == 1) {
-            performActionOnHoveredItem();
-        } else if(controller.getButtonEvent(LogicalButtons.LeftTrigger) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_1, '1');
-        } else if(controller.getButtonEvent(LogicalButtons.RightTrigger) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_3, '3');
-        }
-        if(controller.getButtonEvent(LogicalButtons.B) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-        }
-        campaignScope.handleInput(amount, true);
     }
 
     public record PlanetTabReflector(UIPanelAPI planetTabData) {

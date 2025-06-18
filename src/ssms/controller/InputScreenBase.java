@@ -20,6 +20,7 @@ package ssms.controller;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.ui.Alignment;
+import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import ssms.controller.enums.AxisMapping;
@@ -176,13 +177,13 @@ public class InputScreenBase {
         analogJoystickHandlers.put(joystick, analogJoystickHandler);
     }
 
-    protected MapInputHandler addMapHandler(ViewportAPI viewportAPI) {
-        MapInputHandler mapInputHandler = new MapInputHandler(viewportAPI);
+    protected MapInputHandler addMapHandler(UIComponentAPI mapComponent) {
+        MapInputHandler mapInputHandler = new MapInputHandler(mapComponent);
         addAnalogJoystickHandler("Move cursor", Joystick.Left, mapInputHandler::handleLeftJoystick);
         addAnalogJoystickHandler("Move map", Joystick.Right, mapInputHandler::handleRightJoystick);
         addButtonChangeHandler("Select", LogicalButtons.A, mapInputHandler::handleAButton);
         indicators.add(new Pair<>(Indicators.LeftTrigger, "Zoom out"));
-        indicators.add(new Pair<>(Indicators.LeftTrigger, "Zoom in"));
+        indicators.add(new Pair<>(Indicators.RightTrigger, "Zoom in"));
         mapInputHandler.centerMousePos();
         return mapInputHandler;
     }

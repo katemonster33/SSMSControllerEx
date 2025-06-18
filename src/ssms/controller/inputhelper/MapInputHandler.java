@@ -2,23 +2,25 @@ package ssms.controller.inputhelper;
 
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
+import com.fs.starfarer.api.ui.UIComponentAPI;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.InputShim;
 import ssms.controller.SSMSControllerModPluginEx;
+import ssms.controller.reflection.MapReflector;
 
 public class MapInputHandler{
     final float mouseMoveFactor = 4.f;
     boolean isMovingMap = false;
     Vector2f desiredMousePos;
-    ViewportAPI viewportAPI;
+    UIComponentAPI mapComponent;
     boolean leftStickActive = false, rightStickActive = false;
     Vector2f leftStick, rightStick;
     boolean handledJoystickEvent = false;
-    public MapInputHandler(ViewportAPI viewportAPI) {
-        this.viewportAPI = viewportAPI;
+    public MapInputHandler(UIComponentAPI mapComponent) {
+        this.mapComponent = mapComponent;
     }
 
     boolean isStickActive(ReadableVector2f stick) {
@@ -26,7 +28,7 @@ public class MapInputHandler{
     }
 
     public void centerMousePos() {
-        desiredMousePos = new Vector2f(viewportAPI.convertWorldXtoScreenX(viewportAPI.getCenter().getX()), viewportAPI.convertWorldYtoScreenY(viewportAPI.getCenter().getY()));
+        desiredMousePos = new Vector2f(mapComponent.getPosition().getCenterX(), mapComponent.getPosition().getCenterY());
         InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
     }
 
@@ -70,19 +72,21 @@ public class MapInputHandler{
     }
 
     public void handleAButton(float advance, boolean buttonVal) {
-        if (buttonVal) {
-            InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
-        } else {
-            InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
+        if(InputShim.getMouseX() != null && InputShim.getMouseY() != null) {
+            if (buttonVal) {
+                InputShim.mouseDown(InputShim.getMouseX(), InputShim.getMouseY(), InputEventMouseButton.LEFT);
+            } else {
+                InputShim.mouseUp(InputShim.getMouseX(), InputShim.getMouseY(), InputEventMouseButton.LEFT);
+            }
         }
     }
 
     public void advance(float advance) {
         var controller = SSMSControllerModPluginEx.controller;
         if(controller.getButtonEvent(LogicalButtons.LeftTrigger) == 1) {
-            InputShim.mouseWheel((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), 1);
+            InputShim.mouseWheel((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), -5);
         } else if(controller.getButtonEvent(LogicalButtons.RightTrigger) == 1) {
-            InputShim.mouseWheel((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), -1);
+            InputShim.mouseWheel((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), 5);
         }
         if(!handledJoystickEvent) {
             if (leftStickActive) handleLeftJoystick(advance, leftStick);

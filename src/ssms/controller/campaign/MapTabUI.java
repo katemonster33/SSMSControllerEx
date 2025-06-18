@@ -3,23 +3,26 @@ package ssms.controller.campaign;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.combat.ViewportAPI;
+import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.inputhelper.MapInputHandler;
 import ssms.controller.reflection.MapReflector;
+import ssms.controller.reflection.UIPanelReflector;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MapTabUI extends InputScreenBase {
     public final static String ID = "MapTab";
     ViewportAPI viewportAPI;
     MapInputHandler mapInputHandler;
-    CampaignScope campaignScope;
 
     MapReflector mapReflector;
 
@@ -36,15 +39,19 @@ public class MapTabUI extends InputScreenBase {
     public void activate(Object ... args) {
         viewportAPI = Global.getSector().getViewport();
         mapReflector = (MapReflector) args[0];
-        campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
         indicators = new ArrayList<>();
-        mapInputHandler = addMapHandler(viewportAPI);
+        mapInputHandler = addMapHandler(mapReflector.getMap());
 
         addButtonPressHandler("Close dialog", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
+        for(var btn : mapReflector.getButtons()) {
+            directionalObjects.add(new Pair<>(btn, null));
+        }
+        addDigitalJoystickHandler("Navigate", Joystick.DPad, new DirectionalUINavigator(directionalObjects));
         addButtonPressHandler("Select cargo tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_I, 'i'));
         addButtonPressHandler("Select intel tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_E, 'e'));
-        addButtonPressHandler("Select sector view", LogicalButtons.LeftTrigger, new KeySender(Keyboard.KEY_I, 'i'));
-        addButtonPressHandler("Select system view", LogicalButtons.RightTrigger, new KeySender(Keyboard.KEY_E, 'e'));
+        addButtonPressHandler("Select sector view", LogicalButtons.Y, new KeySender(Keyboard.KEY_Q, 'q'));
+        addButtonPressHandler("Select system view", LogicalButtons.X, new KeySender(Keyboard.KEY_W, 'w'));
     }
 
     @Override

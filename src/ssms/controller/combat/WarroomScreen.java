@@ -40,7 +40,7 @@ public class WarroomScreen extends InputScreenBase {
             csr.HideWarroom();
             csr.SetVideoFeedToPlayerShip();
         });
-        mapInputHandler = addMapHandler(viewportAPI);
+        mapInputHandler = addMapHandler(csr.getWarroom());
         addButtonPressHandler("Target point/object", LogicalButtons.X, (float advance) -> {
             var desiredMousePos = mapInputHandler.getDesiredMousePos();
             if(desiredMousePos != null) {
