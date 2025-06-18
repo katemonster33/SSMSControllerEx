@@ -65,7 +65,7 @@ public class TradeScreen extends InputScreenBase {
         cargoTransferHandler = tradeUiReflector.getCargoTransferHandler();
         ControllerCrosshairRenderer.getControllerRenderer().setSize(100);
         interactionDialogAPI = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
-        lastFrameChildCount = UIPanelReflector.getChildItems((UIPanelAPI) tradeUiReflector.getCoreUIAPI()).size();
+        lastFrameChildCount = 0;
     }
 
     void clickSelected(boolean takeAllIfStack) {
@@ -105,27 +105,29 @@ public class TradeScreen extends InputScreenBase {
         if(!Global.getSector().getCampaignUI().isShowingDialog() || (isCargoTab && Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.CARGO)) {
             InputScreenManager.getInstance().transitionToScope(CampaignScope.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
         } else if(tradeUiReflector.getCoreUIAPI().getTradeMode() != null){
-            var dialogParent = interactionDialogAPI != null ? (UIPanelAPI) interactionDialogAPI : UIPanelReflector.getParent((UIPanelAPI) tradeUiReflector.getCoreUIAPI());
-            var tradePanelChildren = UIPanelReflector.getChildItems(dialogParent);
-            if(!tradePanelChildren.contains(tradeUiReflector.getCoreUIAPI())) {
-                InputScreenManager.getInstance().transitionToScreen(DialogUI.ID);
-            } else {
-                var coreUiChildren = UIPanelReflector.getChildItems((UIPanelAPI) tradeUiReflector.getCoreUIAPI());
-                int numChildren = coreUiChildren.size();
-                if(numChildren > lastFrameChildCount) {
-                    for(int i = lastFrameChildCount; i < numChildren; i++) {
-                        var child = coreUiChildren.get(i);
-                        if(UIPanelAPI.class.isAssignableFrom(child.getClass()) && InputScreenManager.getInstance().getDisplayPanel() != null && child != InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
-                            MessageBoxReflector messageBoxReflector = MessageBoxReflector.TryGet((UIPanelAPI) child);
-                            if(messageBoxReflector != null) {
-                                InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, messageBoxReflector, TradeScreen.ID);
-                                return;
-                            }
+            if(interactionDialogAPI != null) {
+                var tradePanelChildren = UIPanelReflector.getChildItems((UIPanelAPI) interactionDialogAPI);
+                if (!tradePanelChildren.contains(tradeUiReflector.getCoreUIAPI())) {
+                    InputScreenManager.getInstance().transitionToScreen(DialogUI.ID);
+                }
+            }
+            List<?> coreUiChildren = null;
+            if(interactionDialogAPI != null) coreUiChildren = UIPanelReflector.getChildItems((UIPanelAPI) tradeUiReflector.getCoreUIAPI());
+            else coreUiChildren = UIPanelReflector.getChildItems(UIPanelReflector.getParent((UIPanelAPI) tradeUiReflector.getCoreUIAPI()));
+            int numChildren = coreUiChildren.size();
+            if(numChildren > lastFrameChildCount) {
+                for(int i = lastFrameChildCount; i < numChildren; i++) {
+                    var child = coreUiChildren.get(i);
+                    if(UIPanelAPI.class.isAssignableFrom(child.getClass()) && InputScreenManager.getInstance().getDisplayPanel() != null && child != InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
+                        MessageBoxReflector messageBoxReflector = MessageBoxReflector.TryGet((UIPanelAPI) child);
+                        if(messageBoxReflector != null) {
+                            InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, messageBoxReflector, TradeScreen.ID);
+                            return;
                         }
                     }
                 }
-                lastFrameChildCount = numChildren;
             }
+            lastFrameChildCount = numChildren;
         }
 
         var buttons = UIPanelReflector.getChildButtons((UIPanelAPI) tradeUiReflector.getTradePanel(), true);
