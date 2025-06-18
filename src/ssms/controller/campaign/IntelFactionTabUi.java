@@ -37,11 +37,6 @@ public class IntelFactionTabUi extends InputScreenBase {
     }
 
     @Override
-    public String[] getScopes() {
-        return new String[] { CampaignScope.ID };
-    }
-
-    @Override
     public void activate(Object ... args) throws Throwable {
         intelTabReflector = (IntelTabReflector) args[0];
         intelFactionTabReflector = new IntelFactionTabReflector(intelTabReflector.getFactionIntelPanel());
@@ -55,6 +50,8 @@ public class IntelFactionTabUi extends InputScreenBase {
         addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
 
         addButtonPressHandler("Select planet tab", LogicalButtons.LeftTrigger, new KeySender(Keyboard.KEY_2, '2'));
+        addButtonPressHandler("Select map tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_TAB));
+        addButtonPressHandler("Select command tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_D, 'd'));
 
         addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> {
             if(directionalUINavigator.getSelected() != null) {

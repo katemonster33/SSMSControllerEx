@@ -31,10 +31,6 @@ public class MapTabUI extends InputScreenBase {
         return ID;
     }
 
-    public String[] getScopes() {
-        return new String[] { CampaignScope.ID };
-    }
-
     @Override
     public void activate(Object ... args) {
         viewportAPI = Global.getSector().getViewport();

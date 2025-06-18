@@ -53,11 +53,6 @@ public class IntelTabUI extends InputScreenBase {
     }
 
     @Override
-    public String[] getScopes() {
-        return new String[]{CampaignScope.ID};
-    }
-
-    @Override
     public List<Pair<Indicators, String>> getIndicators() {
         if(indicators == null) {
             indicators = new ArrayList<>();

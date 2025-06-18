@@ -189,7 +189,9 @@ public class InputScreenBase {
     }
 
     public void refreshIndicators() {
-        indicators = new ArrayList<>();
+        indicators = null;
+        clearHandlers();
+        InputScreenManager.getInstance().refreshIndicators();
     }
 
     protected void clearHandlers() {

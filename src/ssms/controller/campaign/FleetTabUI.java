@@ -12,7 +12,9 @@ import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.inputhelper.ButtonPressOrHoldHandler;
 import ssms.controller.inputhelper.DirectionalUINavigator;
+import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.FleetTabReflector;
 import ssms.controller.reflection.UIPanelReflector;
 
@@ -34,7 +36,6 @@ public class FleetTabUI extends InputScreenBase {
     int itemInfoOffset = -1;
     List<Vector2f> itemInfoOffsets;
     boolean allRepairsSuspended = false;
-    CampaignScope campaignScope;
     DirectionalUINavigator directionalUINavigator;
 
     @Override
@@ -55,37 +56,40 @@ public class FleetTabUI extends InputScreenBase {
     }
 
     @Override
-    public String[] getScopes() {
-        return new String[]{CampaignScope.ID};
-    }
-
-    @Override
     public List<Pair<Indicators, String>> getIndicators() {
         if (indicators == null) {
             indicators = new ArrayList<>();
             addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
             indicators.add(new Pair<>(Indicators.LeftStick, "Navigate ships"));
-            addButtonPressHandler("Cycle ship info", LogicalButtons.LeftStickButton, (float advance) ->
+            addButtonPressHandler("Select next ship info", LogicalButtons.RightTrigger, (float advance) ->
                     incrementItemInfoOffset());
             if(itemInfoOffset == -1) {
-                //addHandler("Move ship");
-                indicators.add(new Pair<>(Indicators.A, "Move ship"));
+                addButtonPressHandler("Move ship", LogicalButtons.A, (float advance) -> InputShim.mouseDownUp((int) mousePos.getX(), (int) mousePos.getY(), InputEventMouseButton.LEFT));
             } else if(itemInfoOffset == 0) {
-                indicators.add(new Pair<>(Indicators.A, "Open codex"));
+                addButtonPressHandler("Open codex", LogicalButtons.A, new KeySender(Keyboard.KEY_A, 'a'));
             } else if(itemInfoOffset == 1) {
-                indicators.add(new Pair<>(Indicators.A, "assign commander"));
-                indicators.add(new Pair<>(Indicators.A, "(hold) re-assign commander"));
+                addButtonPressOrHoldHandler("Assign commander", "Re-assign commander", LogicalButtons.A, new ButtonPressOrHoldHandler() {
+                    @Override
+                    public void performHoldAction(float advance) {
+                        InputShim.mouseDownUp((int) mousePos.getX(), (int) mousePos.getY(), InputEventMouseButton.RIGHT);
+                    }
+
+                    @Override
+                    public void performPressAction(float advance) {
+                        InputShim.mouseDownUp((int) mousePos.getX(), (int) mousePos.getY(), InputEventMouseButton.LEFT);
+                    }
+                });
             } else if(itemInfoOffset == 2) {
-                indicators.add(new Pair<>(Indicators.A, "Show more info"));
+                addButtonPressHandler("Show more info", LogicalButtons.A, new KeySender(Keyboard.KEY_F1));
             }
-            indicators.add(new Pair<>(Indicators.B, "Close Dialog"));
-            indicators.add(new Pair<>(Indicators.X, "Suspend/Resume repairs (current ship)"));
-            indicators.add(new Pair<>(Indicators.X, "(hold) Suspend/Resume repairs (current ship)"));
-            indicators.add(new Pair<>(Indicators.Y, "Mothball ship"));
-            indicators.add(new Pair<>(Indicators.Y, "(hold) Scuttle ship"));
-            indicators.add(new Pair<>(Indicators.Select, "Refit"));
-            indicators.add(new Pair<>(Indicators.BumperLeft, "Select character tab"));
-            indicators.add(new Pair<>(Indicators.BumperRight, "Select refit tab"));
+            addButtonPressHandler("Close Dialog", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+//            indicators.add(new Pair<>(Indicators.X, "Suspend/Resume repairs (current ship)"));
+//            indicators.add(new Pair<>(Indicators.X, "(hold) Suspend/Resume repairs (all ships)"));
+//            indicators.add(new Pair<>(Indicators.Y, "Mothball ship"));
+//            indicators.add(new Pair<>(Indicators.Y, "(hold) Scuttle ship"));
+//            indicators.add(new Pair<>(Indicators.Select, "Refit"));
+            addButtonPressHandler("Select character tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_C, 'c'));
+            addButtonPressHandler("Select refit tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_R, 'r'));
 
         }
         return indicators;
@@ -95,8 +99,6 @@ public class FleetTabUI extends InputScreenBase {
     public void activate(Object... args) {
         this.fleetTabReflector = (FleetTabReflector) args[0];
 
-        campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
-
         itemSize = new Vector2f(fleetTabReflector.getItemWidth(), fleetTabReflector.getItemHeight());
         numCols = fleetTabReflector.getColumns();
         mousePos = new Vector2f(0.f, 0.f);
@@ -105,7 +107,15 @@ public class FleetTabUI extends InputScreenBase {
         for(var btn : fleetTabReflector.getButtons()) {
             directionalObjects.add(new Pair<>(btn, null));
         }
-        directionalUINavigator = new DirectionalUINavigator(directionalObjects);
+        directionalUINavigator = new DirectionalUINavigator(directionalObjects){
+            @Override
+            public void onSelect(Pair<UIComponentAPI, Object> obj) {
+                super.onSelect(obj);
+                itemInfoOffset = -1;
+                refreshIndicators();
+                mousePos.set(obj.one.getPosition().getCenterX(), obj.one.getPosition().getCenterY());
+            }
+        };
         var items = fleetTabReflector.getItems();
         itemCount = items.size();
         itemInfoOffsets = new ArrayList<>();
@@ -135,7 +145,6 @@ public class FleetTabUI extends InputScreenBase {
             }
         } else {
             topLeftPos = new Vector2f(-1.f, -1.f);
-
         }
         buttonXDownTime = buttonYDownTime = buttonADownTime = -1.f;
     }

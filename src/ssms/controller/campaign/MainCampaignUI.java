@@ -14,20 +14,23 @@ import ssms.controller.*;
 import ssms.controller.InputScreenBase;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import ssms.controller.enums.Indicators;
 import ssms.controller.combat.BattleScope;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.MessageBoxScreen;
+import ssms.controller.inputhelper.DigitalJoystickHandler;
+import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.*;
 
 public class MainCampaignUI extends InputScreenBase {
     public static final String ID = "MainCampaign";
-    CampaignScope campaignScope;
     Vector2f lastHeading = null;
     Vector2f mousePos = new Vector2f(-1.f, -1.f);
 
+    CrosshairRenderer headingIndicator;
     ControllerCrosshairRenderer hotbarIndicatorRenderer;
     int currentHotkeyGroup = 0, currentHotkey = 0;
     int lastFrameNumChildren = -1;
@@ -35,30 +38,64 @@ public class MainCampaignUI extends InputScreenBase {
     int selectedHotkey, selectedHotkeyGroup;
     int selectedTab;
 
-    public MainCampaignUI() {
+    @Override
+    public List<Pair<Indicators, String>> getIndicators() {
         indicators = new ArrayList<>();
-        indicators.add(new Pair<>(Indicators.A, "Navigate"));
+        indicators.add(new Pair<>(Indicators.A, "Move to cursor"));
+        addDigitalJoystickHandler("Navigate hotkeys", Joystick.DPad, new DigitalJoystickHandler() {
+            @Override
+            public void performUpAction(float advance) {
+                if(currentHotkeyGroup < 4) currentHotkeyGroup++;
+                switchToHotkeyGroup();
+            }
+
+            @Override
+            public void performDownAction(float advance) {
+                if(currentHotkeyGroup > 0) currentHotkeyGroup--;
+                switchToHotkeyGroup();
+            }
+
+            @Override
+            public void performLeftAction(float advance) {
+                if(currentHotkey > 0)  currentHotkey--;
+            }
+
+            @Override
+            public void performRightAction(float advance) {
+                if(currentHotkey < 9) currentHotkey++;
+            }
+        });
         indicators.add(new Pair<>(Indicators.B, "Use/assign hotkey"));
-        indicators.add(new Pair<>(Indicators.Start, "Pause"));
-        indicators.add(new Pair<>(Indicators.Select, "Open menu"));
+
+        addButtonPressHandler("Pause", LogicalButtons.Start, (float advance) -> Global.getSector().setPaused(!Global.getSector().isPaused()));
+        addButtonPressHandler("Open menu", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+        addButtonPressHandler("Open character sheet", LogicalButtons.Select, new KeySender(Keyboard.KEY_C, 'c'));
         indicators.add(new Pair<>(Indicators.LeftStick, "Set ship heading"));
-        indicators.add(new Pair<>(Indicators.LeftStickButton, "Toggle free look"));
-        indicators.add(new Pair<>(Indicators.RightStick, "Navigate hotkeys"));
-        indicators.add(new Pair<>(Indicators.RightStickButton, "Reassign hotkey"));
-        indicators.add(new Pair<>(Indicators.LeftTrigger, "Open character sheet"));
-        indicators.add(new Pair<>(Indicators.BumperRight, "(hold) Speed up time"));
+        indicators.add(new Pair<>(Indicators.RightStick, "Free look"));
+        addButtonChangeHandler("(hold) Speed up time", LogicalButtons.BumperRight, (float advance, boolean btnState) -> {
+            if(btnState) {
+                InputShim.keyDown(Keyboard.KEY_LSHIFT, '\0');
+            } else {
+                InputShim.keyUp(Keyboard.KEY_LSHIFT, '\0');
+            }
+        });
         indicators.add(new Pair<>(Indicators.RightTrigger, "(hold) Go slow"));
-        //indicators.add(new Pair<>(Indicators.Select, "Reset keybindings"));
+        return indicators;
     }
 
     @Override
     public void activate(Object... args) {
-        campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
-        campaignScope.refreshSelectedIndex();
         selectedHotkey = selectedHotkeyGroup = selectedTab = -1;
         currentHotkeyGroup = currentHotkey = 0;
         hotbarIndicatorRenderer = new ControllerCrosshairRenderer(58);
         lastFrameNumChildren = UIPanelReflector.getChildItems(getPanelForIndicators()).size();
+        headingIndicator = new CrosshairRenderer();
+        ControllerCrosshairRenderer.getControllerRenderer().disable();
+    }
+
+    @Override
+    public void deactivate() {
+        ControllerCrosshairRenderer.getControllerRenderer().enable();
     }
 
     @Override
@@ -103,6 +140,8 @@ public class MainCampaignUI extends InputScreenBase {
         }
         mousePos.y = viewport.convertWorldYtoScreenY(ypos);
         InputShim.mouseMove((int)mousePos.x, (int)mousePos.y);
+        headingIndicator.setMousePos(mousePos.x, mousePos.y);
+        headingIndicator.render();
     }
 
     @Override
@@ -111,8 +150,6 @@ public class MainCampaignUI extends InputScreenBase {
             InputScreenManager.getInstance().transitionToScope(BattleScope.ID, Global.getCombatEngine());
             return;
         }
-        float zoom = CampaignStateReflector.GetInstance().getZoomFactor();
-        ControllerCrosshairRenderer.getControllerRenderer().setSize((int)(58 / zoom));
         if(Global.getSector().getCampaignUI().isShowingDialog()) {
             if (Global.getSector().getCampaignUI().getCurrentInteractionDialog() != null) {
                 InputScreenManager.getInstance().transitionToScreen(DialogUI.ID);
@@ -121,21 +158,7 @@ public class MainCampaignUI extends InputScreenBase {
                 if (openScreenForCoreTab()) return;
             }
         }
-        var children = UIPanelReflector.getChildItems(getPanelForIndicators());
-        int numChildren = children.size();
-        if(numChildren > lastFrameNumChildren) {
-            for(int i = lastFrameNumChildren; i < numChildren; i++ ) {
-                var child = children.get(i);
-                if(UIPanelAPI.class.isAssignableFrom(child.getClass()) && InputScreenManager.getInstance().getDisplayPanel() != null && child != InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
-                    var msgBox = MessageBoxReflector.TryGet((UIPanelAPI) child);
-                    if(msgBox != null) {
-                        InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, msgBox, MainCampaignUI.ID);
-                        return;
-                    }
-                }
-            }
-        }
-        lastFrameNumChildren = numChildren;
+        if (isMessageBoxShown()) return;
 
         if(mousePos.x != -1.f && mousePos.y != -1.f) {
             if (controller.getButtonEvent(LogicalButtons.A) == 1) {
@@ -159,9 +182,6 @@ public class MainCampaignUI extends InputScreenBase {
             CampaignFleetAPI playerFleet = Global.getSector().getPlayerFleet();
             playerFleet.goSlowOneFrame();
         }
-        if(controller.getButtonEvent(LogicalButtons.Start) == 1) {
-            Global.getSector().setPaused(!Global.getSector().isPaused());
-        }
         if(controller.getButtonEvent(LogicalButtons.Select) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
         } else if(controller.getButtonEvent(LogicalButtons.LeftTrigger) == 1) {
@@ -169,18 +189,12 @@ public class MainCampaignUI extends InputScreenBase {
         } else if(controller.getButtonEvent(LogicalButtons.RightStickUp) == 1) {
             if(currentHotkeyGroup > 0) {
                 currentHotkeyGroup--;
-                InputShim.keyDown(Keyboard.KEY_LCONTROL, '\0');
-                InputShim.keyDown(Keyboard.KEY_1 + currentHotkeyGroup, (char)('0' + currentHotkeyGroup));
-                InputShim.keyUp(Keyboard.KEY_LCONTROL, '\0');
-                InputShim.keyUp(Keyboard.KEY_1 + currentHotkeyGroup, (char)('0' + currentHotkeyGroup));
+                switchToHotkeyGroup();
             }
         } else if(controller.getButtonEvent(LogicalButtons.RightStickDown) == 1) {
             if(currentHotkeyGroup < 4) {
                 currentHotkeyGroup++;
-                InputShim.keyDown(Keyboard.KEY_LCONTROL, '\0');
-                InputShim.keyDown(Keyboard.KEY_1 + currentHotkeyGroup, (char)('1' + currentHotkeyGroup));
-                InputShim.keyUp(Keyboard.KEY_LCONTROL, '\0');
-                InputShim.keyUp(Keyboard.KEY_1 + currentHotkeyGroup, (char)('1' + currentHotkeyGroup));
+                switchToHotkeyGroup();
             }
         } else if(controller.getButtonEvent(LogicalButtons.RightStickLeft) == 1) {
             if(currentHotkey > 0) {
@@ -193,11 +207,32 @@ public class MainCampaignUI extends InputScreenBase {
         } else if(controller.getButtonEvent(LogicalButtons.B) == 1) {
             InputShim.keyDownUp(Keyboard.KEY_1 + currentHotkey, (char)('1' + currentHotkey));
         }
-        if(controller.getButtonEvent(LogicalButtons.BumperRight) == 1) {
-            InputShim.keyDown(Keyboard.KEY_LSHIFT, '\0');
-        } else if(controller.getButtonEvent(LogicalButtons.BumperRight) == -1) {
-            InputShim.keyUp(Keyboard.KEY_LSHIFT, '\0');
+    }
+
+    private void switchToHotkeyGroup() {
+        InputShim.keyDown(Keyboard.KEY_LCONTROL, '\0');
+        InputShim.keyDown(Keyboard.KEY_1 + currentHotkeyGroup, (char)('1' + currentHotkeyGroup));
+        InputShim.keyUp(Keyboard.KEY_LCONTROL, '\0');
+        InputShim.keyUp(Keyboard.KEY_1 + currentHotkeyGroup, (char)('1' + currentHotkeyGroup));
+    }
+
+    private boolean isMessageBoxShown() {
+        var children = UIPanelReflector.getChildItems(getPanelForIndicators());
+        int numChildren = children.size();
+        if(numChildren > lastFrameNumChildren) {
+            for(int i = lastFrameNumChildren; i < numChildren; i++ ) {
+                var child = children.get(i);
+                if(UIPanelAPI.class.isAssignableFrom(child.getClass()) && InputScreenManager.getInstance().getDisplayPanel() != null && child != InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
+                    var msgBox = MessageBoxReflector.TryGet((UIPanelAPI) child);
+                    if(msgBox != null) {
+                        InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, msgBox, MainCampaignUI.ID);
+                        return true;
+                    }
+                }
+            }
         }
+        lastFrameNumChildren = numChildren;
+        return false;
     }
 
     boolean tryOpenScreen(Object screenUi, String screenId) {
@@ -229,10 +264,5 @@ public class MainCampaignUI extends InputScreenBase {
     @Override
     public String getId() {
         return ID;
-    }
-
-    @Override
-    public String[] getScopes() {
-        return new String[]{ CampaignScope.ID };
     }
 }

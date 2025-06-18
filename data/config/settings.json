@@ -249,6 +249,9 @@
 			"DPadLeft" : "graphics/indicators/XboxOne_Dpad_Left.png",
 			"DPadRight" : "graphics/indicators/XboxOne_Dpad_Right.png",
 			"DPad" : "graphics/indicators/XboxOne_Dpad.png"
+		},
+		"misc" : {
+			"Crosshair" : "graphics/icons/crosshair.png"
 		}
 	}
 }

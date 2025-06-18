@@ -3,9 +3,11 @@ package ssms.controller.campaign;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventMouseButton;
  import com.fs.starfarer.api.ui.UIComponentAPI;
+import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.campaign.ui.trade.CargoDataGridView;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
+import ssms.controller.enums.Indicators;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.*;
@@ -14,6 +16,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class CargoStackPickerScreen  extends InputScreenBase {
@@ -33,14 +36,10 @@ public class CargoStackPickerScreen  extends InputScreenBase {
         scrollbar = tryGetScrollbar();
         wasScrollerVisible = scrollbar != null;
         movedNewCargoStack = false;
-        refreshIndicators();
     }
 
     @Override
-    public void refreshIndicators() {
-        if(indicators != null && !indicators.isEmpty()) {
-            InputScreenManager.getInstance().refreshIndicators();
-        }
+    public List<Pair<Indicators, String>> getIndicators() {
         indicators = new ArrayList<>();
         if(scrollbar != null) {
             addButtonPressHandler("Select less", LogicalButtons.DpadLeft, (float advance) -> updateMousePos(mouseX - 10));
@@ -56,6 +55,7 @@ public class CargoStackPickerScreen  extends InputScreenBase {
             addButtonPressHandler("Cancel", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
             addButtonPressHandler("Confirm", LogicalButtons.A, (float advance) -> InputShim.mouseDownUp(mouseX, mouseY, InputEventMouseButton.LEFT));
         }
+        return indicators;
     }
 
     void updateMousePos(int newVal) {

@@ -29,7 +29,7 @@ public class CampaignControllerListener implements EveryFrameScript {
         InputShim.advance(amount);
         if (!pluginActive && Global.getCurrentState() == GameState.CAMPAIGN) {
             pluginActive = true;
-            InputScreenManager.getInstance().transitionToScope(CampaignScope.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
+            InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
         }
         if(pluginActive) {
             SSMSControllerModPluginEx.controller.poll();

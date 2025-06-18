@@ -41,11 +41,6 @@ public class RefitTabUI extends InputScreenBase {
     }
 
     @Override
-    public String[] getScopes() {
-        return new String[] { CampaignScope.ID };
-    }
-
-    @Override
     public void activate(Object ... args) {
         viewportAPI = Global.getSector().getViewport();
     }

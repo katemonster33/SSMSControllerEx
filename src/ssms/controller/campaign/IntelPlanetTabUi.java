@@ -32,7 +32,6 @@ import java.util.List;
 public class IntelPlanetTabUi extends InputScreenBase {
     public static final String ID = "IntelPlanetTab";
     List<List<ButtonAPI>> filterButtonRows = null;
-    CampaignScope campaignScope;
     PlanetTabReflector planetTabReflector;
     IntelTabData intelTabData;
     IntelTabReflector intelTabReflector;
@@ -49,17 +48,11 @@ public class IntelPlanetTabUi extends InputScreenBase {
     }
 
     @Override
-    public String[] getScopes() {
-        return new String[]{CampaignScope.ID};
-    }
-
-    @Override
     public void activate(Object ... args) {
         intelTabReflector = (IntelTabReflector) args[0];
 
         planetTabReflector = PlanetTabReflector.tryGet(intelTabReflector);
         intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
-        campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
 
         filterButtonRows = new ArrayList<>();
         for (UIPanelAPI buttonGroup : UIPanelReflector.getChildPanels(planetTabReflector.planetTabData(), 1, 5, 0)) {

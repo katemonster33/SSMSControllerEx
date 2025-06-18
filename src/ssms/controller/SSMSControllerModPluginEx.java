@@ -97,7 +97,6 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         
         man.registerScope(new InputScopeBase());
         man.registerScope(new BattleScope());
-        man.registerScope(new CampaignScope());
         
         man.registerScreen(new InputScreenBase());
         man.registerScreen(new BattleSteeringScreen());

@@ -4,13 +4,18 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.ButtonAPI;
+import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
+import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.inputhelper.DirectionalUINavigator;
+import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.CharacterSheetReflector;
+import ssms.controller.reflection.UIPanelReflector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,47 +23,42 @@ import java.util.List;
 public class CharacterTabUI extends InputScreenBase {
     public static final String ID = "CharacterTab";
     CharacterSheetReflector characterSheetReflector;
-    CampaignScope campaignScope;
-    List<List<ButtonAPI>> buttonRows;
-    int rowSelected = -1, buttonSelected = -1;
-    ButtonAPI selectedBtn;
-    List<Pair<Indicators, String>> indicators = new ArrayList<>();
-
-    public CharacterTabUI() {
-        indicators = new ArrayList<>();
-        indicators.add(new Pair<>(Indicators.LeftStick, "Navigate list"));
-        indicators.add(new Pair<>(Indicators.A, "Select"));
-        indicators.add(new Pair<>(Indicators.B, "Close"));
-        indicators.add(new Pair<>(Indicators.Start, "Confirm"));
-        indicators.add(new Pair<>(Indicators.Y, "Reset"));
-        indicators.add(new Pair<>(Indicators.Select, "Re-assign skills"));
-        indicators.add(new Pair<>(Indicators.BumperRight, "Select fleet tab"));
-    }
+    DirectionalUINavigator directionalUINavigator;
 
     @Override
     public void activate(Object ...args) {
         characterSheetReflector = (CharacterSheetReflector) args[0];
 
-        buttonRows = characterSheetReflector.getButtonRows();
+        //buttonRows = characterSheetReflector.getButtonRows();
 
-        campaignScope = (CampaignScope) InputScreenManager.getInstance().getCurrentScope();
-        campaignScope.refreshSelectedIndex();
+        var characterSheetObj = characterSheetReflector.getCharacterSheetObj();
+        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
+        for(var btn : UIPanelReflector.getChildButtons(characterSheetObj, true)) {
+            directionalObjects.add(new Pair<>(btn, null));
+        }
+        indicators = new ArrayList<>();
+        directionalUINavigator = new DirectionalUINavigator(directionalObjects);
+        addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
+        addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> {
+            if(directionalUINavigator.getSelected() != null) {
+                var pos = directionalUINavigator.getSelected().one.getPosition();
+                InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
+                InputShim.mouseDownUp((int) pos.getCenterX(), (int) pos.getCenterY(), InputEventMouseButton.LEFT);
+            }
+        });
+        addButtonPressHandler("Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+        //indicators.add(new Pair<>(Indicators.Start, "Confirm"));
+        addButtonPressHandler("Reset", LogicalButtons.Y, new KeySender(Keyboard.KEY_G, 'G'));
+        addButtonPressHandler("T", LogicalButtons.X, new KeySender(Keyboard.KEY_T, 'T'));
+        //indicators.add(new Pair<>(Indicators.Select, "Re-assign skills"));
+        addButtonPressHandler("Select fleet tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_F, 'f'));
         ControllerCrosshairRenderer.getControllerRenderer().disable();
     }
 
     @Override
     public void deactivate() {
+        clearHandlers();
         ControllerCrosshairRenderer.getControllerRenderer().enable();
-    }
-
-    void selectNewBtn() {
-        if(selectedBtn != null) {
-            selectedBtn.unhighlight();
-        }
-        selectedBtn = buttonRows.get(rowSelected).get(buttonSelected);
-        selectedBtn.highlight();
-        float mouseX = selectedBtn.getPosition().getCenterX(), mouseY = selectedBtn.getPosition().getCenterY();
-        InputShim.mouseMove((int) mouseX, (int) mouseY);
     }
 
     @Override
@@ -66,54 +66,6 @@ public class CharacterTabUI extends InputScreenBase {
         if(Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.CHARACTER) {
             InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
             return;
-        }
-        if(rowSelected == -1 || buttonSelected == -1) {
-            if(!buttonRows.isEmpty()) {
-                rowSelected = buttonSelected = 0;
-                selectedBtn = buttonRows.get(0).get(0);
-                selectedBtn.highlight();
-            }
-        }
-        if(controller.getButtonEvent(LogicalButtons.LeftStickDown) == 1) {
-            if(rowSelected < buttonRows.size() - 1) {
-                rowSelected++;
-            }
-            if(buttonSelected > buttonRows.get(rowSelected).size()) {
-                buttonSelected = buttonRows.get(rowSelected).size() - 1;
-            }
-            selectNewBtn();
-        } else if(controller.getButtonEvent(LogicalButtons.LeftStickUp) == 1) {
-            if(rowSelected > 0) {
-                rowSelected--;
-            }
-            if(buttonSelected > buttonRows.get(rowSelected).size()) {
-                buttonSelected = buttonRows.get(rowSelected).size() - 1;
-            }
-            selectNewBtn();
-        } else if(controller.getButtonEvent(LogicalButtons.LeftStickLeft) == 1) {
-            if(buttonSelected > 0) {
-                buttonSelected--;
-            }
-            selectNewBtn();
-        } else if(controller.getButtonEvent(LogicalButtons.LeftStickRight) == 1) {
-            if(buttonSelected < (buttonRows.get(rowSelected).size() - 1)) {
-                buttonSelected++;
-            }
-            selectNewBtn();
-        } else if(controller.getButtonEvent(LogicalButtons.Y) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_G, 'G');
-        } else if(controller.getButtonEvent(LogicalButtons.X) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_T, 'T');
-        } else if(controller.getButtonEvent(LogicalButtons.A) == 1) {
-            if(selectedBtn != null) {
-                float mouseX = selectedBtn.getPosition().getCenterX(), mouseY = selectedBtn.getPosition().getCenterY();
-                InputShim.mouseMove((int) mouseX, (int) mouseY);
-                InputShim.mouseDownUp((int) mouseX, (int) mouseY, InputEventMouseButton.LEFT);
-            }
-        } else if(controller.getButtonEvent(LogicalButtons.B) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-        } else if(controller.getButtonEvent(LogicalButtons.BumperRight) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_F, 'f');
         }
     }
 
@@ -123,17 +75,7 @@ public class CharacterTabUI extends InputScreenBase {
     }
 
     @Override
-    public List<Pair<Indicators, String>> getIndicators() {
-        return indicators;
-    }
-
-    @Override
     public String getId() {
         return ID;
-    }
-
-    @Override
-    public String[] getScopes() {
-        return new String[]{ CampaignScope.ID };
     }
 }

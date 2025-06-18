@@ -28,6 +28,10 @@ public class CharacterSheetReflector {
         this.characterSheetObj = characterSheetObj;
     }
 
+    public UIPanelAPI getCharacterSheetObj() {
+        return characterSheetObj;
+    }
+
     public CoreUIAPI getCoreUIAPI() {
         return coreUIAPI;
     }

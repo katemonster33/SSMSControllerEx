@@ -103,7 +103,7 @@ public class TradeScreen extends InputScreenBase {
             }
         }
         if(!Global.getSector().getCampaignUI().isShowingDialog() || (isCargoTab && Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.CARGO)) {
-            InputScreenManager.getInstance().transitionToScope(CampaignScope.ID, new Object[]{}, MainCampaignUI.ID, new Object[]{});
+            InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
         } else if(tradeUiReflector.getCoreUIAPI().getTradeMode() != null){
             var dialogParent = interactionDialogAPI != null ? (UIPanelAPI) interactionDialogAPI : UIPanelReflector.getParent((UIPanelAPI) tradeUiReflector.getCoreUIAPI());
             var tradePanelChildren = UIPanelReflector.getChildItems(dialogParent);
