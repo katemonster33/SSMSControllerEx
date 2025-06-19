@@ -19,7 +19,6 @@ public class CampaignStateReflector {
     static CampaignStateReflector instance;
     private CampaignStateReflector() {
         cs = AppDriver.getInstance().getState(CampaignState.STATE_ID);
-
         try {
             getScreenHandle = ClassReflector.GetInstance().findDeclaredMethod(CampaignState.class, "getScreenPanel");
 

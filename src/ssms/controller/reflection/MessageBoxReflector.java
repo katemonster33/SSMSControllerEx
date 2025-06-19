@@ -18,6 +18,7 @@ public class MessageBoxReflector {
     static Object isBeingDismissed;
     static MethodHandle actionPerformed;
     static Object getOptionMap;
+    static Object getInnerPanel;
     Object dialogObject;
     private MessageBoxReflector(Object dialogObject) {
         this.dialogObject = dialogObject;
@@ -41,6 +42,7 @@ public class MessageBoxReflector {
                         return null;
                     }
                 }
+                getInnerPanel = ClassReflector.GetInstance().findDeclaredMethod(clsTmp, "getInnerPanel");
 
                 actionPerformed = lookup.findVirtual(clsTmp, "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
 
@@ -72,12 +74,14 @@ public class MessageBoxReflector {
     public List<ButtonAPI> getDialogButtons() {
         List<ButtonAPI> output = new ArrayList<>();
         try {
-            Map<?,?> options = (Map<?,?>) MethodReflector.GetInstance().invoke(getOptionMap, dialogObject);
-            for(Object obj : options.keySet()) {
-                if(ButtonAPI.class.isAssignableFrom(obj.getClass())) {
-                    output.add((ButtonAPI) obj);
-                }
-            }
+//            Map<?,?> options = (Map<?,?>) MethodReflector.GetInstance().invoke(getOptionMap, dialogObject);
+//            for(Object obj : options.keySet()) {
+//                if(ButtonAPI.class.isAssignableFrom(obj.getClass())) {
+//                    output.add((ButtonAPI) obj);
+//                }
+//            }
+            var innerPanel = (UIPanelAPI) MethodReflector.GetInstance().invoke(getInnerPanel, dialogObject);
+            output.addAll(UIPanelReflector.getChildButtons(innerPanel));
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't fetch buttons of dialog!");
         }

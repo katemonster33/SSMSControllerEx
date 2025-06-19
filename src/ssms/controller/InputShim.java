@@ -84,6 +84,13 @@ public class InputShim implements InputImplementation {
 
     public static void mouseMove(int x, int y)
     {
+        for(var evt : pendingEvents) {
+            if(evt.eventType == EventType.MOUSE && evt.dwheel == 0 && evt.mouseBtn == 0xFF) {
+                evt.mouseX = x;
+                evt.mouseY = y;
+                return;
+            }
+        }
         pendingEvents.add(new InputEvent(x, y));
     }
 

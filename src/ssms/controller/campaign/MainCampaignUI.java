@@ -27,10 +27,11 @@ import ssms.controller.reflection.*;
 
 public class MainCampaignUI extends InputScreenBase {
     public static final String ID = "MainCampaign";
-    Vector2f lastHeading = null;
     Vector2f mousePos = new Vector2f(-1.f, -1.f);
 
+    boolean leftStickActive = false, rightStickActive = false;
     CrosshairRenderer headingIndicator;
+    ViewportAPI sectorViewport;
     ControllerCrosshairRenderer hotbarIndicatorRenderer;
     int currentHotkeyGroup = 0, currentHotkey = 0;
     int lastFrameNumChildren = -1;
@@ -41,17 +42,23 @@ public class MainCampaignUI extends InputScreenBase {
     @Override
     public List<Pair<Indicators, String>> getIndicators() {
         indicators = new ArrayList<>();
-        indicators.add(new Pair<>(Indicators.A, "Move to cursor"));
+        addAnalogJoystickHandler("Set ship heading", Joystick.Left, this::handleShipMovement);
+        indicators.add(new Pair<>(Indicators.LeftStickButton, "(hold) Go Slow"));
+        addAnalogJoystickHandler("Free look", Joystick.Right, this::handleCameraMovement);
+        addButtonChangeHandler("Move to cursor", LogicalButtons.A, (float advance, boolean btnState) -> {
+            if(btnState) InputShim.mouseDown((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
+            else InputShim.mouseUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
+        });
         addDigitalJoystickHandler("Navigate hotkeys", Joystick.DPad, new DigitalJoystickHandler() {
             @Override
             public void performUpAction(float advance) {
-                if(currentHotkeyGroup < 4) currentHotkeyGroup++;
+                if(currentHotkeyGroup > 0) currentHotkeyGroup--;
                 switchToHotkeyGroup();
             }
 
             @Override
             public void performDownAction(float advance) {
-                if(currentHotkeyGroup > 0) currentHotkeyGroup--;
+                if(currentHotkeyGroup < 4) currentHotkeyGroup++;
                 switchToHotkeyGroup();
             }
 
@@ -65,21 +72,17 @@ public class MainCampaignUI extends InputScreenBase {
                 if(currentHotkey < 9) currentHotkey++;
             }
         });
-        indicators.add(new Pair<>(Indicators.B, "Use/assign hotkey"));
+        addButtonPressHandler("Zoom out", LogicalButtons.LeftTrigger, (float advance) -> InputShim.mouseWheel((int) mousePos.x, (int) mousePos.y, -5));
+        addButtonPressHandler("Zoom in", LogicalButtons.RightTrigger, (float advance) -> InputShim.mouseWheel((int) mousePos.x, (int) mousePos.y, 5));
+        addButtonPressHandler("Use hotkey", LogicalButtons.Y, (float advance) -> InputShim.keyDownUp(Keyboard.KEY_1 + currentHotkey, (char)('1' + currentHotkey)));
 
         addButtonPressHandler("Pause", LogicalButtons.Start, (float advance) -> Global.getSector().setPaused(!Global.getSector().isPaused()));
         addButtonPressHandler("Open menu", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
         addButtonPressHandler("Open character sheet", LogicalButtons.Select, new KeySender(Keyboard.KEY_C, 'c'));
-        indicators.add(new Pair<>(Indicators.LeftStick, "Set ship heading"));
-        indicators.add(new Pair<>(Indicators.RightStick, "Free look"));
         addButtonChangeHandler("(hold) Speed up time", LogicalButtons.BumperRight, (float advance, boolean btnState) -> {
-            if(btnState) {
-                InputShim.keyDown(Keyboard.KEY_LSHIFT, '\0');
-            } else {
-                InputShim.keyUp(Keyboard.KEY_LSHIFT, '\0');
-            }
+            if(btnState) InputShim.keyDown(Keyboard.KEY_LSHIFT, '\0');
+            else InputShim.keyUp(Keyboard.KEY_LSHIFT, '\0');
         });
-        indicators.add(new Pair<>(Indicators.RightTrigger, "(hold) Go slow"));
         return indicators;
     }
 
@@ -90,12 +93,15 @@ public class MainCampaignUI extends InputScreenBase {
         hotbarIndicatorRenderer = new ControllerCrosshairRenderer(58);
         lastFrameNumChildren = UIPanelReflector.getChildItems(getPanelForIndicators()).size();
         headingIndicator = new CrosshairRenderer();
+        headingIndicator.setSize(32, 32);
+        sectorViewport = Global.getSector().getViewport();
+        indicators = null;
         ControllerCrosshairRenderer.getControllerRenderer().disable();
     }
 
     @Override
     public void deactivate() {
-        ControllerCrosshairRenderer.getControllerRenderer().enable();
+        //ControllerCrosshairRenderer.getControllerRenderer().enable();
     }
 
     @Override
@@ -104,44 +110,55 @@ public class MainCampaignUI extends InputScreenBase {
         int x = 277 + currentHotkey * 59 + 29, y = 103 - 29;
         hotbarIndicatorRenderer.AttemptRender(viewport, x, y);
 
+        if(InputShim.hasMouseControl()) {
+            headingIndicator.setMousePos(mousePos.x, mousePos.y);
+            headingIndicator.render();
+        }
+    }
+
+    boolean setMousePosFromStick(Vector2f stickVal) {
         var pf = Global.getSector().getPlayerFleet();
         if(pf == null) {
-            return;
+            return false;
         }
-        ReadableVector2f desiredHeading = controller.getJoystick(Joystick.Left);
-        if ( desiredHeading.getX() == 0 && desiredHeading.getY() == 0) {
-            if(lastHeading != null && (desiredHeading.getX() != lastHeading.getX() || desiredHeading.getY() != lastHeading.getY())) {
-                mousePos.x = pf.getLocation().getX();
-                mousePos.y = pf.getLocation().getY();
-                InputShim.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
-                lastHeading = null;
-            }
-            return;
+        if ( stickVal.getX() == 0 && stickVal.getY() == 0) {
+            mousePos.x = sectorViewport.convertWorldXtoScreenX(pf.getLocation().getX());
+            mousePos.y = sectorViewport.convertWorldYtoScreenY(pf.getLocation().getY());
+            InputShim.mouseMove((int) mousePos.getX(), (int) mousePos.getY());
+            return false;
         }
-        if(lastHeading == null) {
-            lastHeading = new Vector2f(desiredHeading.getX(), desiredHeading.getY());
-        } else {
-            lastHeading.set(desiredHeading.getX(), desiredHeading.getY());
-        }
-        float minX = viewport.getLLX(), minY = viewport.getLLY();
-        float maxX = viewport.getVisibleWidth() + minX, maxY = viewport.getVisibleHeight() + minY;
+        float minX = sectorViewport.getLLX(), minY = sectorViewport.getLLY();
+        float maxX = sectorViewport.getVisibleWidth() + minX, maxY = sectorViewport.getVisibleHeight() + minY;
         var shipPos = pf.getLocation();
         float xpos, ypos;
-        if(desiredHeading.getX() < 0) {
-            xpos = shipPos.x + desiredHeading.getX() * (shipPos.x - minX);
+        if(stickVal.getX() < 0) {
+            xpos = shipPos.x + stickVal.getX() * (shipPos.x - minX);
         } else {
-            xpos = shipPos.x + desiredHeading.getX() * (maxX - shipPos.x);
+            xpos = shipPos.x + stickVal.getX() * (maxX - shipPos.x);
         }
-        mousePos.x = viewport.convertWorldXtoScreenX(xpos);
-        if(desiredHeading.getY() < 0) {
-            ypos = shipPos.y - desiredHeading.getY() * (shipPos.y - minY);
+        mousePos.x = sectorViewport.convertWorldXtoScreenX(xpos);
+        if(stickVal.getY() < 0) {
+            ypos = shipPos.y - stickVal.getY() * (shipPos.y - minY);
         } else {
-            ypos = shipPos.y - desiredHeading.getY() * (maxY - shipPos.y);
+            ypos = shipPos.y - stickVal.getY() * (maxY - shipPos.y);
         }
-        mousePos.y = viewport.convertWorldYtoScreenY(ypos);
+        mousePos.y = sectorViewport.convertWorldYtoScreenY(ypos);
         InputShim.mouseMove((int)mousePos.x, (int)mousePos.y);
-        headingIndicator.setMousePos(mousePos.x, mousePos.y);
-        headingIndicator.render();
+        return true;
+    }
+
+    void handleShipMovement(float advance, Vector2f leftStick) {
+        if(rightStickActive) return;
+
+        leftStickActive = setMousePosFromStick(leftStick);
+    }
+
+    void handleCameraMovement(float advance, Vector2f rightStick) {
+        boolean oldRightStickActive = rightStickActive;
+        rightStickActive = rightStick.getX() != 0 || rightStick.getY() != 0;
+        if(leftStickActive) return;
+        if(oldRightStickActive != rightStickActive) InputShim.mouseDownUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.RIGHT);
+        setMousePosFromStick(rightStick);
     }
 
     @Override
@@ -159,53 +176,9 @@ public class MainCampaignUI extends InputScreenBase {
             }
         }
         if (isMessageBoxShown()) return;
-
-        if(mousePos.x != -1.f && mousePos.y != -1.f) {
-            if (controller.getButtonEvent(LogicalButtons.A) == 1) {
-                InputShim.mouseDown((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
-            } else if (controller.getButtonEvent(LogicalButtons.A) == -1) {
-                InputShim.mouseUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
-            }
-        }
-        if(controller.getButtonEvent(LogicalButtons.LeftStickButton) == 1) {
-            if(mousePos.x == -1.f || mousePos.y == -1.f) {
-                if(Global.getSector().getPlayerFleet() != null) {
-                    var shipLoc = Global.getSector().getPlayerFleet().getLocation();
-                    mousePos.x = shipLoc.getX();
-                    mousePos.y = shipLoc.getY();
-                }
-            }
-            InputShim.mouseMove((int) mousePos.x, (int) mousePos.y);
-            InputShim.mouseDownUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.RIGHT);
-        }
-        if(controller.isButtonPressed(LogicalButtons.RightTrigger)) {
+        if(controller.isButtonPressed(LogicalButtons.LeftStickButton)) {
             CampaignFleetAPI playerFleet = Global.getSector().getPlayerFleet();
             playerFleet.goSlowOneFrame();
-        }
-        if(controller.getButtonEvent(LogicalButtons.Select) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-        } else if(controller.getButtonEvent(LogicalButtons.LeftTrigger) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_C, 'c');
-        } else if(controller.getButtonEvent(LogicalButtons.RightStickUp) == 1) {
-            if(currentHotkeyGroup > 0) {
-                currentHotkeyGroup--;
-                switchToHotkeyGroup();
-            }
-        } else if(controller.getButtonEvent(LogicalButtons.RightStickDown) == 1) {
-            if(currentHotkeyGroup < 4) {
-                currentHotkeyGroup++;
-                switchToHotkeyGroup();
-            }
-        } else if(controller.getButtonEvent(LogicalButtons.RightStickLeft) == 1) {
-            if(currentHotkey > 0) {
-                currentHotkey--;
-            }
-        } else if(controller.getButtonEvent(LogicalButtons.RightStickRight) == 1) {
-            if(currentHotkey < 9) {
-                currentHotkey++;
-            }
-        } else if(controller.getButtonEvent(LogicalButtons.B) == 1) {
-            InputShim.keyDownUp(Keyboard.KEY_1 + currentHotkey, (char)('1' + currentHotkey));
         }
     }
 

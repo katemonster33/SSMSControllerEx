@@ -23,6 +23,7 @@ import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
+import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.enums.AxisMapping;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
@@ -50,6 +51,7 @@ public class InputScreenBase {
     protected EnumMap<Joystick, DigitalJoystickHandler> digitalJoystickHandlers;
     protected EnumMap<Joystick, AnalogJoystickHandler> analogJoystickHandlers;
     protected HandlerController controller;
+    protected EnumMap<Joystick, Vector2f> lastFrameJoystickVal;
 
     public InputScreenBase() {
         buttonHandlers = new EnumMap<>(LogicalButtons.class);
@@ -57,6 +59,7 @@ public class InputScreenBase {
         indicators = new ArrayList<>();
         digitalJoystickHandlers = new EnumMap<>(Joystick.class);
         analogJoystickHandlers = new EnumMap<>(Joystick.class);
+        lastFrameJoystickVal = new EnumMap<>(Joystick.class);
         controller = SSMSControllerModPluginEx.controller;
     }
 
@@ -114,7 +117,14 @@ public class InputScreenBase {
         }
         for (Joystick joystick : joystickHandlersToFire.keySet()) {
             var handler = analogJoystickHandlers.get(joystick);
-            if (handler != null) handler.performAction(advance, controller.getJoystick(joystick));
+            if (handler != null){
+                var joystickVal = controller.getJoystick(joystick);
+                var lastFrameJoystick = lastFrameJoystickVal.get(joystick);
+                if(lastFrameJoystick == null || joystickVal.getX() != lastFrameJoystick.getX() || joystickVal.getY() != lastFrameJoystick.getY()) {
+                    handler.performAction(advance, joystickVal);
+                    lastFrameJoystickVal.put(joystick, joystickVal);
+                }
+            }
         }
         for(var handler : buttonExHandlers.values()) {
             if(handler instanceof ButtonPressOrHoldHandler buttonPressOrHoldHandler) {

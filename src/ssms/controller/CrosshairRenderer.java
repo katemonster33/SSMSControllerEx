@@ -21,6 +21,6 @@ public class CrosshairRenderer {
     }
 
     public void render() {
-        crosshairSprite.render(mousePos.getX() - (crosshairSprite.getWidth() / 2), mousePos.getY() + (crosshairSprite.getHeight() / 2));
+        crosshairSprite.render(mousePos.getX() - (crosshairSprite.getWidth() / 2), mousePos.getY() - (crosshairSprite.getHeight() / 2));
     }
 }
