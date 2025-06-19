@@ -9,10 +9,7 @@ import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.campaign.CampaignEngine;
 import com.fs.starfarer.campaign.comms.IntelTabData;
-import com.fs.starfarer.campaign.ui.MarketConditionsWidget;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.util.vector.ReadableVector2f;
-import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
@@ -38,8 +35,7 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
 
     enum StarSystemTabFocusMode {
         PlanetAttributes,
-        Map,
-        PlanetList
+        Map
     };
     StarSystemTabFocusMode currentTabFocus = StarSystemTabFocusMode.PlanetAttributes;
     MapInputHandler mapInputHandler;
@@ -137,24 +133,33 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
 
     @Override
     public void preInput(float amount) {
-        if(Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.INTEL) InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
-        else if(intelTabData.getSelectedTabIndex() == 0) InputScreenManager.getInstance().transitionDelayed(IntelTabUI.ID, intelTabReflector);
-        else if(intelTabData.getSelectedTabIndex() == 1 && planetTabReflector.getStarSystem() == null) InputScreenManager.getInstance().transitionDelayed(IntelPlanetTabUi.ID, intelTabReflector);
-        else if(intelTabData.getSelectedTabIndex() == 2) InputScreenManager.getInstance().transitionDelayed(IntelFactionTabUi.ID, intelTabReflector);
+        if (Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.INTEL) {
+            InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
+        } else if (intelTabData.getSelectedTabIndex() == 0) {
+            InputScreenManager.getInstance().transitionDelayed(IntelTabUI.ID, intelTabReflector);
+        } else if (intelTabData.getSelectedTabIndex() == 1 && planetTabReflector.getStarSystem() == null) {
+            InputScreenManager.getInstance().transitionDelayed(IntelPlanetTabUi.ID, intelTabReflector);
+        } else if (intelTabData.getSelectedTabIndex() == 2) {
+            InputScreenManager.getInstance().transitionDelayed(IntelFactionTabUi.ID, intelTabReflector);
+        }
 
-//        if(directionalUINavigator == null) return;
-//        planetAttributeButtons = UIPanelReflector.getChildButtons(planetTabReflector.getPlanetInfoPanel());
-//        planetListButtons = UIPanelReflector.getChildButtons(planetTabReflector.getStarSystemDisplay());
-//        List<UIComponentAPI> buttonList = new ArrayList<>(planetListButtons);
-//        //buttonList.addAll(planetAttributeButtons);
-//        buttonList.add(mapComponent);
-//        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
-//        for(var btn : buttonList) {
-//            directionalObjects.add(new Pair<>(btn, null));
-//        }
-//        directionalUINavigator.setNavigationObjects(directionalObjects);
+        // intel tab was recreated due to user clicking the map, this is dumb and I hate it
+        if (UIPanelReflector.getParent(intelTabReflector.getBorderedPanel().getBorderedPanel()) == null) {
+            for(var coreUiChild : UIPanelReflector.getChildPanels((UIPanelAPI) intelTabReflector.getBorderedPanel().getCoreUIAPI())) {
+                var newBorderedPanel = BorderedPanelReflector.TryGet(intelTabReflector.getBorderedPanel().getCoreUIAPI(), coreUiChild);
+                if (newBorderedPanel != null) {
+                    intelTabReflector = IntelTabReflector.TryGet(newBorderedPanel.getCoreUIAPI(), newBorderedPanel);
+                    if (intelTabReflector != null) {
+                        planetTabReflector = IntelPlanetTabUi.PlanetTabReflector.tryGet(intelTabReflector);
+                        refreshIndicators();
+                        directionalUINavigator = null;
+                        mapInputHandler = null;
+                    }
+                }
+            }
+        }
 
-        if(mapInputHandler != null) {
+        if (mapInputHandler != null) {
             mapInputHandler.advance(amount);
         }
     }

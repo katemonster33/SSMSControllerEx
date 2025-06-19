@@ -28,7 +28,11 @@ public class BorderedPanelReflector {
         return coreUIAPI;
     }
 
-    public UIPanelAPI getPanel() {
+    public UIPanelAPI getBorderedPanel() {
+        return borderedPanel;
+    }
+
+    public UIPanelAPI getInnerPanel() {
         try {
             return (UIPanelAPI) getPanel.invoke(borderedPanel);
         } catch(Throwable ex){
@@ -37,37 +41,31 @@ public class BorderedPanelReflector {
         }
      }
 
-    public static BorderedPanelReflector TryGet(CoreUIAPI coreUIAPI) {
+    public static BorderedPanelReflector TryGet(CoreUIAPI coreUIAPI, UIPanelAPI panelObj) {
         try {
-            var children = UIPanelReflector.getChildItems((UIPanelAPI) coreUIAPI);
-            for(var coreuiChild : children) {
-                if(UIPanelAPI.class.isAssignableFrom(coreuiChild.getClass())) {
-                    if (borderedPanelCls == null) {
-                        try {
-                            getPanel = MethodHandles.lookup().findVirtual(coreuiChild.getClass(), "getPanel", MethodType.methodType(UIPanelReflector.panelType));
+            if (borderedPanelCls == null) {
+                try {
+                    getPanel = MethodHandles.lookup().findVirtual(panelObj.getClass(), "getPanel", MethodType.methodType(UIPanelReflector.panelType));
 
-                            setPanel = MethodHandles.lookup().findVirtual(coreuiChild.getClass(), "setPanel", MethodType.methodType(void.class, UIPanelReflector.panelType));
+                    setPanel = MethodHandles.lookup().findVirtual(panelObj.getClass(), "setPanel", MethodType.methodType(void.class, UIPanelReflector.panelType));
 
-                            setBorderInsetLeft = MethodHandles.lookup().findVirtual(coreuiChild.getClass(), "setBorderInsetLeft", MethodType.methodType(void.class, float.class));
+                    setBorderInsetLeft = MethodHandles.lookup().findVirtual(panelObj.getClass(), "setBorderInsetLeft", MethodType.methodType(void.class, float.class));
 
-                            setBorderInsetRight = MethodHandles.lookup().findVirtual(coreuiChild.getClass(), "setBorderInsetRight", MethodType.methodType(void.class, float.class));
+                    setBorderInsetRight = MethodHandles.lookup().findVirtual(panelObj.getClass(), "setBorderInsetRight", MethodType.methodType(void.class, float.class));
 
-                            setBorderInsetTop = MethodHandles.lookup().findVirtual(coreuiChild.getClass(), "setBorderInsetTop", MethodType.methodType(void.class, float.class));
+                    setBorderInsetTop = MethodHandles.lookup().findVirtual(panelObj.getClass(), "setBorderInsetTop", MethodType.methodType(void.class, float.class));
 
-                            setBorderInsetBottom = MethodHandles.lookup().findVirtual(coreuiChild.getClass(), "setBorderInsetBottom", MethodType.methodType(void.class, float.class));
+                    setBorderInsetBottom = MethodHandles.lookup().findVirtual(panelObj.getClass(), "setBorderInsetBottom", MethodType.methodType(void.class, float.class));
 
-                            borderedPanelCls = coreuiChild.getClass();
+                    borderedPanelCls = panelObj.getClass();
 
-                            return new BorderedPanelReflector((UIPanelAPI) coreuiChild, coreUIAPI);
-                        } catch (Throwable ex) {
-                            Global.getLogger(BorderedPanelReflector.class).info("Failed to reflect type of bordered panel!", ex);
-                        }
-                    } else if (borderedPanelCls.isAssignableFrom(coreuiChild.getClass())) {
-                        return new BorderedPanelReflector((UIPanelAPI) coreuiChild, coreUIAPI);
-                    }
+                    return new BorderedPanelReflector((UIPanelAPI) panelObj, coreUIAPI);
+                } catch (Throwable ex) {
+                    Global.getLogger(BorderedPanelReflector.class).info("Failed to reflect type of bordered panel!", ex);
                 }
+            } else if (borderedPanelCls.isAssignableFrom(panelObj.getClass())) {
+                return new BorderedPanelReflector((UIPanelAPI) panelObj, coreUIAPI);
             }
-            Global.getLogger(BorderedPanelReflector.class).warn("Did not find any border panel UI in the UI tree underneath CoreUI!");
         } catch (Throwable ex) {
             Global.getLogger(BorderedPanelReflector.class).warn("Failed to reflect trade UI object", ex);
         }

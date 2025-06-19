@@ -5,7 +5,6 @@ import com.fs.starfarer.api.campaign.CoreUIAPI;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.coreui.AptitudeRow;
-import ssms.controller.HandlerController;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -13,7 +12,6 @@ import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class CharacterSheetReflector {
     CoreUIAPI coreUIAPI;
@@ -37,7 +35,7 @@ public class CharacterSheetReflector {
     }
 
     public static CharacterSheetReflector TryGet(CoreUIAPI coreUIAPI, BorderedPanelReflector borderedPanelReflector) {
-        var parentPanel = borderedPanelReflector.getPanel();
+        var parentPanel = borderedPanelReflector.getInnerPanel();
         if(characterSheetCls == null) {
             try {
                 getAptitudeRows = MethodHandles.lookup().findVirtual(parentPanel.getClass(), "getAptitudeRows", MethodType.methodType(List.class));
@@ -46,12 +44,12 @@ public class CharacterSheetReflector {
 
                 getButtonsMap = MethodHandles.lookup().findVirtual(AptitudeRow.class, "getButtonsMap", MethodType.methodType(Map.class));
 
-                return new CharacterSheetReflector(coreUIAPI, borderedPanelReflector.getPanel());
+                return new CharacterSheetReflector(coreUIAPI, borderedPanelReflector.getInnerPanel());
             } catch(Throwable ex) {
                 Global.getLogger(CharacterSheetReflector.class).fatal("Couldn't reflect CharacterSheet UI object!", ex);
             }
         } else if(characterSheetCls.isAssignableFrom(parentPanel.getClass())) {
-            return new CharacterSheetReflector(coreUIAPI, borderedPanelReflector.getPanel());
+            return new CharacterSheetReflector(coreUIAPI, borderedPanelReflector.getInnerPanel());
         }
         return null;
     }

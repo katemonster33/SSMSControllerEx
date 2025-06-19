@@ -12,6 +12,7 @@ import java.util.List;
 public class MapReflector {
     CoreUIAPI coreUIAPI;
     UIComponentAPI mapObj;
+    static Class<?> mapType;
 
     private MapReflector(CoreUIAPI coreUi, UIComponentAPI mapObj) {
         this.coreUIAPI = coreUi;
@@ -19,13 +20,19 @@ public class MapReflector {
     }
 
     public static MapReflector TryGet(CoreUIAPI coreUIAPI, BorderedPanelReflector borderedPanelReflector) {
-        try {
-            var mapObj = borderedPanelReflector.getPanel();
+        var mapObj = borderedPanelReflector.getInnerPanel();
+        if (mapType == null) {
+            try {
+                var getMap = ClassReflector.GetInstance().getDeclaredMethod(mapObj.getClass(), "getMap");
+                mapType = mapObj.getClass();
+                return new MapReflector(coreUIAPI, mapObj);
+            } catch (Throwable ex) {
+                Global.getLogger(MapReflector.class).error("Couldn't fetch map UI!");
+            }
+        } else if (mapType.isAssignableFrom(mapObj.getClass())) {
             return new MapReflector(coreUIAPI, mapObj);
-        } catch(Throwable ex) {
-            Global.getLogger(MapReflector.class).error("Couldn't fetch map UI!");
-            return null;
         }
+        return null;
     }
 
     // gets the buttons visible when you click and hold a location on the map.

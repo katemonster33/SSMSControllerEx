@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
+import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
@@ -38,12 +39,17 @@ public class MapTabUI extends InputScreenBase {
         indicators = new ArrayList<>();
         mapInputHandler = addMapHandler(mapReflector.getMap());
 
-        addButtonPressHandler("Close dialog", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
         List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
         for(var btn : mapReflector.getButtons()) {
             directionalObjects.add(new Pair<>(btn, null));
         }
         addDigitalJoystickHandler("Navigate", Joystick.DPad, new DirectionalUINavigator(directionalObjects));
+        var buttons = UIPanelReflector.getChildButtons((UIPanelAPI) mapReflector.getMap());
+        if(buttons.size() == 4) {
+            addButtonPressHandler("Go back", LogicalButtons.B, new KeySender(Keyboard.KEY_S, 's'));
+        } else {
+            addButtonPressHandler("Close dialog", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+        }
         addButtonPressHandler("Select cargo tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_I, 'i'));
         addButtonPressHandler("Select intel tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_E, 'e'));
         addButtonPressHandler("Select sector view", LogicalButtons.Y, new KeySender(Keyboard.KEY_Q, 'q'));

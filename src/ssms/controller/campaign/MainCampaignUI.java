@@ -8,7 +8,6 @@ import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.InputScreenBase;
@@ -218,17 +217,23 @@ public class MainCampaignUI extends InputScreenBase {
     boolean openScreenForCoreTab() {
         var coreUI = CampaignStateReflector.GetInstance().getCoreUI();
         if (coreUI != null) {
-            var borderedPanel = BorderedPanelReflector.TryGet(coreUI);
-            if (borderedPanel != null) {
-                return switch (Global.getSector().getCampaignUI().getCurrentCoreTab()) {
-                    case CARGO ->       tryOpenScreen(TradeUiReflector.TryGet(coreUI, borderedPanel), TradeScreen.ID);
-                    case CHARACTER ->   tryOpenScreen(CharacterSheetReflector.TryGet(coreUI, borderedPanel), CharacterTabUI.ID);
-                    case FLEET ->       tryOpenScreen(FleetTabReflector.TryGet(coreUI, borderedPanel), FleetTabUI.ID);
-                    case INTEL ->       tryOpenScreen(IntelTabReflector.TryGet(coreUI, borderedPanel), IntelTabUI.ID);
-                    case MAP ->         tryOpenScreen(MapReflector.TryGet(coreUI, borderedPanel), MapTabUI.ID);
-                    case REFIT ->       tryOpenScreen(borderedPanel.getPanel(), RefitTabUI.ID);
-                    case OUTPOSTS ->    tryOpenScreen(borderedPanel.getPanel(), CommandTabUI.ID);
-                };
+
+            for(var coreuiChild : UIPanelReflector.getChildPanels((UIPanelAPI) coreUI)) {
+                var borderedPanel = BorderedPanelReflector.TryGet(coreUI, coreuiChild);
+                if (borderedPanel != null) {
+                    boolean output = switch (Global.getSector().getCampaignUI().getCurrentCoreTab()) {
+                        case CARGO -> tryOpenScreen(TradeUiReflector.TryGet(coreUI, borderedPanel), TradeScreen.ID);
+                        case CHARACTER ->
+                                tryOpenScreen(CharacterSheetReflector.TryGet(coreUI, borderedPanel), CharacterTabUI.ID);
+                        case FLEET -> tryOpenScreen(FleetTabReflector.TryGet(coreUI, borderedPanel), FleetTabUI.ID);
+                        case INTEL -> tryOpenScreen(IntelTabReflector.TryGet(coreUI, borderedPanel), IntelTabUI.ID);
+                        case MAP -> tryOpenScreen(MapReflector.TryGet(coreUI, borderedPanel), MapTabUI.ID);
+                        case REFIT -> tryOpenScreen(borderedPanel.getInnerPanel(), RefitTabUI.ID);
+                        case OUTPOSTS -> tryOpenScreen(borderedPanel.getInnerPanel(), CommandTabUI.ID);
+                    };
+                    if (output) return true;
+
+                }
             }
         }
         return false;

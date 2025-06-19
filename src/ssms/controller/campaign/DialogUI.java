@@ -71,11 +71,13 @@ public class DialogUI extends InputScreenBase {
             if (interactionCoreUi != null && interactionCoreUi.getTradeMode() != null) {
                 var dialogChildren = UIPanelReflector.getChildItems((UIPanelAPI) interactionDialogAPI);
                 if (dialogChildren.contains(interactionCoreUi)) {
-                    BorderedPanelReflector borderPanel = BorderedPanelReflector.TryGet(interactionCoreUi);
-                    if (borderPanel != null) {
-                        var tradeUi = TradeUiReflector.TryGet(interactionCoreUi, borderPanel);
-                        if (tradeUi != null && tradeUi.getTradePanel() != null && tradeUi.getTradePanel().getOpacity() != 0.f) {
-                            InputScreenManager.getInstance().transitionToScreen(TradeScreen.ID, tradeUi);
+                    for (var coreUiChild : UIPanelReflector.getChildPanels((UIPanelAPI) interactionCoreUi)) {
+                        BorderedPanelReflector borderPanel = BorderedPanelReflector.TryGet(interactionCoreUi, coreUiChild);
+                        if (borderPanel != null) {
+                            var tradeUi = TradeUiReflector.TryGet(interactionCoreUi, borderPanel);
+                            if (tradeUi != null && tradeUi.getTradePanel() != null && tradeUi.getTradePanel().getOpacity() != 0.f) {
+                                InputScreenManager.getInstance().transitionToScreen(TradeScreen.ID, tradeUi);
+                            }
                         }
                     }
                 }

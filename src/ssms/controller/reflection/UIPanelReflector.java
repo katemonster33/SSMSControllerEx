@@ -64,8 +64,8 @@ public class UIPanelReflector {
             }
             List<UIPanelAPI> output = new ArrayList<>();
             for(Object child : childrenTmp) {
-                if((UIPanelAPI.class.isAssignableFrom(child.getClass()))) {
-                    output.add((UIPanelAPI) child);
+                if(child instanceof  UIPanelAPI panelAPI) {
+                    output.add(panelAPI);
                 }
             }
             return output;
