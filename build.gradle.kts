@@ -12,7 +12,7 @@ val modName = rootDir.name
  * Where your Starsector game is installed to.
  * Note: On Linux, if you installed Starsector into your home directory, you have to write /home/<user>/ instead of ~/
  */
-val starsectorDirectory = "C:/Program Files (x86)/Fractal Softworks/Starsector"
+val starsectorDirectory = "C:/Users/pn1711/starsector"
 
 /** Defaults to the name of your mod, with spaces replaced by hyphens. */
 val modFolderName = modName.replace(" ", "-")
@@ -187,8 +187,13 @@ tasks {
                 from(projectDir)
                 into(dest)
                 //include("data/*", "graphics/*", "jars/*", "src/*", "mod_info.json", "SSMSControllerEx.version")
-                exclude(".git", ".github", ".gradle", ".idea", ".run", ".vs", ".vscode", "build", "gradle", "images", "out", ".gitignore", "build.gradle.kts", "COPYING", "COPYING.LESSER", "gradlew", "gradlew.bat", "README.me", "settings.gradle", "SSMSControllerEx.iml")
+                exclude(".git", ".github", ".gradle", ".idea", ".run", ".vs", ".vscode", "build", "gradle", "images", "out", "native", ".gitignore", "build.gradle.kts", "COPYING", "COPYING.LESSER", "gradlew", "gradlew.bat", "README.me", "settings.gradle", "SSMSControllerEx.iml")
             }
+        }
+        copy {
+            from("$projectDir\\native\\build\\lib\\main\\release\\")
+            into("$starsectorCoreDirectory\\native\\windows")
+            include("*.dll")
         }
     }
 }

@@ -1,3 +1,4 @@
 rootProject.name = "SSMSControllerEx"
 
-include('native')
+include(":native")
+project(":native").name = "SSMSControllerExNative"

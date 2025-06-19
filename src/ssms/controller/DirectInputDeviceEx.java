@@ -8,6 +8,6 @@ final class DirectInputDeviceEx {
     }
 
     static {
-        System.loadLibrary("native");
+        System.loadLibrary("SSMSControllerExNative");
     }
 }
