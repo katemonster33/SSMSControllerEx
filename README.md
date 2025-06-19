@@ -10,6 +10,9 @@ LazyLib - https://github.com/LazyWizard/lazylib
 * Provides controller support for combat controls.
 * Orbiting mode that allows circling targets. Supports broadsides.
 
+## Installation (WINDOWS ONLY)
+After unzipping the mod contents to mods\SSMSControllerEx , from the SSMSControllerEx\native\windows folder, copy SSMSControllerExNative.dll to the folder Starsector\starsector-core\native\windows . If your controller worked in the previous version of SSMSControllerEx you shouldn't notice any difference in behavior. This step should ensure that just about any controller with a layout similar to an X-Box controller should work with the mod. To be clear, this is ONLY necessary on windows.
+
 ## FAQ
 
  - Can this be added to and removed from an ongoing save? **Yes.**
