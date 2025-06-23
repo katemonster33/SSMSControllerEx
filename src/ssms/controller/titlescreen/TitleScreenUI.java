@@ -17,7 +17,9 @@
  */
 package ssms.controller.titlescreen;
 
+import com.fs.graphics.util.Fader;
 import com.fs.starfarer.api.input.InputEventMouseButton;
+import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
@@ -41,25 +43,24 @@ import ssms.controller.reflection.UIPanelReflector;
 public class TitleScreenUI extends InputScreenBase {
     public static final String ID = "TitleScreen";
     DirectionalUINavigator directionalUINavigator;
+    List<ButtonAPI> mainMenuButtons = null;
+    Object dialogType = null;
+    Fader missionWidgetFader = null;
+    boolean missionWidgetShown = false;
     @Override
     public void activate(Object ...args) {
         UIPanelAPI panel = TitleScreenStateReflector.GetInstance().getScreenPanel();
         UIPanelReflector.initialize(panel.getClass());
-        //var buttons = UIPanelReflector.getChildButtons(panel, true);
-        var buttons = TitleScreenStateReflector.GetInstance().getMainMenuButtons();
-
-        List<Pair<UIComponentAPI, Object>> directionalUiElements = new ArrayList<>();
-        for(var btn : buttons) {
-            directionalUiElements.add(new Pair<>(btn, null));
-        }
 
         indicators = new ArrayList<>();
 
-        directionalUINavigator = new DirectionalUINavigator(directionalUiElements);
+        mainMenuButtons = null;
+        directionalUINavigator = new DirectionalUINavigator(new ArrayList<>());
         addDigitalJoystickHandler("Navigate Menu", Joystick.DPad, directionalUINavigator);
         addButtonPressHandler("Confirm", LogicalButtons.A, this::clickButton);
         addButtonPressHandler("Cancel", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
         addButtonPressHandler("Reset keybindings", LogicalButtons.Select, (float advance) -> InputScreenManager.getInstance().transitionToScreen(AutoMapperUI.ID));
+        missionWidgetFader = TitleScreenStateReflector.GetInstance().getMissionWidgetFader();
     }
 
     public void clickButton(float advance)
@@ -74,5 +75,36 @@ public class TitleScreenUI extends InputScreenBase {
     @Override
     public String getId() { return ID; }
 
-    public String[] getScopes() { return new String[]{ InputScopeBase.ID }; }
+    @Override
+    public void preInput(float advance) {
+        var curMainMenuButtons = TitleScreenStateReflector.GetInstance().getMainMenuButtons();
+        Object curDialogType = TitleScreenStateReflector.GetInstance().getDialogTypeField();
+        if (mainMenuButtons == null || curMainMenuButtons.size() != mainMenuButtons.size()) {
+
+            List<Pair<UIComponentAPI, Object>> directionalUiElements = new ArrayList<>();
+            if (curDialogType == null) {
+                for (var btn : curMainMenuButtons) {
+                    directionalUiElements.add(new Pair<>(btn, null));
+                }
+            } else {
+                for (var btn : UIPanelReflector.getChildButtons(TitleScreenStateReflector.GetInstance().getScreenPanel(), true)) {
+                    directionalUiElements.add(new Pair<>(btn, null));
+                }
+            }
+            directionalUINavigator.setNavigationObjects(directionalUiElements);
+        } else if ((missionWidgetShown && missionWidgetFader.isFadedOut()) ||
+                (!missionWidgetShown && missionWidgetFader.isFadedIn())) {
+            missionWidgetShown = !missionWidgetShown;
+            mainMenuButtons.clear();
+            if(missionWidgetShown) {
+                List<Pair<UIComponentAPI, Object>> directionalUiElements = new ArrayList<>();
+                for (var btn : UIPanelReflector.getChildButtons(TitleScreenStateReflector.GetInstance().getScreenPanel(), true)) {
+                    directionalUiElements.add(new Pair<>(btn, null));
+                }
+                directionalUINavigator.setNavigationObjects(directionalUiElements);
+            }
+        }
+        mainMenuButtons = curMainMenuButtons;
+        dialogType = curDialogType;
+    }
 }

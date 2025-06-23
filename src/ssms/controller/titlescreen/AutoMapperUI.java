@@ -239,9 +239,4 @@ public class AutoMapperUI extends InputScreenBase {
     public String getId() {
         return ID;
     }
-
-    @Override
-    public String[] getScopes() {
-        return new String[]{ InputScopeBase.ID };
-    }
 }
