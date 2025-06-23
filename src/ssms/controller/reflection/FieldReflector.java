@@ -1,71 +1,93 @@
 package ssms.controller.reflection;
 
+import com.fs.starfarer.api.Global;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
 public class FieldReflector {
-    private static FieldReflector instance = null;
+    static Class<?> fieldClass = null;
+    static MethodHandle setAccessMethod = null;
+    static MethodHandle getNameMethod = null;
+    static MethodHandle getTypeMethod = null;
+    static MethodHandle getMethod = null;
+    static MethodHandle setMethod = null;
 
-    Class<?> fieldClass = null;
-    MethodHandle setAccessMethod = null;
-    MethodHandle getNameMethod = null;
-    MethodHandle getTypeMethod = null;
-    MethodHandle getMethod = null;
-    MethodHandle setMethod = null;
+    static {
+        try {
+            var lookup = MethodHandles.lookup();
+            fieldClass = Class.forName("java.lang.reflect.Field", false, Class.class.getClassLoader());
 
-    private FieldReflector() throws Throwable {
-        var lookup = MethodHandles.lookup();
-        fieldClass = Class.forName("java.lang.reflect.Field", false, Class.class.getClassLoader());
+            setAccessMethod = lookup.findVirtual(fieldClass, "setAccessible", MethodType.methodType(void.class, boolean.class));
 
-        setAccessMethod = lookup.findVirtual(fieldClass, "setAccessible", MethodType.methodType(void.class, boolean.class));
+            getNameMethod = lookup.findVirtual(fieldClass, "getName", MethodType.methodType(String.class));
 
-        getNameMethod = lookup.findVirtual(fieldClass, "getName", MethodType.methodType(String.class));
-        
-        getTypeMethod = lookup.findVirtual(fieldClass, "getType", MethodType.methodType(Class.class));
-        
-        setMethod = lookup.findVirtual(fieldClass, "set", MethodType.methodType(void.class, Object.class, Object.class));
-        
-        getMethod = lookup.findVirtual(fieldClass, "get", MethodType.methodType(Object.class, Object.class));
+            getTypeMethod = lookup.findVirtual(fieldClass, "getType", MethodType.methodType(Class.class));
+
+            setMethod = lookup.findVirtual(fieldClass, "set", MethodType.methodType(void.class, Object.class, Object.class));
+
+            getMethod = lookup.findVirtual(fieldClass, "get", MethodType.methodType(Object.class, Object.class));
+        } catch(Throwable ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+    Object fieldObj;
+
+    public FieldReflector(Object field) {
+        assert field.getClass().isAssignableFrom(fieldClass);
+
+        this.fieldObj = field;
     }
 
+    public String getName() {
+        try {
+            setAccessMethod.invoke(fieldObj, true);
 
-    public static FieldReflector GetInstance() throws Throwable
-    {
-        if(instance == null) instance = new FieldReflector();
-
-        return instance;
+            return getNameMethod.invoke(fieldObj).toString();
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).error("Couldn't call setAccessMethod/getNameMethod!", ex);
+        }
+        return null;
     }
 
-    public String GetVariableName(Object field) throws Throwable {
-        setAccessMethod.invoke(field, true);
+    public Class<?> getType() {
+        try {
+            setAccessMethod.invoke(fieldObj, true);
 
-        return getNameMethod.invoke(field).toString();
+            return (Class<?>) getTypeMethod.invoke(fieldObj);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).error("Couldn't get variable type!", ex);
+        }
+        return null;
     }
 
-    public Class<?> GetVariableType(Object field) throws Throwable {
-        setAccessMethod.invoke(field, true);
+    public void set(Object thingToSetTo, Object setValue) {
+        try {
+            setAccessMethod.invoke(fieldObj, true);
 
-        return (Class<?>) getTypeMethod.invoke(field);
+            setMethod.invoke(fieldObj, thingToSetTo, setValue);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).error("Couldn't set field!", ex);
+        }
     }
 
-    public void SetVariable(Object field, Object thingToSetTo, Object setValue) throws Throwable {
-        setAccessMethod.invoke(field, true);
+    public Object get(Object thingToGetFrom) {
+        try {
+            setAccessMethod.invoke(fieldObj, true);
 
-        setMethod.invoke(field, thingToSetTo, setValue);
+            return getMethod.invoke(fieldObj, thingToGetFrom);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).error("Couldn't get field value!");
+        }
+        return null;
     }
 
-    public Object GetVariable(Object field, Object thingToGetFrom) throws Throwable {
-        setAccessMethod.invoke(field, true);
-
-        return getMethod.invoke(field, thingToGetFrom);
-    }
-
-    public Object GetVariableByName(String fieldName, Object thingToGetFrom) throws Throwable {
-        Object field = ClassReflector.GetInstance().getDeclaredField(thingToGetFrom.getClass(), fieldName);
-
-        setAccessMethod.invoke(field, true);
-
-        return getMethod.invoke(field, thingToGetFrom);
-    }
+//    public static Object GetVariableByName(String fieldName, Object thingToGetFrom) throws Throwable {
+//        Object field = ClassReflector.GetInstance().getDeclaredField(thingToGetFrom.getClass(), fieldName);
+//
+//        setAccessMethod.invoke(field, true);
+//
+//        return getMethod.invoke(field, thingToGetFrom);
+//    }
 }

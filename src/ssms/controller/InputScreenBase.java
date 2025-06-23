@@ -214,7 +214,7 @@ public class InputScreenBase {
 
     public UIPanelAPI getPanelForIndicators() {
         return switch (Global.getCurrentState()) {
-            case TITLE -> TitleScreenStateReflector.GetInstance().getScreenPanel();
+            case TITLE -> new TitleScreenStateReflector().getScreenPanel();
             case CAMPAIGN -> CampaignStateReflector.GetInstance().getScreenPanel();
             case COMBAT -> CombatStateReflector.GetInstance().getWidgetPanel();
         };

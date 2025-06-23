@@ -7,13 +7,12 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
-public class ScrollbarUiReflector {
-    UIPanelAPI scrollbarObj;
+public class ScrollbarUiReflector extends UIPanelReflector {
 
     MethodHandle getScrollbarValue;
 
-    public ScrollbarUiReflector(UIPanelAPI scrollbarObj) throws Throwable{
-        this.scrollbarObj = scrollbarObj;
+    public ScrollbarUiReflector(UIPanelAPI scrollbarObj) {
+        super(scrollbarObj);
 
         getScrollbarValue = MethodHandles.lookup().findVirtual(scrollbarObj.getClass(), "getValue", MethodType.methodType(int.class));
     }

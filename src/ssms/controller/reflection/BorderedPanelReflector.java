@@ -8,7 +8,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
-public class BorderedPanelReflector {
+public class BorderedPanelReflector extends UIPanelReflector {
     UIPanelAPI borderedPanel;
     CoreUIAPI coreUIAPI;
     static MethodHandle getPanel;
@@ -20,6 +20,7 @@ public class BorderedPanelReflector {
     static Class<?> borderedPanelCls;
 
     private BorderedPanelReflector(UIPanelAPI borderedPanel, CoreUIAPI coreUIAPI) {
+        super(borderedPanel);
         this.borderedPanel = borderedPanel;
         this.coreUIAPI = coreUIAPI;
     }
@@ -59,12 +60,12 @@ public class BorderedPanelReflector {
 
                     borderedPanelCls = panelObj.getClass();
 
-                    return new BorderedPanelReflector((UIPanelAPI) panelObj, coreUIAPI);
+                    return new BorderedPanelReflector(panelObj, coreUIAPI);
                 } catch (Throwable ex) {
                     Global.getLogger(BorderedPanelReflector.class).info("Failed to reflect type of bordered panel!", ex);
                 }
             } else if (borderedPanelCls.isAssignableFrom(panelObj.getClass())) {
-                return new BorderedPanelReflector((UIPanelAPI) panelObj, coreUIAPI);
+                return new BorderedPanelReflector(panelObj, coreUIAPI);
             }
         } catch (Throwable ex) {
             Global.getLogger(BorderedPanelReflector.class).warn("Failed to reflect trade UI object", ex);

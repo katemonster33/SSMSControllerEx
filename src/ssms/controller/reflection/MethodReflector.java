@@ -1,62 +1,90 @@
 package ssms.controller.reflection;
 
+import com.fs.starfarer.api.Global;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
 public class MethodReflector {
-    static MethodReflector instance;
-    Class<?> methodClass;
-    MethodHandle getParameterTypes;
-    MethodHandle getName;
-    MethodHandle invoke;
-    MethodHandle getReturnType;
-    MethodHandle setAccessible;
-    private MethodReflector() throws Throwable
+    static Class<?> methodClass;
+    static MethodHandle getParameterTypes;
+    static MethodHandle getName;
+    static MethodHandle invoke;
+    static MethodHandle getReturnType;
+    static MethodHandle setAccessible;
+    static
     {
-        var lookup = MethodHandles.lookup();
-        methodClass = Class.forName("java.lang.reflect.Method", false, Class.class.getClassLoader());
+        try {
+            var lookup = MethodHandles.lookup();
+            methodClass = Class.forName("java.lang.reflect.Method", false, Class.class.getClassLoader());
 
-        getParameterTypes = lookup.findVirtual(methodClass, "getParameterTypes", MethodType.methodType(Class[].class));
-        
-        getReturnType = lookup.findVirtual(methodClass, "getReturnType", MethodType.methodType(Class.class));
-        
-        getName = lookup.findVirtual(methodClass, "getName", MethodType.methodType(String.class));
+            getParameterTypes = lookup.findVirtual(methodClass, "getParameterTypes", MethodType.methodType(Class[].class));
 
-        invoke = lookup.findVirtual(methodClass, "invoke", MethodType.methodType(Object.class, Object.class, Object[].class));
+            getReturnType = lookup.findVirtual(methodClass, "getReturnType", MethodType.methodType(Class.class));
 
-        setAccessible = lookup.findVirtual(methodClass, "setAccessible", MethodType.methodType(void.class, boolean.class));
+            getName = lookup.findVirtual(methodClass, "getName", MethodType.methodType(String.class));
+
+            invoke = lookup.findVirtual(methodClass, "invoke", MethodType.methodType(Object.class, Object.class, Object[].class));
+
+            setAccessible = lookup.findVirtual(methodClass, "setAccessible", MethodType.methodType(void.class, boolean.class));
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public static MethodReflector GetInstance() throws Throwable
-    {
-        if(instance == null) instance = new MethodReflector();
+    Object methodObj;
 
-        return instance;
+    public MethodReflector(Object method) {
+        assert method.getClass().isAssignableFrom(methodClass);
+        this.methodObj = method;
     }
 
-    public Class<?>[] getParameterTypes(Object method) throws Throwable
+    public Class<?>[] getParameterTypes()
     {
-        return (Class<?>[])getParameterTypes.invoke(method);
+        try {
+            return (Class<?>[]) getParameterTypes.invoke(methodObj);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).error("Couldn't get parameter types of method!", ex);
+        }
+        return null;
     }
 
-    public Class<?> getReturnType(Object method) throws Throwable
-    {
-        return (Class<?>)getReturnType.invoke(method);
+    public Class<?> getReturnType() {
+        try {
+            return (Class<?>) getReturnType.invoke(methodObj);
+        } catch (Throwable e) {
+            Global.getLogger(getClass()).error("Couldn't get return type of method!", e);
+        }
+        return null;
     }
 
-    public String getName(Object method) throws Throwable
+    public String getName()
     {
-        return (String)getName.invoke(method);
+        try {
+            return (String) getName.invoke(methodObj);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).error("Couldn't get name of method!", ex);
+        }
+        return null;
     }
 
-    public Object invoke(Object method, Object obj, Object ... arguments) throws Throwable
+    public Object invoke(Object obj, Object ... arguments)
     {
-        return invoke.invoke(method, obj, arguments);
+        try {
+            return invoke.invoke(methodObj, obj, arguments);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).error("Couldn't invoke method!", ex);
+        }
+        return null;
     }
 
-    public void setAccessible(Object method, boolean val) throws Throwable
+    public void setAccessible(boolean val)
     {
-        setAccessible.invoke(method, val);
+        try {
+            setAccessible.invoke(methodObj, val);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).error("Couldn't set method accessible!", ex);
+        }
     }
 }
