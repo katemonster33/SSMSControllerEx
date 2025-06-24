@@ -41,22 +41,29 @@ public class ClassReflector {
         this.cls = cls;
     }
 
-    public Object getDeclaredField(String name) {
+    public FieldReflector getDeclaredField(String name) {
         try {
-            return getDeclaredField.invoke(cls, name);
+            return new FieldReflector(getDeclaredField.invoke(cls, name));
         } catch(Throwable ex) {
             Global.getLogger(getClass()).error("Couldn't get declared fields of class!", ex);
         }
         return null;
     }
 
-    public Object[] getDeclaredFields() {
+    public FieldReflector[] getDeclaredFields() {
+        FieldReflector[] output = null;
         try {
-            return (Object[]) getDeclaredFields.invoke(cls);
+            var fieldsRaw = (Object[]) getDeclaredFields.invoke(cls);
+            if(fieldsRaw != null) {
+                output = new FieldReflector[fieldsRaw.length];
+                for(int index = 0; index < fieldsRaw.length; index++) {
+                    output[index] = new FieldReflector(fieldsRaw[index]);
+                }
+            }
         } catch(Throwable ex) {
             Global.getLogger(getClass()).error("Couldn't invoke getDeclaredFields!", ex);
         }
-        return null;
+        return output;
     }
 
     public MethodReflector getDeclaredMethod(String name, Class<?> ... classes) {
@@ -75,7 +82,8 @@ public class ClassReflector {
             }
         }
         for(Class<?> superclass = cls.getSuperclass(); superclass != null; superclass = superclass.getSuperclass()) {
-            for(var method : getDeclaredMethods(superclass)) {
+            var superClsReflector = new ClassReflector(superclass);
+            for(var method : superClsReflector.getDeclaredMethods()) {
                 if(Objects.equals(method.getName(), name)) {
                     return method;
                 }

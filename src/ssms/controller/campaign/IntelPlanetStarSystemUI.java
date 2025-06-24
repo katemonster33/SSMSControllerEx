@@ -50,8 +50,8 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
         if(indicators == null) {
             indicators = new ArrayList<>();
             if(directionalUINavigator == null) {
-                planetAttributeButtons = UIPanelReflector.getChildButtons(planetTabReflector.getPlanetInfoPanel());
-                planetListButtons = UIPanelReflector.getChildButtons(planetTabReflector.getStarSystemDisplay());
+                planetAttributeButtons = new UIPanelReflector(planetTabReflector.getPlanetInfoPanel()).getChildButtons();
+                planetListButtons = new UIPanelReflector(planetTabReflector.getStarSystemDisplay()).getChildButtons();
                 List<UIComponentAPI> buttonList = new ArrayList<>(planetListButtons);
                 //buttonList.addAll(planetAttributeButtons);
                 buttonList.add(mapComponent);
@@ -115,7 +115,7 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
 
     @Override
     public UIPanelAPI getPanelForIndicators() {
-        return planetTabReflector.planetTabData();
+        return planetTabReflector.getPanel();
     }
 
     @Override
@@ -123,7 +123,7 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
         intelTabReflector = (IntelTabReflector) args[0];
         intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
         currentTabFocus = StarSystemTabFocusMode.PlanetAttributes;
-        planetTabReflector = new IntelPlanetTabUi.PlanetTabReflector(intelTabReflector.getPlanetTabData());
+        planetTabReflector = new IntelPlanetTabUi.PlanetTabReflector(intelTabReflector.getPlanetTabData().getPanel());
         planetListButtons = new ArrayList<>();
         planetAttributeButtons = new ArrayList<>();
         mapComponent = planetTabReflector.getMap();
@@ -144,9 +144,10 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
         }
 
         // intel tab was recreated due to user clicking the map, this is dumb and I hate it
-        if (UIPanelReflector.getParent(intelTabReflector.getBorderedPanel().getBorderedPanel()) == null) {
-            for(var coreUiChild : UIPanelReflector.getChildPanels((UIPanelAPI) intelTabReflector.getBorderedPanel().getCoreUIAPI())) {
-                var newBorderedPanel = BorderedPanelReflector.TryGet(intelTabReflector.getBorderedPanel().getCoreUIAPI(), coreUiChild);
+        if (intelTabReflector.getBorderedPanel().getParent() == null) {
+            var coreUi = intelTabReflector.getBorderedPanel().getCoreUIAPI();
+            for(var coreUiChild : new UIPanelReflector((UIPanelAPI) coreUi).getChildPanels()) {
+                var newBorderedPanel = BorderedPanelReflector.TryGet(coreUi, coreUiChild);
                 if (newBorderedPanel != null) {
                     intelTabReflector = IntelTabReflector.TryGet(newBorderedPanel.getCoreUIAPI(), newBorderedPanel);
                     if (intelTabReflector != null) {

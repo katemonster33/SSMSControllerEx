@@ -14,21 +14,15 @@ import ssms.controller.InputScreenManager;
 public class UIPanelReflector extends UIComponentReflector {
     static Class<?> panelType;
     static MethodReflector getChildItemsHandle;
-    static MethodReflector getParentHandle;
     UIPanelAPI panel;
     static
     {
         var testPnl = Global.getSettings().createCustom(1.f, 1.f, null);
-        try {
-            var reflector = new ClassReflector(testPnl.getClass().getSuperclass());
-            var meth = reflector.findDeclaredMethod("getChildrenCopy");
-            if (meth != null) {
-                getChildItemsHandle = meth;
-                getParentHandle = reflector.findDeclaredMethod("getParent");
-                UIPanelReflector.panelType = testPnl.getClass().getSuperclass();
-            }
-        } catch (Throwable ex) {
-            Global.getLogger(UIPanelReflector.class).warn("Can't reflect panel type", ex);
+        var reflector = new ClassReflector(testPnl.getClass().getSuperclass());
+        var meth = reflector.getDeclaredMethod("getChildrenCopy");
+        if (meth != null) {
+            getChildItemsHandle = meth;
+            UIPanelReflector.panelType = testPnl.getClass().getSuperclass();
         }
     }
 
@@ -37,37 +31,22 @@ public class UIPanelReflector extends UIComponentReflector {
         this.panel = panel;
     }
 
+    public UIPanelAPI getPanel() {
+        return panel;
+    }
+
     public List<?> getChildItems() {
-        return UIPanelReflector.getChildItems(panel);
-    }
-
-    public UIComponentAPI getLastChild() {
-        return UIPanelReflector.getLastChild(panel);
-    }
-
-    public List<UIPanelAPI> getChildPanels(int ... args) {
-        return UIPanelReflector.getChildPanels(panel, args);
-    }
-
-    public List<ButtonAPI> getChildButtons()  {
-        return UIPanelReflector.getChildButtons(panel, false);
-    }
-
-    public List<ButtonAPI> getChildButtons(boolean recursive)  {
-        return UIPanelReflector.getChildButtons(panel, recursive);
-    }
-
-    public static List<?> getChildItems(UIPanelAPI panel) {
         try {
-            return (List<?>) MethodReflector.GetInstance().invoke(getChildItemsHandle, panel);
+            return (List<?>) getChildItemsHandle.invoke(panel);
         } catch(Throwable ex) {
             Global.getLogger(UIPanelReflector.class).fatal("Could not get child items of UIPanel! ", ex);
             return new ArrayList<>();
         }
     }
 
-    public static UIComponentAPI getLastChild(UIPanelAPI panel) {
-        var items = UIPanelReflector.getChildItems(panel);
+    public UIComponentAPI getLastChild() {
+
+        var items = getChildItems();
         if (!items.isEmpty()) {
             var lastChild = items.get(items.size() - 1);
             if(InputScreenManager.getInstance().getDisplayPanel() != null && lastChild == InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
@@ -80,12 +59,12 @@ public class UIPanelReflector extends UIComponentReflector {
         return null;
     }
 
-    public static List<UIPanelAPI> getChildPanels(UIPanelAPI panel, int ... args) {
+    public List<UIPanelAPI> getChildPanels(int ... args) {
         try {
-            List<?> childrenTmp = getChildItems(panel);
-            for(int i = 0; i < args.length; i++) {
-                if(childrenTmp.size() > args[i] && UIPanelAPI.class.isAssignableFrom(childrenTmp.get(args[i]).getClass()) ) {
-                    childrenTmp = getChildItems((UIPanelAPI) childrenTmp.get(args[i]));
+            List<?> childrenTmp = getChildItems();
+            for(int arg : args) {
+                if(childrenTmp.size() > arg && childrenTmp.get(arg) instanceof UIPanelAPI uiPanelAPI) {
+                    childrenTmp = new UIPanelReflector(uiPanelAPI).getChildItems();
                 } else return new ArrayList<>();
             }
             List<UIPanelAPI> output = new ArrayList<>();
@@ -101,29 +80,19 @@ public class UIPanelReflector extends UIComponentReflector {
         }
     }
 
-    public static List<ButtonAPI> getChildButtons(UIPanelAPI panel) {
-        return getChildButtons(panel, false);
+    public List<ButtonAPI> getChildButtons()  {
+        return getChildButtons(false);
     }
 
-    public static List<ButtonAPI> getChildButtons(UIPanelAPI panel, boolean recursive) {
+    public List<ButtonAPI> getChildButtons(boolean recursive)  {
         ArrayList<ButtonAPI> output = new ArrayList<>();
-        List<?> childItems = getChildItems(panel);
+        List<?> childItems = getChildItems();
         for(Object childItem : childItems) {
-            if (recursive && UIPanelAPI.class.isAssignableFrom(childItem.getClass())) {
-                output.addAll(getChildButtons((UIPanelAPI) childItem, true));
-            } else if (ButtonAPI.class.isAssignableFrom(childItem.getClass())) {
-                output.add((ButtonAPI) childItem);
+            if (recursive && childItem instanceof UIPanelAPI uiPanelAPI) {
+                output.addAll(new UIPanelReflector(uiPanelAPI).getChildButtons(true));
+            } else if (childItem instanceof ButtonAPI buttonAPI) {
+                output.add(buttonAPI);
             }
-        }
-        return output;
-    }
-
-    public static UIPanelAPI getParent(UIPanelAPI panel) {
-        UIPanelAPI output = null;
-        try {
-            output = (UIPanelAPI) MethodReflector.GetInstance().invoke(getParentHandle, panel);
-        } catch (Throwable ex) {
-            Global.getLogger(UIPanelReflector.class).error("Couldn't get parent panel of panel!", ex);
         }
         return output;
     }

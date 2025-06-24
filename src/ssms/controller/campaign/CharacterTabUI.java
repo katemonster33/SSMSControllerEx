@@ -36,9 +36,8 @@ public class CharacterTabUI extends InputScreenBase {
 
         //buttonRows = characterSheetReflector.getButtonRows();
 
-        var characterSheetObj = characterSheetReflector.getCharacterSheetObj();
         List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
-        for(var btn : UIPanelReflector.getChildButtons(characterSheetObj, true)) {
+        for(var btn : characterSheetReflector.getChildButtons(true)) {
             if (btn.getPosition().getX() >= 0 && btn.getPosition().getX() <= Display.getWidth() &&
                     btn.getPosition().getY() >= 0 && btn.getPosition().getY() <= Display.getHeight()) {
                 directionalObjects.add(new Pair<>(btn, null));
@@ -61,7 +60,7 @@ public class CharacterTabUI extends InputScreenBase {
         //indicators.add(new Pair<>(Indicators.Select, "Re-assign skills"));
         addButtonPressHandler("Select fleet tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_F, 'f'));
         ControllerCrosshairRenderer.getControllerRenderer().disable();
-        lastFrameNumChildren = UIPanelReflector.getChildItems((UIPanelAPI) characterSheetReflector.getCoreUIAPI()).size();
+        lastFrameNumChildren = new UIPanelReflector((UIPanelAPI) characterSheetReflector.getCoreUIAPI()).getChildItems().size();
     }
 
     @Override
@@ -76,7 +75,7 @@ public class CharacterTabUI extends InputScreenBase {
             InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
             return;
         } else {
-            var coreUiChildren = UIPanelReflector.getChildItems((UIPanelAPI) characterSheetReflector.getCoreUIAPI());
+            var coreUiChildren = new UIPanelReflector((UIPanelAPI) characterSheetReflector.getCoreUIAPI()).getChildItems();
             if(coreUiChildren.size() > lastFrameNumChildren) {
                 for(int index = lastFrameNumChildren; index < coreUiChildren.size(); index++) {
                     if(coreUiChildren.get(index) instanceof  UIPanelAPI childPanel) {

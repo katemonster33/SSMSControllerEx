@@ -15,15 +15,11 @@ import com.fs.starfarer.campaign.util.CollectionView;
 public class CargoDataGridViewReflector {
     CargoDataGridView cargoDataGridView;
     UIPanelAPI dataGridParent;
-    Object stackViewField;
+    FieldReflector stackViewField;
     public CargoDataGridViewReflector(CargoDataGridView cargoGridView, UIPanelAPI parent) {
         this.cargoDataGridView = cargoGridView;
         this.dataGridParent = parent;
-        try {
-            stackViewField = ClassReflector.GetInstance().getDeclaredField(cargoGridView.getClass(), "stackView");
-        } catch(Throwable ex) {
-            Global.getLogger(getClass()).warn("Couldn't get the field for the CargoDataGridView ItemView(s)!", ex);
-        }
+        stackViewField = new ClassReflector(cargoGridView.getClass()).getDeclaredField("stackView");
     }
 
     public PositionAPI getPosition() {
@@ -36,7 +32,7 @@ public class CargoDataGridViewReflector {
 
     public  List<CargoStackView> getStacks() {
         try {
-            Object stackViewObj = FieldReflector.GetInstance().GetVariable(stackViewField, cargoDataGridView);
+            Object stackViewObj = stackViewField.get(cargoDataGridView);
             if(stackViewObj instanceof CollectionView<?> stackView) {
                 List<CargoStackView> output = new ArrayList<>();
                 for(var child : stackView.getViews()) {

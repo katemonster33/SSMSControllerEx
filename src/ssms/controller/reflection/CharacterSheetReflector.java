@@ -13,21 +13,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class CharacterSheetReflector {
+public class CharacterSheetReflector extends UIPanelReflector {
     CoreUIAPI coreUIAPI;
-    UIPanelAPI characterSheetObj;
     static MethodHandle getAptitudeRows;
     static Class<?> characterSheetCls;
 
     static MethodHandle getButtonsMap;
 
     private CharacterSheetReflector(CoreUIAPI coreUIAPI, UIPanelAPI characterSheetObj) {
+        super(characterSheetObj);
         this.coreUIAPI = coreUIAPI;
-        this.characterSheetObj = characterSheetObj;
-    }
-
-    public UIPanelAPI getCharacterSheetObj() {
-        return characterSheetObj;
     }
 
     public CoreUIAPI getCoreUIAPI() {
@@ -44,12 +39,12 @@ public class CharacterSheetReflector {
 
                 getButtonsMap = MethodHandles.lookup().findVirtual(AptitudeRow.class, "getButtonsMap", MethodType.methodType(Map.class));
 
-                return new CharacterSheetReflector(coreUIAPI, borderedPanelReflector.getInnerPanel());
+                return new CharacterSheetReflector(coreUIAPI, borderedPanelReflector.getInnerPanel().getPanel());
             } catch(Throwable ex) {
                 Global.getLogger(CharacterSheetReflector.class).fatal("Couldn't reflect CharacterSheet UI object!", ex);
             }
         } else if(characterSheetCls.isAssignableFrom(parentPanel.getClass())) {
-            return new CharacterSheetReflector(coreUIAPI, borderedPanelReflector.getInnerPanel());
+            return new CharacterSheetReflector(coreUIAPI, borderedPanelReflector.getInnerPanel().getPanel());
         }
         return null;
     }
@@ -57,21 +52,21 @@ public class CharacterSheetReflector {
     public List<List<ButtonAPI>> getButtonRows() {
         List<List<ButtonAPI>> output = new ArrayList<>();
         try {
-            var aptitudeRows = (List<?>)getAptitudeRows.invoke(characterSheetObj);
+            var aptitudeRows = (List<?>)getAptitudeRows.invoke(panel);
 
             for(var row : aptitudeRows) {
                 List<ButtonAPI> buttons = new ArrayList<>();
-                var children = UIPanelReflector.getChildItems((UIPanelAPI) row);
-                if(!children.isEmpty()) {
-                    var childrenOfChildren = UIPanelReflector.getChildItems((UIPanelAPI) children.get(0));
-                    if(!childrenOfChildren.isEmpty() && ButtonAPI.class.isAssignableFrom(childrenOfChildren.get(0).getClass())) {
-                        buttons.add((ButtonAPI) childrenOfChildren.get(0));
+                var children = new UIPanelReflector((UIPanelAPI) row).getChildItems();
+                if(!children.isEmpty() && children.get(0) instanceof UIPanelAPI uiPanelAPI) {
+                    var childrenOfChildren = new UIPanelReflector(uiPanelAPI).getChildItems();
+                    if(!childrenOfChildren.isEmpty() && childrenOfChildren instanceof ButtonAPI buttonAPI) {
+                        buttons.add(buttonAPI);
                     }
                 }
                 Map<?,?> buttonMap = (Map<?,?>) getButtonsMap.invoke(row);
                 for(Object obj : buttonMap.keySet()) {
-                    if(ButtonAPI.class.isAssignableFrom(obj.getClass())) {
-                        buttons.add((ButtonAPI) obj);
+                    if(obj instanceof ButtonAPI buttonAPI) {
+                        buttons.add(buttonAPI);
                     }
                 }
                 if(!buttons.isEmpty()) {

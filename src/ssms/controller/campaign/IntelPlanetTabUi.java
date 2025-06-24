@@ -55,10 +55,10 @@ public class IntelPlanetTabUi extends InputScreenBase {
         intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
 
         filterButtonRows = new ArrayList<>();
-        for (UIPanelAPI buttonGroup : UIPanelReflector.getChildPanels(planetTabReflector.planetTabData(), 1, 5, 0)) {
-            for (UIPanelAPI buttonRow : UIPanelReflector.getChildPanels(buttonGroup)) {
-                for(UIPanelAPI buttonInnerPanel : UIPanelReflector.getChildPanels(buttonRow)) {
-                    var btnList = UIPanelReflector.getChildButtons(buttonInnerPanel);
+        for (UIPanelAPI buttonGroup : planetTabReflector.getChildPanels(1, 5, 0)) {
+            for (UIPanelAPI buttonRow : new UIPanelReflector(buttonGroup).getChildPanels()) {
+                for(UIPanelAPI buttonInnerPanel : new UIPanelReflector(buttonRow).getChildPanels()) {
+                    var btnList = new UIPanelReflector(buttonInnerPanel).getChildButtons();
                     if (!btnList.isEmpty()) filterButtonRows.add(btnList);
                 }
             }
@@ -176,23 +176,27 @@ public class IntelPlanetTabUi extends InputScreenBase {
         }
     }
 
-    public record PlanetTabReflector(UIPanelAPI planetTabData) {
+    public static class PlanetTabReflector extends UIPanelReflector {
             static MethodHandle getPlanetListV2;
             static MethodHandle getPlanetListTableRows;
             static MethodHandle selectPlanetTableRow;
-            static Object getList;
-            static Object ensurePlanetVisible;
-            static Object planetItemColumnsField;
-            static Object starSystemField;
+            static MethodReflector getList;
+            static MethodReflector ensurePlanetVisible;
+            static FieldReflector planetItemColumnsField;
+            static FieldReflector starSystemField;
             static Class<?> tableItemCls;
             static Class<?> tableListCls;
-            static Object mapField;
-            static Object starSystemDisplayField;
-            static Object planetInfoPanelField;
+            static FieldReflector mapField;
+            static FieldReflector starSystemDisplayField;
+            static FieldReflector planetInfoPanelField;
+
+            public PlanetTabReflector(UIPanelAPI planetTabData) {
+                super(planetTabData);
+            }
 
             public PlanetListV2 getPlanetList() {
                 try {
-                    return (PlanetListV2) getPlanetListV2.invoke(planetTabData);
+                    return (PlanetListV2) getPlanetListV2.invoke(getPanel());
                 } catch (Throwable ex) {
                     Global.getLogger(getClass()).error("Couldn't get planet list!", ex);
                     return null;
@@ -201,12 +205,12 @@ public class IntelPlanetTabUi extends InputScreenBase {
 
             public void ensurePlanetVisible(Object planetObj) {
                 try {
-                    var buttonField = ClassReflector.GetInstance().getDeclaredField(planetObj.getClass().getSuperclass().getSuperclass(), "button");
+                    var buttonField = new ClassReflector(planetObj.getClass().getSuperclass().getSuperclass()).getDeclaredField("button");
 
-                    var btn = (ButtonAPI) FieldReflector.GetInstance().GetVariable(buttonField, planetObj);
+                    var btn = (ButtonAPI) buttonField.get(planetObj);
 
-                    var lst = MethodReflector.GetInstance().invoke(getList, getPlanetList().getTable());
-                    MethodReflector.GetInstance().invoke(ensurePlanetVisible, lst, btn);
+                    var lst = getList.invoke(getPlanetList().getTable());
+                    ensurePlanetVisible.invoke(lst, btn);
                 } catch (Throwable ex) {
                     Global.getLogger(getClass()).error("Couldn't ensure that the desired planet is visible in the scroller!", ex);
                 }
@@ -233,35 +237,24 @@ public class IntelPlanetTabUi extends InputScreenBase {
             }
 
             public StarSystem getStarSystem() {
-                try {
-                    return (StarSystem) FieldReflector.GetInstance().GetVariable(starSystemField, planetTabData);
-                } catch(Throwable ex) {
-                    Global.getLogger(getClass()).error("Couldn't get star system from planet list panel!", ex);
-                    return null;
-                }
+                return (StarSystem) starSystemField.get(getPanel());
             }
 
         public UIComponentAPI getMap() {
-            try {
-                return (UIComponentAPI) FieldReflector.GetInstance().GetVariable(mapField, planetTabData);
-            } catch(Throwable ex) {
-                Global.getLogger(getClass()).error("Couldn't get star system from planet list panel!", ex);
-                return null;
-            }
+            return (UIComponentAPI) mapField.get(getPanel());
         }
 
             public List<UIComponentAPI> getPlanetSubItems(UIPanelAPI planetItem) {
                 List<UIComponentAPI> output = new ArrayList<>();
                 try {
-                    List<?> columns = (List<?>) FieldReflector.GetInstance().GetVariable(planetItemColumnsField, planetItem);
-                    if (columns != null && columns.size() > 5) {
-                        output.add((UIComponentAPI) columns.get(0));
+                    List<?> columns = (List<?>) planetItemColumnsField.get(planetItem);
+                    if (columns != null && columns.size() > 5 && columns.get(0) instanceof UIComponentAPI planetSpriteItem) {
+                        output.add(planetSpriteItem);
 
-                        var children = UIPanelReflector.getChildItems((UIPanelAPI) columns.get(1));
-                        if (children.size() > 1) {
-                            children = UIPanelReflector.getChildItems((UIPanelAPI) children.get(1));
+                        var children = new UIPanelReflector((UIPanelAPI) columns.get(1)).getChildItems();
+                        if (children.size() > 1 && children.get(0) instanceof UIPanelAPI subItemsPanel) {;
 
-                            for (var child : children) {
+                            for (var child : new UIPanelReflector(subItemsPanel).getChildItems()) {
                                 output.add((UIComponentAPI) child);
                             }
                         }
@@ -276,63 +269,55 @@ public class IntelPlanetTabUi extends InputScreenBase {
             }
 
         public StarSystemDisplay getStarSystemDisplay() {
-            try {
-                return (StarSystemDisplay) FieldReflector.GetInstance().GetVariable(starSystemDisplayField, planetTabData);
-            } catch(Throwable ex) {
-                Global.getLogger(getClass()).error("Couldn't fetch star system display panel!", ex);
-                return null;
-            }
+            return (StarSystemDisplay) starSystemDisplayField.get(getPanel());
         }
 
         public UIPanelAPI getPlanetInfoPanel() {
-            try {
-                return (UIPanelAPI) FieldReflector.GetInstance().GetVariable(planetInfoPanelField, planetTabData);
-            } catch(Throwable ex) {
-                Global.getLogger(getClass()).error("Couldn't fetch star system display panel!", ex);
-                return null;
-            }
+            return (UIPanelAPI) planetInfoPanelField.get(getPanel());
         }
 
-            public static PlanetTabReflector tryGet(IntelTabReflector intelTabReflector) {
-                var planetPanel = intelTabReflector.getPlanetTabData();
-                if (planetPanel != null) {
-                    if (planetItemColumnsField == null) {
-                        try {
-                            getPlanetListV2 = MethodHandles.lookup().findVirtual(planetPanel.getClass(), "getPlanetList2", MethodType.methodType(PlanetListV2.class));
+        public static PlanetTabReflector tryGet(IntelTabReflector intelTabReflector) {
+            var planetPanel = intelTabReflector.getPlanetTabData();
+            if (planetPanel != null) {
+                if (planetItemColumnsField == null) {
+                    try {
+                        getPlanetListV2 = MethodHandles.lookup().findVirtual(planetPanel.getPanel().getClass(), "getPlanetList2", MethodType.methodType(PlanetListV2.class));
 
-                            getPlanetListTableRows = MethodHandles.lookup().findVirtual(UITable.class, "getRows", MethodType.methodType(List.class));
+                        getPlanetListTableRows = MethodHandles.lookup().findVirtual(UITable.class, "getRows", MethodType.methodType(List.class));
 
-                            for(var field : ClassReflector.GetInstance().getDeclaredFields(planetPanel.getClass())) {
-                                var fieldCls = FieldReflector.GetInstance().GetVariableType(field);
-                                if(StarSystem.class.isAssignableFrom(fieldCls)) {
-                                    starSystemField = field;
-                                } else if(SectorMapAPI.class.isAssignableFrom(fieldCls)) {
-                                    mapField = field;
-                                } else if(StarSystemDisplay.class.isAssignableFrom(fieldCls)) {
-                                    starSystemDisplayField = field;
-                                } else if(planetInfoPanelField == null && UIPanelAPI.class.isAssignableFrom(fieldCls)) {
-                                    planetInfoPanelField = field;
-                                }
+                        for(var field : new ClassReflector(planetPanel.getPanel().getClass()).getDeclaredFields()) {
+                            var fieldCls = field.getType();
+                            if(StarSystem.class.isAssignableFrom(fieldCls)) {
+                                starSystemField = field;
+                            } else if(SectorMapAPI.class.isAssignableFrom(fieldCls)) {
+                                mapField = field;
+                            } else if(StarSystemDisplay.class.isAssignableFrom(fieldCls)) {
+                                starSystemDisplayField = field;
+                            } else if(planetInfoPanelField == null && UIPanelAPI.class.isAssignableFrom(fieldCls)) {
+                                planetInfoPanelField = field;
                             }
-                            var getSelected = ClassReflector.GetInstance().getDeclaredMethod(UITable.class, "getSelected");
-                            tableItemCls = MethodReflector.GetInstance().getReturnType(getSelected);
-
-                            getList = ClassReflector.GetInstance().getDeclaredMethod(UITable.class, "getList");
-
-                            tableListCls = MethodReflector.GetInstance().getReturnType(getList);
-                            ensurePlanetVisible = ClassReflector.GetInstance().findDeclaredMethod(tableListCls, "ensureVisible");
-                            planetItemColumnsField = ClassReflector.GetInstance().getDeclaredField(tableItemCls, "columns");
-
-                            return new PlanetTabReflector(planetPanel);
-                        } catch (Throwable ex) {
-                            Global.getLogger(PlanetTabReflector.class).error("Couldn't reflect into planet tab!", ex);
-                            return null;
                         }
-                    } else {
-                        return new PlanetTabReflector(planetPanel);
+                        var uiTableReflector = new ClassReflector(UITable.class);
+                        var getSelected = uiTableReflector.getDeclaredMethod("getSelected");
+                        tableItemCls = getSelected.getReturnType();
+
+                        getList = uiTableReflector.getDeclaredMethod("getList");
+
+                        tableListCls = getList.getReturnType();
+
+                        ensurePlanetVisible =  new ClassReflector(tableListCls).findDeclaredMethod("ensureVisible");
+                        planetItemColumnsField = new ClassReflector(tableItemCls).getDeclaredField("columns");
+
+                        return new PlanetTabReflector(planetPanel.getPanel());
+                    } catch (Throwable ex) {
+                        Global.getLogger(PlanetTabReflector.class).error("Couldn't reflect into planet tab!", ex);
+                        return null;
                     }
+                } else {
+                    return new PlanetTabReflector(planetPanel.getPanel());
                 }
-                return null;
             }
+            return null;
         }
+    }
 }

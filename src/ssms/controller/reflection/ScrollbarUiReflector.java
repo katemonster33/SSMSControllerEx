@@ -11,19 +11,19 @@ public class ScrollbarUiReflector extends UIPanelReflector {
 
     MethodHandle getScrollbarValue;
 
-    public ScrollbarUiReflector(UIPanelAPI scrollbarObj) {
+    public ScrollbarUiReflector(UIPanelAPI scrollbarObj) throws Throwable {
         super(scrollbarObj);
 
         getScrollbarValue = MethodHandles.lookup().findVirtual(scrollbarObj.getClass(), "getValue", MethodType.methodType(int.class));
     }
 
     public UIPanelAPI getPrivateObj() {
-        return scrollbarObj;
+        return panel;
     }
 
     public int getValue() {
         try {
-            return (int)getScrollbarValue.invoke(scrollbarObj);
+            return (int)getScrollbarValue.invoke(panel);
         } catch(Throwable ex) {
             Global.getLogger(getClass()).warn("Couldn't get scrollbar's value!", ex);
         }

@@ -134,32 +134,34 @@ public class IntelTabUI extends InputScreenBase {
         }
     }
 
-    public static class EventsTabReflector
+    public static class EventsTabReflector extends UIPanelReflector
     {
         EventsPanel eventsPanel;
-        static Object getList;
-        static Object ensureVisible;
-        static Object getMap;
+        static MethodReflector getList;
+        static MethodReflector ensureVisible;
+        static MethodReflector getMap;
         static MethodHandle getItems;
 
         static MethodHandle getGroups;
-        static Object intelTagGroupList;
+        static FieldReflector intelTagGroupList;
         static Class<?> intelTagGroupListCls;
         public EventsTabReflector(EventsPanel eventsPanel) throws Throwable {
+            super(eventsPanel);
             this.eventsPanel = eventsPanel;
 
             if(intelTagGroupList == null) {
-                getList = ClassReflector.GetInstance().getDeclaredMethod(EventsPanel.class, "getList");
+                ClassReflector eventsPanelReflector = new ClassReflector(EventsPanel.class);
+                getList = eventsPanelReflector.getDeclaredMethod("getList");
 
-                getMap = ClassReflector.GetInstance().getDeclaredMethod(EventsPanel.class, "getMap");
+                getMap = eventsPanelReflector.getDeclaredMethod("getMap");
 
-                Class<?> listType = MethodReflector.GetInstance().getReturnType(getList);
-                ensureVisible = ClassReflector.GetInstance().findDeclaredMethod(listType, "ensureVisible");
+                Class<?> listType = getList.getReturnType();
+                ensureVisible = new ClassReflector(listType).findDeclaredMethod("ensureVisible");
 
                 getItems = MethodHandles.lookup().findVirtual(listType, "getItems", MethodType.methodType(List.class));
 
-                for (var field : ClassReflector.GetInstance().getDeclaredFields(EventsPanel.class)) {
-                    intelTagGroupListCls = FieldReflector.GetInstance().GetVariableType(field);
+                for (var field : eventsPanelReflector.getDeclaredFields()) {
+                    intelTagGroupListCls = field.getType();
 
                     if(TagDisplayAPI.class.isAssignableFrom(intelTagGroupListCls)) {
                         intelTagGroupList = field;
@@ -176,18 +178,13 @@ public class IntelTabUI extends InputScreenBase {
         }
 
         public UIComponentAPI getMap() {
-            try {
-                return (UIComponentAPI) MethodReflector.GetInstance().invoke(getMap, eventsPanel);
-            } catch(Throwable ex) {
-                Global.getLogger(getClass()).error("Couldn't get map from EventsPanel!", ex);
-                return null;
-            }
+            return (UIComponentAPI) getMap.invoke(eventsPanel);
         }
 
         public List<UIComponentAPI> getIntelButtons() {
             List<UIComponentAPI> intelButtons = new ArrayList<>();
             try {
-                var listPanel = MethodReflector.GetInstance().invoke(getList, eventsPanel);
+                var listPanel = getList.invoke(eventsPanel);
 
                 var items = (List<?>) getItems.invoke(listPanel);
 
@@ -205,7 +202,7 @@ public class IntelTabUI extends InputScreenBase {
         public List<UIComponentAPI> getIntelFilters() {
             List<UIComponentAPI> filterButtons = new ArrayList<>();
             try {
-                var filterGroups = FieldReflector.GetInstance().GetVariable(intelTagGroupList, eventsPanel);
+                var filterGroups = intelTagGroupList.get(eventsPanel);
 
                 var groupPanels = (List<?>) getGroups.invoke(filterGroups);
                 for(var pnl : groupPanels) {

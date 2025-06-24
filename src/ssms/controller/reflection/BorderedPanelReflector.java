@@ -9,7 +9,6 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
 public class BorderedPanelReflector extends UIPanelReflector {
-    UIPanelAPI borderedPanel;
     CoreUIAPI coreUIAPI;
     static MethodHandle getPanel;
     static MethodHandle setPanel;
@@ -21,7 +20,6 @@ public class BorderedPanelReflector extends UIPanelReflector {
 
     private BorderedPanelReflector(UIPanelAPI borderedPanel, CoreUIAPI coreUIAPI) {
         super(borderedPanel);
-        this.borderedPanel = borderedPanel;
         this.coreUIAPI = coreUIAPI;
     }
 
@@ -29,13 +27,9 @@ public class BorderedPanelReflector extends UIPanelReflector {
         return coreUIAPI;
     }
 
-    public UIPanelAPI getBorderedPanel() {
-        return borderedPanel;
-    }
-
-    public UIPanelAPI getInnerPanel() {
+    public UIPanelReflector getInnerPanel() {
         try {
-            return (UIPanelAPI) getPanel.invoke(borderedPanel);
+            return new UIPanelReflector((UIPanelAPI) getPanel.invoke(panel));
         } catch(Throwable ex){
             Global.getLogger(getClass()).fatal("Couldn't get panel from BorderedPanel!", ex);
             return null;

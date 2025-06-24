@@ -12,7 +12,7 @@ import java.util.List;
 
 public class FleetTabReflector {
     CoreUIAPI coreUIAPI;
-    UIPanelAPI fleetListObj, sidePanelObj, fleetGridPanelObj;
+    UIPanelReflector fleetListObj, sidePanelObj, fleetGridPanelObj;
 
     static MethodHandle getItemHeight;
     static MethodHandle getItemWidth;
@@ -21,7 +21,7 @@ public class FleetTabReflector {
 
     static Class<?> fleetListObjCls;
 
-    private FleetTabReflector(CoreUIAPI parentCoreUi, UIPanelAPI fleetListObj, UIPanelAPI sidePanelObj, UIPanelAPI fleetGridPanelObj) {
+    private FleetTabReflector(CoreUIAPI parentCoreUi, UIPanelReflector fleetListObj, UIPanelReflector sidePanelObj, UIPanelReflector fleetGridPanelObj) {
         this.coreUIAPI = parentCoreUi;
         this.fleetListObj = fleetListObj;
         this.sidePanelObj = sidePanelObj;
@@ -29,8 +29,8 @@ public class FleetTabReflector {
     }
 
     public List<ButtonAPI> getButtons() {
-        var buttons = UIPanelReflector.getChildButtons(fleetListObj, true);
-        buttons.addAll(UIPanelReflector.getChildButtons(sidePanelObj, true));
+        var buttons = fleetListObj.getChildButtons(true);
+        buttons.addAll(sidePanelObj.getChildButtons(true));
         return buttons;
     }
 
@@ -71,13 +71,12 @@ public class FleetTabReflector {
     }
 
     public static FleetTabReflector TryGet(CoreUIAPI coreUIAPI, BorderedPanelReflector borderedPanelReflector) {
-        var children = UIPanelReflector.getChildItems(borderedPanelReflector.getInnerPanel());
+        var children = borderedPanelReflector.getInnerPanel().getChildPanels();
         if (children.size() == 2) {
-            UIPanelAPI fleetListObj = (UIPanelAPI) children.get(0);
-            UIPanelAPI sidePanelObj = (UIPanelAPI) children.get(1);
-            var fleetLstChildren = UIPanelReflector.getChildItems(fleetListObj);
-            if (fleetLstChildren.size() == 2) {
-                var fleetGridPanel = (UIPanelAPI) fleetLstChildren.get(1);
+            UIPanelReflector fleetListObj = new UIPanelReflector(children.get(0));
+            UIPanelReflector sidePanelObj = new UIPanelReflector(children.get(1));
+            var fleetLstChildren = fleetListObj.getChildItems();
+            if (fleetLstChildren.size() == 2 && fleetLstChildren.get(1) instanceof UIPanelAPI fleetGridPanel) {
 
                 if (fleetListObjCls == null) {
                     try {
@@ -92,13 +91,13 @@ public class FleetTabReflector {
 
                         fleetListObjCls = fleetListObj.getClass();
 
-                        return new FleetTabReflector(coreUIAPI, fleetListObj, sidePanelObj, fleetGridPanel);
+                        return new FleetTabReflector(coreUIAPI, fleetListObj, sidePanelObj, new UIPanelReflector(fleetGridPanel));
                     } catch (Throwable ex) {
                         Global.getLogger(FleetTabReflector.class).error("Couldn't reflect into FleetTab's UI!", ex);
                         return null;
                     }
                 } else if (fleetListObjCls.isAssignableFrom(fleetListObj.getClass())) {
-                    return new FleetTabReflector(coreUIAPI, fleetListObj, sidePanelObj, fleetGridPanel);
+                    return new FleetTabReflector(coreUIAPI, fleetListObj, sidePanelObj, new UIPanelReflector(fleetGridPanel));
                 }
             }
         }

@@ -72,45 +72,40 @@ public class IntelFactionTabUi extends InputScreenBase {
     public static class IntelFactionTabReflector
     {
         FactionIntelPanel factionIntelPanel;
-        Object getList;
+        MethodReflector getList;
         MethodHandle getItems;
-        Object ensureVisible;
+        MethodReflector ensureVisible;
         public IntelFactionTabReflector(FactionIntelPanel factionIntelPanel) throws Throwable
         {
             this.factionIntelPanel = factionIntelPanel;
 
-            getList = ClassReflector.GetInstance().getDeclaredMethod(FactionIntelPanel.class, "getList");
+            getList = new ClassReflector(FactionIntelPanel.class).getDeclaredMethod("getList");
 
-            Class<?> listCls = MethodReflector.GetInstance().getReturnType(getList);
+            Class<?> listCls = getList.getReturnType();
             getItems = MethodHandles.lookup().findVirtual(listCls, "getItems", MethodType.methodType(List.class));
-            ensureVisible = ClassReflector.GetInstance().findDeclaredMethod(listCls, "ensureVisible");
+            ensureVisible = new ClassReflector(listCls).findDeclaredMethod("ensureVisible");
         }
 
         public List<UIComponentAPI> getFactionButtons() {
             List<UIComponentAPI> factionButtons = new ArrayList<>();
+            var lst = getList.invoke(factionIntelPanel);
             try {
-                var lst = MethodReflector.GetInstance().invoke(getList, factionIntelPanel);
-
                 var items = (List<?>) getItems.invoke(lst);
-                for(var item : items) {
-                    if(UIComponentAPI.class.isAssignableFrom(item.getClass())) {
-                        factionButtons.add((UIComponentAPI) item);
+                for (var item : items) {
+                    if (item instanceof UIComponentAPI uiComponentAPI) {
+                        factionButtons.add(uiComponentAPI);
                     }
                 }
             } catch(Throwable ex) {
-                Global.getLogger(getClass()).error("Couldn't get faction buttons!", ex);
+                Global.getLogger(getClass()).error("Couldn't invoke getItems method!", ex);
             }
             return factionButtons;
         }
 
         public void ensureVisible(UIComponentAPI factionButton) {
-            try {
-                var lst = MethodReflector.GetInstance().invoke(getList, factionIntelPanel);
+            var lst = getList.invoke(factionIntelPanel);
 
-                MethodReflector.GetInstance().invoke(ensureVisible, lst, factionButton);
-            } catch(Throwable ex) {
-                Global.getLogger(getClass()).error("Couldn't ensure faction is visible!", ex);
-            }
+            ensureVisible.invoke(lst, factionButton);
         }
     }
 }

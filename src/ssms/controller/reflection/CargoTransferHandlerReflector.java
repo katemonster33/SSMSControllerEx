@@ -14,13 +14,14 @@ import java.lang.invoke.MethodType;
 public class CargoTransferHandlerReflector {
     CargoTransferHandlerAPI cargoTransferHandler;
     MethodHandle getPickedUpStack;
-    Object getOrigStackSource;
-    Object scrollbarField;
+    MethodReflector getOrigStackSource;
+    FieldReflector scrollbarField;
     public CargoTransferHandlerReflector(CargoTransferHandlerAPI cargoTransferHandler) throws  Throwable {
 
         this.cargoTransferHandler = cargoTransferHandler;
-        for(Object field : ClassReflector.GetInstance().getDeclaredFields(cargoTransferHandler.getClass())) {
-            Class<?> fieldCls = FieldReflector.GetInstance().GetVariableType(field);
+        ClassReflector cthApiReflector = new ClassReflector(cargoTransferHandler.getClass());
+        for(FieldReflector field : cthApiReflector.getDeclaredFields()) {
+            Class<?> fieldCls = field.getType();
             // we're iterating through obfuscating fields finding the first one that isn't cargo-related - this is the scrollbar
             if(UIPanelAPI.class.isAssignableFrom(fieldCls) &&
                     !CargoItemStack.class.isAssignableFrom(fieldCls) &&
@@ -32,7 +33,7 @@ public class CargoTransferHandlerReflector {
         }
 
         getPickedUpStack = MethodHandles.lookup().findVirtual(cargoTransferHandler.getClass(), "getPickedUpStack", MethodType.methodType(CargoItemStack.class));
-        getOrigStackSource = ClassReflector.GetInstance().findDeclaredMethod(cargoTransferHandler.getClass(), "getOrigStackSource");
+        getOrigStackSource = cthApiReflector.findDeclaredMethod("getOrigStackSource");
     }
 
     public CargoItemStack getPickedUpStack() {
@@ -45,12 +46,7 @@ public class CargoTransferHandlerReflector {
     }
 
     public UIPanelAPI getOrigStackSource() {
-        try {
-            return (UIPanelAPI) MethodReflector.GetInstance().invoke(getOrigStackSource, cargoTransferHandler);
-        } catch(Throwable ex) {
-            Global.getLogger(getClass()).warn("Couldn't invoke getOrigStackSource from cargo transfer handler!", ex);
-            return null;
-        }
+        return (UIPanelAPI) getOrigStackSource.invoke(cargoTransferHandler);
     }
 
     public CargoTransferHandlerAPI getCargoTransferHandler() {
@@ -58,12 +54,6 @@ public class CargoTransferHandlerReflector {
     }
 
     public UIPanelAPI getScrollbar() {
-        UIPanelAPI scrollbar = null;
-        try {
-            scrollbar = (UIPanelAPI) FieldReflector.GetInstance().GetVariable(scrollbarField, cargoTransferHandler);
-        } catch(Throwable ex) {
-            Global.getLogger(getClass()).warn("Couldn't get CargoTransferHandler's scrollbar element!", ex);
-        }
-        return scrollbar;
+        return (UIPanelAPI) scrollbarField.get(cargoTransferHandler);
     }
 }

@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DialogUI extends InputScreenBase {
-    UIPanelAPI optionsPanel;
+    UIPanelReflector optionsPanel;
     MethodHandle doButtonClick;
     InteractionDialogReflector  interactReflector;
     InteractionDialogAPI interactionDialogAPI;
@@ -37,13 +37,13 @@ public class DialogUI extends InputScreenBase {
     @Override
     public void activate(Object... args) {
         interactionDialogAPI = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
-        interactReflector = InteractionDialogReflector.GetInstance();
+        interactReflector = new InteractionDialogReflector(interactionDialogAPI);
         indicators = new ArrayList<>();
         directionalUINavigator = new DirectionalUINavigator(new ArrayList<>());
         addDigitalJoystickHandler("Navigate menu", Joystick.DPad, directionalUINavigator);
         addButtonPressHandler("Confirm", LogicalButtons.A, (float advance) -> clickButton());
         if(interactionDialogAPI != null) {
-            optionsPanel = (UIPanelAPI) interactionDialogAPI.getOptionPanel();
+            optionsPanel = new UIPanelReflector((UIPanelAPI) interactionDialogAPI.getOptionPanel());
             try {
                 doButtonClick = MethodHandles.lookup().findVirtual(optionsPanel.getClass(), "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
             } catch(Throwable ex) {
@@ -69,13 +69,13 @@ public class DialogUI extends InputScreenBase {
         } else {
             var interactionCoreUi = interactReflector.getCoreUI(interactionDialogAPI);
             if (interactionCoreUi != null && interactionCoreUi.getTradeMode() != null) {
-                var dialogChildren = UIPanelReflector.getChildItems((UIPanelAPI) interactionDialogAPI);
+                var dialogChildren = interactReflector.getChildItems();
                 if (dialogChildren.contains(interactionCoreUi)) {
-                    for (var coreUiChild : UIPanelReflector.getChildPanels((UIPanelAPI) interactionCoreUi)) {
+                    for (var coreUiChild : new UIPanelReflector((UIPanelAPI) interactionCoreUi).getChildPanels()) {
                         BorderedPanelReflector borderPanel = BorderedPanelReflector.TryGet(interactionCoreUi, coreUiChild);
                         if (borderPanel != null) {
                             var tradeUi = TradeUiReflector.TryGet(interactionCoreUi, borderPanel);
-                            if (tradeUi != null && tradeUi.getTradePanel() != null && tradeUi.getTradePanel().getOpacity() != 0.f) {
+                            if (tradeUi != null && tradeUi.getPanel().getOpacity() != 0.f) {
                                 InputScreenManager.getInstance().transitionToScreen(TradeScreen.ID, tradeUi);
                             }
                         }
@@ -83,9 +83,8 @@ public class DialogUI extends InputScreenBase {
                 }
             }
         }
-        var btns = new ArrayList<>(UIPanelReflector.getChildButtons(optionsPanel));
         List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
-        for(var btn : btns) {
+        for(var btn : optionsPanel.getChildButtons()) {
             directionalObjects.add(new Pair<>(btn, null));
         }
         directionalUINavigator.setNavigationObjects(directionalObjects);
