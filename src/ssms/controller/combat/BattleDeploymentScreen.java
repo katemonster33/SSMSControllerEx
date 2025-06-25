@@ -19,6 +19,7 @@ public class BattleDeploymentScreen extends InputScreenBase {
     public static final String ID = "BattleDeployment";
     DeploymentUiReflector dui; // hehe, dui
     DirectionalUINavigator directionalUINavigator;
+    UIPanelReflector widgetPanelReflector;
 
     public BattleDeploymentScreen() {
     }
@@ -38,6 +39,7 @@ public class BattleDeploymentScreen extends InputScreenBase {
             directionalObjects.add(new Pair<>(btn, null));
         }
         directionalUINavigator = new DirectionalUINavigator(directionalObjects);
+        widgetPanelReflector = new UIPanelReflector(CombatStateReflector.GetInstance().getWidgetPanel());
         addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
         addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> clickButton());
     }
@@ -54,7 +56,7 @@ public class BattleDeploymentScreen extends InputScreenBase {
     @Override
     public void preInput(float advance) {
         if(Global.getCombatEngine().getCombatUI().isShowingDeploymentDialog()) {
-            var lastChild = UIPanelReflector.getLastChild(CombatStateReflector.GetInstance().getWidgetPanel());
+            var lastChild = widgetPanelReflector.getLastChild();
             if(lastChild != lastUIOnTop && lastChild != dui.getDialogObject() && lastChild instanceof UIPanelAPI lastChildPanel) {
                 lastUIOnTop = lastChild;
                 // this nonsense tries to tell if the topmost UI element is the message box that shows up the first time we enter combat

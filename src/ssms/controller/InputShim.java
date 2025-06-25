@@ -24,25 +24,26 @@ public class InputShim implements InputImplementation {
     static HashSet<Integer> keysDown = new HashSet<>();
     static HashSet<Integer> mouseBtnsDown = new HashSet<>();
 
+    static FieldReflector inputImplField, inputImplFieldKb;
+
+    static {
+        inputImplField = new ClassReflector(Mouse.class).getDeclaredField("implementation");
+        inputImplFieldKb = new ClassReflector(Keyboard.class).getDeclaredField("implementation");
+    }
+
     public static void install() {
         if(instance != null) {
             Global.getLogger(InputShim.class).info("Input shim already installed!");
         } else {
-            try {
-                var inputImplField = ClassReflector.GetInstance().getDeclaredField(Mouse.class, "implementation");
-                var inputImplFieldKb = ClassReflector.GetInstance().getDeclaredField(Keyboard.class, "implementation");
-                InputImplementation originalImpl = (InputImplementation) FieldReflector.GetInstance().GetVariable(inputImplField, null);
-                InputImplementation originalImplKb = (InputImplementation) FieldReflector.GetInstance().GetVariable(inputImplFieldKb, null);
-                if (originalImpl != originalImplKb) {
-                    // we probably won't ever hit this, this is only if we recreate the InputEventReflector and then reinstall the existing shim
-                    throw new IllegalArgumentException("Can't create input shim - keyboard/mouse input implementations use different objects!");
-                } else {
-                    instance = new InputShim(originalImpl);
-                    FieldReflector.GetInstance().SetVariable(inputImplField, null, instance);
-                    FieldReflector.GetInstance().SetVariable(inputImplFieldKb, null, instance);
-                }
-            } catch (Throwable ex) {
-                Global.getLogger(InputShim.class).fatal("Couldn't install input shim!", ex);
+            InputImplementation originalImpl = (InputImplementation) inputImplField.get(null);
+            InputImplementation originalImplKb = (InputImplementation) inputImplFieldKb.get(null);
+            if (originalImpl != originalImplKb) {
+                // we probably won't ever hit this, this is only if we recreate the InputEventReflector and then reinstall the existing shim
+                throw new RuntimeException("Can't create input shim - keyboard/mouse input implementations use different objects!");
+            } else {
+                instance = new InputShim(originalImpl);
+                inputImplField.set(null, instance);
+                inputImplFieldKb.set(null, instance);
             }
         }
     }
@@ -63,21 +64,15 @@ public class InputShim implements InputImplementation {
         if(instance == null) {
             Global.getLogger(InputShim.class).info("Input shim already installed!");
         } else {
-            try {
-                var inputImplField = ClassReflector.GetInstance().getDeclaredField(Mouse.class, "implementation");
-                var inputImplFieldKb = ClassReflector.GetInstance().getDeclaredField(Keyboard.class, "implementation");
-                InputImplementation originalImpl = (InputImplementation) FieldReflector.GetInstance().GetVariable(inputImplField, null);
-                InputImplementation originalImplKb = (InputImplementation) FieldReflector.GetInstance().GetVariable(inputImplFieldKb, null);
-                if (originalImpl != originalImplKb) {
-                    // we probably won't ever hit this, if we do, then ruh-roh.
-                    throw new IllegalArgumentException("Can't remove input shim - keyboard/mouse input implementations use different objects!");
-                } else {
-                    FieldReflector.GetInstance().SetVariable(inputImplField, null, instance.realImpl);
-                    FieldReflector.GetInstance().SetVariable(inputImplFieldKb, null, instance.realImpl);
-                    instance = null;
-                }
-            } catch (Throwable ex) {
-                Global.getLogger(InputShim.class).fatal("Couldn't remove input shim!", ex);
+            InputImplementation originalImpl = (InputImplementation) inputImplField.get(null);
+            InputImplementation originalImplKb = (InputImplementation) inputImplFieldKb.get(null);
+            if (originalImpl != originalImplKb) {
+                // we probably won't ever hit this, if we do, then ruh-roh.
+                throw new RuntimeException("Can't remove input shim - keyboard/mouse input implementations use different objects!");
+            } else {
+                inputImplField.set(null, instance.realImpl);
+                inputImplFieldKb.set(null, instance.realImpl);
+                instance = null;
             }
         }
     }

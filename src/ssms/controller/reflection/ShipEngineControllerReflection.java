@@ -3,26 +3,21 @@ package ssms.controller.reflection;
 
 import com.fs.starfarer.api.Global;
 
+import com.fs.starfarer.api.combat.ShipEngineControllerAPI;
 import ssms.controller.SSMSControllerModPluginEx;
 
 public class ShipEngineControllerReflection {
-    static protected Object mGetEffectiveStrafeAcceleration;
+    static protected MethodReflector mGetEffectiveStrafeAcceleration;
     static protected boolean initialized = false;
 
-    static public float getEffectiveStrafeAcceleration(Object original) {
+    static public float getEffectiveStrafeAcceleration(ShipEngineControllerAPI original) {
         if ( !initialized ) {
-            try {
-                Class<?> c = original.getClass(); //Class.forName("com.fs.starfarer.combat.entities.ship.H");
-                mGetEffectiveStrafeAcceleration = ClassReflector.GetInstance().getDeclaredMethod(c, "getEffectiveStrafeAcceleration");
-            } catch (Throwable ex) {
-                Global.getLogger(SSMSControllerModPluginEx.class).error("Failed to find methods for " + original.getClass().getSimpleName() + "!", ex);
+            Class<?> c = original.getClass(); //Class.forName("com.fs.starfarer.combat.entities.ship.H");
+            mGetEffectiveStrafeAcceleration = new ClassReflector(c).getDeclaredMethod("getEffectiveStrafeAcceleration");
+            if(mGetEffectiveStrafeAcceleration == null) {
+                Global.getLogger(SSMSControllerModPluginEx.class).error("Failed to find methods for " + original.getClass().getSimpleName() + "!");
             }
         }
-        try {
-            return (float) MethodReflector.GetInstance().invoke(mGetEffectiveStrafeAcceleration, original);
-        } catch (Throwable ex) {
-
-        }
-        return 0f;
+        return (float) mGetEffectiveStrafeAcceleration.invoke(original);
     }
 }

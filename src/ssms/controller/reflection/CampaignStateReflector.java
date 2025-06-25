@@ -11,20 +11,21 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
 public class CampaignStateReflector {
-    Object getWidgetPanel = null;
-    Object getScreenHandle = null;
-    Object coreUiField = null;
+    MethodReflector getWidgetPanel = null;
+    MethodReflector getScreenHandle = null;
+    FieldReflector coreUiField = null;
     Object cs;
     MethodHandle getZoomFactor;
     static CampaignStateReflector instance;
     private CampaignStateReflector() {
         cs = AppDriver.getInstance().getState(CampaignState.STATE_ID);
         try {
-            getScreenHandle = ClassReflector.GetInstance().findDeclaredMethod(CampaignState.class, "getScreenPanel");
+            ClassReflector csReflector = new ClassReflector(CampaignState.class);
+            getScreenHandle = csReflector.findDeclaredMethod("getScreenPanel");
 
             getZoomFactor = MethodHandles.lookup().findVirtual(CampaignState.class, "getZoomFactor", MethodType.methodType(float.class));
 
-            coreUiField = ClassReflector.GetInstance().getDeclaredField(CampaignState.class, "core");
+            coreUiField = csReflector.getDeclaredField("core");
         } catch(Throwable ex) {
             Global.getLogger(getClass()).fatal("Couldn't reflect into CampaignState!");
         }
@@ -47,20 +48,10 @@ public class CampaignStateReflector {
     }
 
     public UIPanelAPI getScreenPanel() {
-        try {
-            return (UIPanelAPI) MethodReflector.GetInstance().invoke(getScreenHandle, cs);
-        } catch(Throwable ex) {
-            Global.getLogger(getClass()).warn("Couldn't call CampaignState.getScreenPanel!", ex);
-            return null;
-        }
+        return (UIPanelAPI) getScreenHandle.invoke(cs);
     }
 
     public CoreUIAPI getCoreUI() {
-        try {
-            return (CoreUIAPI) FieldReflector.GetInstance().GetVariable(coreUiField, cs);
-        } catch(Throwable ex) {
-            Global.getLogger(getClass()).warn("Couldn't fetch CampaignState.core!", ex);
-            return null;
-        }
+        return (CoreUIAPI) coreUiField.get(cs);
     }
 }

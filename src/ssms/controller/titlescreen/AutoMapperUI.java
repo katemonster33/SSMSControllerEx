@@ -33,6 +33,7 @@ public class AutoMapperUI extends InputScreenBase {
     ControllerMapping tempMapping = null;
     boolean parsedBtn = false;
     AutoMapperPanel autoMapperPanel;
+    TitleScreenStateReflector titleScreenStateReflector;
 
     static class AutoMapperPanel extends LunaBaseCustomPanelPlugin {
         UIPanelAPI parentPanel;
@@ -86,6 +87,7 @@ public class AutoMapperUI extends InputScreenBase {
 
     @Override
     public void activate(Object... args) {
+        titleScreenStateReflector = new TitleScreenStateReflector();
         tempMapping = new ControllerMapping();
         calibrationIndex = 0;
         btnCount = SSMSControllerModPluginEx.controller.controller.getAxisCount() * 2 + SSMSControllerModPluginEx.controller.controller.getButtonCount();
@@ -105,7 +107,7 @@ public class AutoMapperUI extends InputScreenBase {
         povXRestingState = SSMSControllerModPluginEx.controller.controller.getPovX();
         povYRestingState = SSMSControllerModPluginEx.controller.controller.getPovY();
         if(Global.getCurrentState() == GameState.TITLE) {
-            var panel = TitleScreenStateReflector.GetInstance().getScreenPanel();
+            var panel = titleScreenStateReflector.getScreenPanel();
             autoMapperPanel = new AutoMapperPanel(panel);
 
             var indicatorEnum = Indicators.fromButton(buttons[calibrationIndex]);

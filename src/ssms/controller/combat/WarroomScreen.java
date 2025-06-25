@@ -48,7 +48,7 @@ public class WarroomScreen extends InputScreenBase {
             }
         });
         addButtonPressHandler("Return to deployment screen", LogicalButtons.Y, new KeySender(Keyboard.KEY_G, 'G'));
-        var buttons = warroomReflector.getButtons();
+        var buttons = warroomReflector.getChildButtons(true);
         List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
         for(var btn : buttons) {
             directionalObjects.add(new Pair<>(btn, null));
@@ -74,7 +74,7 @@ public class WarroomScreen extends InputScreenBase {
         } else if(Global.getCombatEngine().getCombatUI().isShowingDeploymentDialog()) {
             InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, BattleDeploymentScreen.ID, new Object[]{ csr });
         }
-        var buttons = warroomReflector.getButtons();
+        var buttons = warroomReflector.getChildButtons(true);
         List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
         for(var btn : buttons) {
             directionalObjects.add(new Pair<>(btn, null));

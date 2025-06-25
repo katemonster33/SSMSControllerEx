@@ -37,14 +37,14 @@ public class MapTabUI extends InputScreenBase {
         viewportAPI = Global.getSector().getViewport();
         mapReflector = (MapReflector) args[0];
         indicators = new ArrayList<>();
-        mapInputHandler = addMapHandler(mapReflector.getMap());
+        mapInputHandler = addMapHandler(mapReflector.getPanel());
 
         List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
         for(var btn : mapReflector.getButtons()) {
             directionalObjects.add(new Pair<>(btn, null));
         }
         addDigitalJoystickHandler("Navigate", Joystick.DPad, new DirectionalUINavigator(directionalObjects));
-        var buttons = UIPanelReflector.getChildButtons((UIPanelAPI) mapReflector.getMap());
+        var buttons = mapReflector.getChildButtons();
         if(buttons.size() == 4) {
             addButtonPressHandler("Go back", LogicalButtons.B, new KeySender(Keyboard.KEY_S, 's'));
         } else {

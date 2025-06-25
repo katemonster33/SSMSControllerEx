@@ -14,9 +14,8 @@ public class UIComponentReflector {
         this.uiComponentAPI = uiComponentAPI;
     }
 
-    static {
-        var testPnl = Global.getSettings().createCustom(1.f, 1.f, null);
-        var uiCompReflector = new ClassReflector(testPnl.getClass().getSuperclass().getSuperclass());
+    public static void initialize(Class<?> uiCompCls) {
+        var uiCompReflector = new ClassReflector(uiCompCls);
 
         getFaderMethod = uiCompReflector.getDeclaredMethod("getFader");
         getParentHandle = uiCompReflector.getDeclaredMethod("getParent");

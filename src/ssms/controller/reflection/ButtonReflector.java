@@ -16,6 +16,10 @@ public final class ButtonReflector extends UIComponentReflector {
         super(buttonAPI);
     }
 
+    public ButtonAPI getButton() {
+        return button;
+    }
+
     public boolean isCheckbox() {
         return (boolean) getButtonCheckboxRenderer.invoke(button);
     }

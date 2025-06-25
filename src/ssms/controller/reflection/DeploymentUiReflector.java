@@ -8,21 +8,18 @@ import java.util.List;
 
 public class DeploymentUiReflector {
     UIPanelAPI deploymentUiObj;
+    static MethodReflector getInnerPanel;
 
     public DeploymentUiReflector(UIPanelAPI deploymentUiObject) {
         this.deploymentUiObj = deploymentUiObject;
+        if(getInnerPanel == null) {
+            getInnerPanel = new ClassReflector(deploymentUiObject.getClass()).findDeclaredMethod("getInnerPanel");
+        }
     }
 
     public List<ButtonAPI> getAllButtons() {
-        List<ButtonAPI> output = new ArrayList<>();
-        try {
-            var getInnerPanel = ClassReflector.GetInstance().findDeclaredMethod(deploymentUiObj.getClass(), "getInnerPanel");
-            var innerPanel = (UIPanelAPI) MethodReflector.GetInstance().invoke(getInnerPanel, deploymentUiObj);
-            output.addAll(UIPanelReflector.getChildButtons(innerPanel, true));
-        } catch(Throwable ex) {
-            Global.getLogger(getClass()).warn("Couldn't fetch buttons of dialog!");
-        }
-        return output;
+        var innerPanel = new UIPanelReflector((UIPanelAPI) getInnerPanel.invoke(deploymentUiObj));
+        return innerPanel.getChildButtons(true);
     }
 
     public Object getDialogObject() {

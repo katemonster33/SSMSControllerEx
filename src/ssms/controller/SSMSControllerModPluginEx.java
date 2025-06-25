@@ -17,6 +17,7 @@
  */
 package ssms.controller;
 
+import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import ssms.controller.campaign.*;
@@ -70,7 +71,8 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
             }
         }
         var testPnl = Global.getSettings().createCustom(1.f, 1.f, null);
-        UIPanelReflector.initialize((Class<? extends UIPanelAPI>) testPnl.getClass().getSuperclass());
+        UIPanelReflector.initialize(testPnl.getClass().getSuperclass());
+        UIComponentReflector.initialize(testPnl.getClass().getSuperclass().getSuperclass());
         var testElem = testPnl.createUIElement(1.f, 1.f, false);
         var testBtn = testElem.addButton("TEST", null, 1.f, 1.f, 0.f);
         ButtonReflector.init(testBtn.getClass());
@@ -367,11 +369,11 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         if(con.getAxisCount() == 0) return;
         try {
             List<Pair<Integer, Integer>> instances = new ArrayList<>();
-            var axes = (List<?>) FieldReflector.GetInstance().GetVariableByName("axes", con);
+            var axes = (List<?>) new ClassReflector(con.getClass()).getDeclaredField("axes").get(con);
             for(int axisIdx = 0; axisIdx < axes.size(); axisIdx++) {
                 var axis = axes.get(axisIdx);
-                var obj = FieldReflector.GetInstance().GetVariableByName("object", axis);
-                instances.add(new Pair<>((int) FieldReflector.GetInstance().GetVariableByName("instance", obj), axisIdx));
+                var obj = new ClassReflector(axis.getClass()).getDeclaredField("object").get(axis);
+                instances.add(new Pair<>((int) new ClassReflector(obj.getClass()).getDeclaredField("instance").get(obj), axisIdx));
             }
             instances.sort(Comparator.comparingInt(o -> o.one));
             for(var axisMapping : conMap.getMappedAxes()) {
@@ -412,9 +414,9 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         String platform = System.getProperty("os.name");
         try {
             if(platform.contains("Windows")) {
-                var privateDev = FieldReflector.GetInstance().GetVariableByName("target", con);
-                var device = FieldReflector.GetInstance().GetVariableByName("device", privateDev);
-                var address = (long) FieldReflector.GetInstance().GetVariableByName("address", device);
+                var privateDev = new ClassReflector(con.getClass()).getDeclaredField("target").get(con);
+                var device = new ClassReflector(privateDev.getClass()).getDeclaredField("device").get(privateDev);
+                var address = (long) new ClassReflector(device.getClass()).getDeclaredField("address").get(device);
                 var vidpid = DirectInputDeviceEx.GetVidPid(address);
                 if(vidpid != 0) {
                     return makeControllerGuid((int)(vidpid & 0xFFFF), (int)((vidpid >> 16) & 0xFFFF), 0);
@@ -422,13 +424,14 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
             } else if(platform.contains("Mac OS X")) {
                 return null;
             } else if(platform.contains("Linux")) {
-                var target = FieldReflector.GetInstance().GetVariableByName("target", con);
-                var eventController = FieldReflector.GetInstance().GetVariableByName("eventController", target);
-                var device = FieldReflector.GetInstance().GetVariableByName("device", eventController);
-                var inputDeviceId = FieldReflector.GetInstance().GetVariableByName("input_id", device);
-                int vendor = (int) FieldReflector.GetInstance().GetVariableByName("vendor", inputDeviceId);
-                int product = (int) FieldReflector.GetInstance().GetVariableByName("product", inputDeviceId);
-                int version = (int) FieldReflector.GetInstance().GetVariableByName("version", inputDeviceId);
+                var target = new ClassReflector(con.getClass()).getDeclaredField("target").get(con);
+                var eventController = new ClassReflector(target.getClass()).getDeclaredField("eventController").get(target);
+                var device = new ClassReflector(eventController.getClass()).getDeclaredField("device").get(eventController);
+                var inputDeviceId = new ClassReflector(device.getClass()).getDeclaredField("input_id").get(device);
+                var inputDevReflector = new ClassReflector(inputDeviceId.getClass());
+                int vendor = (int)inputDevReflector.getDeclaredField("vendor").get(inputDeviceId);
+                int product = (int) inputDevReflector.getDeclaredField("product").get(inputDeviceId);
+                int version = (int) inputDevReflector.getDeclaredField("version").get(inputDeviceId);
                 return makeControllerGuid(vendor, product, version);
             }
         } catch(Throwable ex) {

@@ -27,6 +27,8 @@ public class TradeScreen extends InputScreenBase {
     public static final String ID = "Trade";
     TradeUiReflector tradeUiReflector;
     InteractionDialogAPI interactionDialogAPI;
+    UIPanelReflector coreUiPanelReflector;
+    InteractionDialogReflector interactionDialogReflector;
     CargoDataGridViewReflector playerDataGrid;
     CargoDataGridViewReflector otherDataGrid;
     CargoTransferHandlerReflector cargoTransferHandler;
@@ -38,6 +40,7 @@ public class TradeScreen extends InputScreenBase {
     public void activate(Object ... args) {
         if(args.length > 0) {
             tradeUiReflector = (TradeUiReflector) args[0];
+            coreUiPanelReflector = new UIPanelReflector((UIPanelAPI) tradeUiReflector.getCoreUIAPI());
         }
         indicators = new ArrayList<>();
         isCargoTab = Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.CARGO;
@@ -65,6 +68,7 @@ public class TradeScreen extends InputScreenBase {
         cargoTransferHandler = tradeUiReflector.getCargoTransferHandler();
         ControllerCrosshairRenderer.getControllerRenderer().setSize(100);
         interactionDialogAPI = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
+        interactionDialogReflector = new InteractionDialogReflector(interactionDialogAPI);
         lastFrameChildCount = 0;
     }
 
@@ -106,14 +110,14 @@ public class TradeScreen extends InputScreenBase {
             InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
         } else if(tradeUiReflector.getCoreUIAPI().getTradeMode() != null){
             if(interactionDialogAPI != null) {
-                var tradePanelChildren = UIPanelReflector.getChildItems((UIPanelAPI) interactionDialogAPI);
+                var tradePanelChildren = interactionDialogReflector.getChildItems();
                 if (!tradePanelChildren.contains(tradeUiReflector.getCoreUIAPI())) {
                     InputScreenManager.getInstance().transitionToScreen(DialogUI.ID);
                 }
             }
             List<?> coreUiChildren = null;
-            if(interactionDialogAPI != null) coreUiChildren = UIPanelReflector.getChildItems((UIPanelAPI) tradeUiReflector.getCoreUIAPI());
-            else coreUiChildren = UIPanelReflector.getChildItems(UIPanelReflector.getParent((UIPanelAPI) tradeUiReflector.getCoreUIAPI()));
+            if(interactionDialogAPI != null) coreUiChildren = coreUiPanelReflector.getChildItems();
+            else coreUiChildren = new UIPanelReflector(coreUiPanelReflector.getParent()).getChildItems();
             int numChildren = coreUiChildren.size();
             if(numChildren > lastFrameChildCount) {
                 for(int i = lastFrameChildCount; i < numChildren; i++) {
@@ -130,7 +134,7 @@ public class TradeScreen extends InputScreenBase {
             lastFrameChildCount = numChildren;
         }
 
-        var buttons = UIPanelReflector.getChildButtons((UIPanelAPI) tradeUiReflector.getTradePanel(), true);
+        var buttons = tradeUiReflector.getChildButtons(true);
         List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
         for(var btn : buttons) {
             if(btn.isEnabled()) {

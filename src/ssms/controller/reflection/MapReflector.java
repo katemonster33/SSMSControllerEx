@@ -9,29 +9,27 @@ import com.fs.starfarer.api.ui.UIPanelAPI;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MapReflector {
+public class MapReflector extends UIPanelReflector {
     CoreUIAPI coreUIAPI;
-    UIComponentAPI mapObj;
     static Class<?> mapType;
 
-    private MapReflector(CoreUIAPI coreUi, UIComponentAPI mapObj) {
+    private MapReflector(CoreUIAPI coreUi, UIPanelAPI mapObj) {
+        super(mapObj);
         this.coreUIAPI = coreUi;
-        this.mapObj = mapObj;
     }
 
     public static MapReflector TryGet(CoreUIAPI coreUIAPI, BorderedPanelReflector borderedPanelReflector) {
         var mapObj = borderedPanelReflector.getInnerPanel();
         if (mapType == null) {
-            try {
-                var getMap = ClassReflector.GetInstance().getDeclaredMethod(mapObj.getClass(), "getMap");
+            var getMap = new ClassReflector(mapObj.getPanel().getClass()).getDeclaredMethod("getMap");
+            if(getMap != null) {
                 mapType = mapObj.getClass();
-                return new MapReflector(coreUIAPI, mapObj);
-            } catch (Throwable ex) {
-                Global.getLogger(MapReflector.class).error("Couldn't fetch map UI!");
+                return new MapReflector(coreUIAPI, mapObj.getPanel());
             }
         } else if (mapType.isAssignableFrom(mapObj.getClass())) {
-            return new MapReflector(coreUIAPI, mapObj);
+            return new MapReflector(coreUIAPI, mapObj.getPanel());
         }
+        Global.getLogger(MapReflector.class).error("Couldn't fetch map UI!");
         return null;
     }
 
@@ -39,14 +37,10 @@ public class MapReflector {
     public List<ButtonAPI> getButtons() {
         List<ButtonAPI> buttons = new ArrayList<>();
         try {
-            buttons.addAll(UIPanelReflector.getChildButtons((UIPanelAPI) mapObj, true));
+            buttons.addAll(getChildButtons(true));
         } catch(Throwable ex) {
             Global.getLogger(getClass()).error("Couldn't get buttons from map!");
         }
         return buttons;
-    }
-
-    public UIComponentAPI getMap() {
-        return mapObj;
     }
 }

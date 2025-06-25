@@ -3,26 +3,24 @@ package ssms.controller.reflection;
 import com.fs.starfarer.combat.CombatState;
 
 public class ZoomTrackerReflector {
-    Object zoomAField;
-    Object zoomBField;
-    Object zoomMinField;
-    Object zoomMaxField;
+    FieldReflector zoomAField;
+    FieldReflector zoomBField;
+    FieldReflector zoomMinField;
+    FieldReflector zoomMaxField;
     Object zoomTrackerObj;
     // we're basically crossing our fingers here and hoping the order of the fields never changes. it probably will eventually. can't do much about it.
-    public ZoomTrackerReflector(Object combatStateObj) throws Throwable {
-        Object zoomTrackerField = ClassReflector.GetInstance().getDeclaredField(CombatState.class, "zoomTracker");
-        zoomTrackerObj = FieldReflector.GetInstance().GetVariable(zoomTrackerField, combatStateObj);
-        Class<?> zoomTrackerType = FieldReflector.GetInstance().GetVariableType(zoomTrackerField);
+    public ZoomTrackerReflector(Object zoomTrackerObj) throws Throwable {
+        this.zoomTrackerObj = zoomTrackerObj;
+        ClassReflector zoomTrackerReflector = new ClassReflector(zoomTrackerObj.getClass());
 
-        var fields = ClassReflector.GetInstance().getDeclaredFields(zoomTrackerType);
         int numFloatFields = 0;
-        for(int fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
-            if(FieldReflector.GetInstance().GetVariableType(fields[fieldIndex]) == float.class) {
+        for(FieldReflector field : zoomTrackerReflector.getDeclaredFields()) {
+            if(field.getType() == float.class) {
                 switch(numFloatFields) {
-                    case 0: zoomAField = fields[fieldIndex]; break;
-                    case 1: zoomBField = fields[fieldIndex]; break;
-                    case 2: zoomMinField = fields[fieldIndex]; break;
-                    case 3: zoomMaxField = fields[fieldIndex]; break;
+                    case 0 -> zoomAField = field;
+                    case 1 -> zoomBField = field;
+                    case 2 -> zoomMinField = field;
+                    case 3 -> zoomMaxField = field;
                 }
                 if(++numFloatFields == 4) break;
             }
@@ -31,7 +29,7 @@ public class ZoomTrackerReflector {
 
     public void SetZoom(Object combatStateObj, float desiredZoom) throws Throwable
     {
-        FieldReflector.GetInstance().SetVariable(zoomMaxField, zoomTrackerObj, desiredZoom);
-        FieldReflector.GetInstance().SetVariable(zoomMinField, zoomTrackerObj, desiredZoom);
+        zoomMaxField.set(zoomTrackerObj, desiredZoom);
+        zoomMinField.set(zoomTrackerObj, desiredZoom);
     }
 }

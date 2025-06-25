@@ -15,14 +15,16 @@ public class UIPanelReflector extends UIComponentReflector {
     static Class<?> panelType;
     static MethodReflector getChildItemsHandle;
     UIPanelAPI panel;
-    static
+    public static void initialize(Class<?> testPnlCls)
     {
-        var testPnl = Global.getSettings().createCustom(1.f, 1.f, null);
-        var reflector = new ClassReflector(testPnl.getClass().getSuperclass());
+        if(!UIPanelAPI.class.isAssignableFrom(testPnlCls)) {
+            throw new RuntimeException("Panel class given did not match requirements!");
+        }
+        var reflector = new ClassReflector(testPnlCls);
         var meth = reflector.getDeclaredMethod("getChildrenCopy");
         if (meth != null) {
             getChildItemsHandle = meth;
-            UIPanelReflector.panelType = testPnl.getClass().getSuperclass();
+            UIPanelReflector.panelType = testPnlCls;
         }
     }
 

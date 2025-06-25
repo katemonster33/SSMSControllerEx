@@ -26,7 +26,6 @@ public class MessageBoxScreen extends InputScreenBase {
     MessageBoxReflector dialogReflector;
     List<ButtonAPI> dialogOptions;
     DirectionalUINavigator directionalUINavigator;
-    Object getButtonCheckboxRenderer;
 
     public MessageBoxScreen() {
     }
@@ -56,10 +55,10 @@ public class MessageBoxScreen extends InputScreenBase {
     public void clickButton()
     {
         if(directionalUINavigator != null && directionalUINavigator.getSelected() != null) {
-            var btn = (ButtonAPI) directionalUINavigator.getSelected().one;
+            var btn = new ButtonReflector((ButtonAPI) directionalUINavigator.getSelected().one);
 
-            if(ButtonReflector.isCheckbox(btn)) {
-                btn.setChecked(!btn.isChecked());
+            if(btn.isCheckbox()) {
+                btn.getButton().setChecked(!btn.getButton().isChecked());
             } else {
                 dialogReflector.doActionPerformed(null, btn);
             }

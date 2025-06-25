@@ -90,7 +90,7 @@ public class MainCampaignUI extends InputScreenBase {
         selectedHotkey = selectedHotkeyGroup = selectedTab = -1;
         currentHotkeyGroup = currentHotkey = 0;
         hotbarIndicatorRenderer = new ControllerCrosshairRenderer(58);
-        lastFrameNumChildren = UIPanelReflector.getChildItems(getPanelForIndicators()).size();
+        lastFrameNumChildren = new UIPanelReflector(getPanelForIndicators()).getChildItems().size();
         headingIndicator = new CrosshairRenderer();
         headingIndicator.setSize(32, 32);
         sectorViewport = Global.getSector().getViewport();
@@ -189,7 +189,7 @@ public class MainCampaignUI extends InputScreenBase {
     }
 
     private boolean isMessageBoxShown() {
-        var children = UIPanelReflector.getChildItems(getPanelForIndicators());
+        var children = new UIPanelReflector(getPanelForIndicators()).getChildItems();
         int numChildren = children.size();
         if(numChildren > lastFrameNumChildren) {
             for(int i = lastFrameNumChildren; i < numChildren; i++ ) {
@@ -218,7 +218,7 @@ public class MainCampaignUI extends InputScreenBase {
         var coreUI = CampaignStateReflector.GetInstance().getCoreUI();
         if (coreUI != null) {
 
-            for(var coreuiChild : UIPanelReflector.getChildPanels((UIPanelAPI) coreUI)) {
+            for(var coreuiChild : new UIPanelReflector((UIPanelAPI) coreUI).getChildPanels()) {
                 var borderedPanel = BorderedPanelReflector.TryGet(coreUI, coreuiChild);
                 if (borderedPanel != null) {
                     boolean output = switch (Global.getSector().getCampaignUI().getCurrentCoreTab()) {

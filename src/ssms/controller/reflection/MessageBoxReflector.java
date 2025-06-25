@@ -15,38 +15,37 @@ public class MessageBoxReflector {
     // The class representing the highest-order message dialog type
     static Class<?> messageBoxClass;
 
-    static Object isBeingDismissed;
+    static MethodReflector isBeingDismissed;
     static MethodHandle actionPerformed;
-    static Object getOptionMap;
-    static Object getInnerPanel;
+    static MethodReflector getOptionMap;
+    static MethodReflector getInnerPanel;
     Object dialogObject;
     private MessageBoxReflector(Object dialogObject) {
         this.dialogObject = dialogObject;
     }
 
-    public static MessageBoxReflector TryGet(UIPanelAPI msgBoxObject)
-    {
-        if(messageBoxClass == null) {
+    public static MessageBoxReflector TryGet(UIPanelAPI msgBoxObject) {
+        if (messageBoxClass == null) {
             var lookup = MethodHandles.lookup();
             try {
                 Class<?> clsTmp = msgBoxObject.getClass();
-                try {
-                    getOptionMap = ClassReflector.GetInstance().getDeclaredMethod(clsTmp, "getOptionMap");
-                } catch(Throwable ex) {
-                    try {
-                        clsTmp = clsTmp.getSuperclass();
+                ClassReflector msgBoxReflector = new ClassReflector(clsTmp);
+                getOptionMap = msgBoxReflector.getDeclaredMethod("getOptionMap");
+                if (getOptionMap == null) {
+                    clsTmp = clsTmp.getSuperclass();
+                    msgBoxReflector = new ClassReflector(clsTmp);
 
-                        getOptionMap = ClassReflector.GetInstance().getDeclaredMethod(clsTmp, "getOptionMap");
-                    } catch(Throwable ex2) {
-                        Global.getLogger(MessageBoxReflector.class).warn("Couldn't reflect MessageBox from class!", ex2);
+                    getOptionMap = msgBoxReflector.getDeclaredMethod("getOptionMap");
+                    if (getOptionMap == null) {
+                        Global.getLogger(MessageBoxReflector.class).warn("Couldn't reflect MessageBox from class!");
                         return null;
                     }
                 }
-                getInnerPanel = ClassReflector.GetInstance().findDeclaredMethod(clsTmp, "getInnerPanel");
+                getInnerPanel = msgBoxReflector.findDeclaredMethod("getInnerPanel");
 
                 actionPerformed = lookup.findVirtual(clsTmp, "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
 
-                isBeingDismissed = ClassReflector.GetInstance().getDeclaredMethod(clsTmp.getSuperclass(), "isBeingDismissed");
+                isBeingDismissed = new ClassReflector(clsTmp.getSuperclass()).getDeclaredMethod("isBeingDismissed");
 
                 messageBoxClass = clsTmp;
 
@@ -54,38 +53,21 @@ public class MessageBoxReflector {
             } catch (Throwable ex) {
                 Global.getLogger(MessageBoxReflector.class).fatal("Given object is not a dialog object!", ex);
             }
-        } else if(messageBoxClass.isAssignableFrom(msgBoxObject.getClass())) {
+        } else if (messageBoxClass.isAssignableFrom(msgBoxObject.getClass())) {
             return new MessageBoxReflector(msgBoxObject);
         }
         return null;
     }
 
     public boolean isBeingDismissed(){
-        try {
-            MethodReflector.GetInstance().setAccessible(isBeingDismissed, true);
+        isBeingDismissed.setAccessible(true);
 
-            return (boolean) MethodReflector.GetInstance().invoke(isBeingDismissed, dialogObject);
-        } catch(Throwable ex) {
-            Global.getLogger(getClass()).warn("Couldn't tell if dialog is being dismissed!");
-        }
-        return false;
+        return (boolean) isBeingDismissed.invoke(dialogObject);
     }
 
     public List<ButtonAPI> getDialogButtons() {
-        List<ButtonAPI> output = new ArrayList<>();
-        try {
-//            Map<?,?> options = (Map<?,?>) MethodReflector.GetInstance().invoke(getOptionMap, dialogObject);
-//            for(Object obj : options.keySet()) {
-//                if(ButtonAPI.class.isAssignableFrom(obj.getClass())) {
-//                    output.add((ButtonAPI) obj);
-//                }
-//            }
-            var innerPanel = (UIPanelAPI) MethodReflector.GetInstance().invoke(getInnerPanel, dialogObject);
-            output.addAll(UIPanelReflector.getChildButtons(innerPanel));
-        } catch(Throwable ex) {
-            Global.getLogger(getClass()).warn("Couldn't fetch buttons of dialog!");
-        }
-        return output;
+        var innerPanel = new UIPanelReflector((UIPanelAPI) getInnerPanel.invoke(dialogObject));
+        return innerPanel.getChildButtons();
     }
 
     public Object getDialogObject() {

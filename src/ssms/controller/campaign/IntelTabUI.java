@@ -206,10 +206,10 @@ public class IntelTabUI extends InputScreenBase {
 
                 var groupPanels = (List<?>) getGroups.invoke(filterGroups);
                 for(var pnl : groupPanels) {
-                    if(UIPanelAPI.class.isAssignableFrom(pnl.getClass())) {
-                        for(var btn : UIPanelReflector.getChildItems((UIPanelAPI) pnl)) {
-                            if(UIComponentAPI.class.isAssignableFrom(btn.getClass())) {
-                                filterButtons.add((UIComponentAPI) btn);
+                    if(pnl instanceof UIPanelAPI uiPanelAPI) {
+                        for(var btn : new UIPanelReflector(uiPanelAPI).getChildItems()) {
+                            if(btn instanceof UIComponentAPI comp) {
+                                filterButtons.add(comp);
                             }
                         }
                     }
@@ -221,13 +221,9 @@ public class IntelTabUI extends InputScreenBase {
         }
 
         public void ensureIntelButtonVisible(UIComponentAPI intelButton) {
-            try {
-                var listPanel = MethodReflector.GetInstance().invoke(getList, eventsPanel);
+            var listPanel = getList.invoke(eventsPanel);
 
-                MethodReflector.GetInstance().invoke(ensureVisible, listPanel, intelButton);
-            } catch(Throwable ex) {
-                Global.getLogger(getClass()).error("Couldn't ensure intel item visible in EventsPanel!", ex);
-            }
+            ensureVisible.invoke(listPanel, intelButton);
         }
     }
 }

@@ -13,22 +13,21 @@ public class WeaponReflection {
     public static void AimWeapon(WeaponAPI weapon, Vector2f targetLocation)
     {
         try {
-            Object getAimTracker = ClassReflector.GetInstance().findDeclaredMethod(weapon.getClass(), "getAimTracker");
+            MethodReflector getAimTracker = new ClassReflector(weapon.getClass()).findDeclaredMethod("getAimTracker");
             if(getAimTracker != null) {
-                Object setAimTargetMethod = null;
-                Object aimTracker = MethodReflector.GetInstance().invoke(getAimTracker, weapon);
-                var methods = ClassReflector.GetInstance().getDeclaredMethods(aimTracker.getClass());
-                for(Object m : methods) {
-                    var paramTypes = MethodReflector.GetInstance().getParameterTypes(m);
-                    var retType = MethodReflector.GetInstance().getReturnType(m);
-                    if(paramTypes.length == 1 && paramTypes[0] == Vector2f.class && retType == void.class)
+                MethodReflector setAimTargetMethod = null;
+                Object aimTracker = getAimTracker.invoke(weapon);
+                var methods = new ClassReflector(aimTracker.getClass()).getDeclaredMethods();
+                for(MethodReflector m : methods) {
+                    var paramTypes = m.getParameterTypes();
+                    if(paramTypes.length == 1 && paramTypes[0] == Vector2f.class && m.getReturnType() == void.class)
                     {
                         setAimTargetMethod = m;
                         break;
                     }
                 }
                 if(setAimTargetMethod != null) {
-                    MethodReflector.GetInstance().invoke(setAimTargetMethod, aimTracker, targetLocation);
+                    setAimTargetMethod.invoke(aimTracker, targetLocation);
                 } else {
                     Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Could not find aim tracker to aim weapon! :(");
                 }

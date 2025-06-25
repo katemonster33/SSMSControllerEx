@@ -47,9 +47,11 @@ public class TitleScreenUI extends InputScreenBase {
     Object dialogType = null;
     Fader missionWidgetFader = null;
     boolean missionWidgetShown = false;
+    TitleScreenStateReflector titleScreenStateReflector;
     @Override
     public void activate(Object ...args) {
-        UIPanelAPI panel = TitleScreenStateReflector.GetInstance().getScreenPanel();
+        titleScreenStateReflector = new TitleScreenStateReflector();
+        UIPanelAPI panel = titleScreenStateReflector.getScreenPanel();
         UIPanelReflector.initialize(panel.getClass());
 
         indicators = new ArrayList<>();
@@ -60,7 +62,7 @@ public class TitleScreenUI extends InputScreenBase {
         addButtonPressHandler("Confirm", LogicalButtons.A, this::clickButton);
         addButtonPressHandler("Cancel", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
         addButtonPressHandler("Reset keybindings", LogicalButtons.Select, (float advance) -> InputScreenManager.getInstance().transitionToScreen(AutoMapperUI.ID));
-        missionWidgetFader = TitleScreenStateReflector.GetInstance().getMissionWidgetFader();
+        missionWidgetFader = new UIPanelReflector(titleScreenStateReflector.getMissionWidget()).getFader();
     }
 
     public void clickButton(float advance)
@@ -77,8 +79,8 @@ public class TitleScreenUI extends InputScreenBase {
 
     @Override
     public void preInput(float advance) {
-        var curMainMenuButtons = TitleScreenStateReflector.GetInstance().getMainMenuButtons();
-        Object curDialogType = TitleScreenStateReflector.GetInstance().getDialogTypeField();
+        var curMainMenuButtons = titleScreenStateReflector.getMainMenuButtons();
+        Object curDialogType = titleScreenStateReflector.getDialogTypeField();
         if (mainMenuButtons == null || curMainMenuButtons.size() != mainMenuButtons.size()) {
 
             List<Pair<UIComponentAPI, Object>> directionalUiElements = new ArrayList<>();
@@ -87,7 +89,7 @@ public class TitleScreenUI extends InputScreenBase {
                     directionalUiElements.add(new Pair<>(btn, null));
                 }
             } else {
-                for (var btn : UIPanelReflector.getChildButtons(TitleScreenStateReflector.GetInstance().getScreenPanel(), true)) {
+                for (var btn : new UIPanelReflector(titleScreenStateReflector.getScreenPanel()).getChildButtons(true)) {
                     directionalUiElements.add(new Pair<>(btn, null));
                 }
             }
@@ -98,7 +100,7 @@ public class TitleScreenUI extends InputScreenBase {
             mainMenuButtons.clear();
             if(missionWidgetShown) {
                 List<Pair<UIComponentAPI, Object>> directionalUiElements = new ArrayList<>();
-                for (var btn : UIPanelReflector.getChildButtons(TitleScreenStateReflector.GetInstance().getScreenPanel(), true)) {
+                for (var btn : new UIPanelReflector(titleScreenStateReflector.getScreenPanel()).getChildButtons(true)) {
                     directionalUiElements.add(new Pair<>(btn, null));
                 }
                 directionalUINavigator.setNavigationObjects(directionalUiElements);
