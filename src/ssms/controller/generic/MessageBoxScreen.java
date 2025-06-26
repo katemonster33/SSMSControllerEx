@@ -60,7 +60,7 @@ public class MessageBoxScreen extends InputScreenBase {
             if(btn.isCheckbox()) {
                 btn.getButton().setChecked(!btn.getButton().isChecked());
             } else {
-                dialogReflector.doActionPerformed(null, btn);
+                dialogReflector.doActionPerformed(null, btn.getButton());
             }
         }
     }

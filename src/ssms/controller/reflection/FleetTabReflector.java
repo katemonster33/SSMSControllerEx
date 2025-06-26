@@ -89,14 +89,14 @@ public class FleetTabReflector {
 
                         getColumns = lookup.findVirtual(fleetGridPanel.getClass(), "getColumns", MethodType.methodType(int.class));
 
-                        fleetListObjCls = fleetListObj.getClass();
+                        fleetListObjCls = fleetListObj.getPanel().getClass();
 
                         return new FleetTabReflector(coreUIAPI, fleetListObj, sidePanelObj, new UIPanelReflector(fleetGridPanel));
                     } catch (Throwable ex) {
                         Global.getLogger(FleetTabReflector.class).error("Couldn't reflect into FleetTab's UI!", ex);
                         return null;
                     }
-                } else if (fleetListObjCls.isAssignableFrom(fleetListObj.getClass())) {
+                } else if (fleetListObjCls.isAssignableFrom(fleetListObj.getPanel().getClass())) {
                     return new FleetTabReflector(coreUIAPI, fleetListObj, sidePanelObj, new UIPanelReflector(fleetGridPanel));
                 }
             }

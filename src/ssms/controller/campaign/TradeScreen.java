@@ -68,7 +68,9 @@ public class TradeScreen extends InputScreenBase {
         cargoTransferHandler = tradeUiReflector.getCargoTransferHandler();
         ControllerCrosshairRenderer.getControllerRenderer().setSize(100);
         interactionDialogAPI = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
-        interactionDialogReflector = new InteractionDialogReflector(interactionDialogAPI);
+        if(interactionDialogAPI != null) {
+            interactionDialogReflector = new InteractionDialogReflector(interactionDialogAPI);
+        }
         lastFrameChildCount = 0;
     }
 

@@ -62,13 +62,13 @@ public class RefitTabUI extends InputScreenBase {
             InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
         }
 
-        if(desiredMousePos != null && controller.getButtonEvent(LogicalButtons.A) == 1) {
+        if(desiredMousePos != null && controller.getButtonEvent(LogicalButtons.A) == -1) {
             InputShim.mouseDownUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
-        } else if(controller.getButtonEvent(LogicalButtons.B) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.B) == -1) {
             InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-        } else if(controller.getButtonEvent(LogicalButtons.BumperLeft) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.BumperLeft) == -1) {
             InputShim.keyDownUp(Keyboard.KEY_F, 'f');
-        } else if(controller.getButtonEvent(LogicalButtons.BumperRight) == 1) {
+        } else if(controller.getButtonEvent(LogicalButtons.BumperRight) == -1) {
             InputShim.keyDownUp(Keyboard.KEY_I, 'i');
         }
     }

@@ -30,7 +30,7 @@ public class CharacterSheetReflector extends UIPanelReflector {
     }
 
     public static CharacterSheetReflector TryGet(CoreUIAPI coreUIAPI, BorderedPanelReflector borderedPanelReflector) {
-        var parentPanel = borderedPanelReflector.getInnerPanel();
+        var parentPanel = borderedPanelReflector.getInnerPanel().getPanel();
         if(characterSheetCls == null) {
             try {
                 getAptitudeRows = MethodHandles.lookup().findVirtual(parentPanel.getClass(), "getAptitudeRows", MethodType.methodType(List.class));

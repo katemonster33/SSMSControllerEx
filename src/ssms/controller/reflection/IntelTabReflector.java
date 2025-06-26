@@ -50,7 +50,7 @@ public class IntelTabReflector {
             } catch (Throwable ex) {
                 Global.getLogger(IntelTabReflector.class).error("Couldn't reflect into IntelTab UI!", ex);
             }
-        } else if(intelTabCls.isAssignableFrom(borderedPanelReflector.getInnerPanel().getClass())) {
+        } else if(intelTabCls.isAssignableFrom(borderedPanelReflector.getInnerPanel().getPanel().getClass())) {
             return new IntelTabReflector(coreUIAPI, borderedPanelReflector, borderedPanelReflector.getInnerPanel().getPanel());
         }
         return null;

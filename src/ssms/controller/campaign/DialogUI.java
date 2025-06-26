@@ -45,7 +45,7 @@ public class DialogUI extends InputScreenBase {
         if(interactionDialogAPI != null) {
             optionsPanel = new UIPanelReflector((UIPanelAPI) interactionDialogAPI.getOptionPanel());
             try {
-                doButtonClick = MethodHandles.lookup().findVirtual(optionsPanel.getClass(), "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
+                doButtonClick = MethodHandles.lookup().findVirtual(optionsPanel.getPanel().getClass(), "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
             } catch(Throwable ex) {
                 Global.getLogger(getClass()).log(Level.FATAL, "Couldn't get the main menu buttons!");
             }
@@ -55,7 +55,7 @@ public class DialogUI extends InputScreenBase {
     public void clickButton() {
         if(directionalUINavigator.getSelected() != null && directionalUINavigator.getSelected().one instanceof ButtonAPI selectedButton) {
             try {
-                doButtonClick.invoke(optionsPanel, null, selectedButton);
+                doButtonClick.invoke(optionsPanel.getPanel(), null, selectedButton);
             } catch(Throwable ex) {
                 Global.getLogger(getClass()).log(Level.ERROR, "couldn't fire button event!");
             }
