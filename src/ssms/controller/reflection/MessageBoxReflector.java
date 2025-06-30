@@ -3,6 +3,7 @@ package ssms.controller.reflection;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
+import com.fs.starfarer.campaign.save.LoadGameDialog;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -22,6 +23,24 @@ public class MessageBoxReflector {
     Object dialogObject;
     private MessageBoxReflector(Object dialogObject) {
         this.dialogObject = dialogObject;
+    }
+
+    public void initialize() {
+        try {
+            Class<?> clsTmp = LoadGameDialog.class.getSuperclass();
+            ClassReflector msgBoxReflector = new ClassReflector(clsTmp);
+            getOptionMap = msgBoxReflector.getDeclaredMethod("getOptionMap");
+
+            getInnerPanel = msgBoxReflector.findDeclaredMethod("getInnerPanel");
+
+            actionPerformed = lookup.findVirtual(clsTmp, "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
+
+            isBeingDismissed = new ClassReflector(clsTmp.getSuperclass()).getDeclaredMethod("isBeingDismissed");
+
+            messageBoxClass = clsTmp;
+        } catch (Throwable ex) {
+            Global.getLogger(MessageBoxReflector.class).fatal("Given object is not a dialog object!", ex);
+        }
     }
 
     public static MessageBoxReflector TryGet(UIPanelAPI msgBoxObject) {
@@ -66,8 +85,11 @@ public class MessageBoxReflector {
     }
 
     public List<ButtonAPI> getDialogButtons() {
-        var innerPanel = new UIPanelReflector((UIPanelAPI) getInnerPanel.invoke(dialogObject));
-        return innerPanel.getChildButtons();
+        return getInnerPanel().getChildButtons();
+    }
+
+    public UIPanelReflector getInnerPanel() {
+        return new UIPanelReflector((UIPanelAPI) getInnerPanel.invoke(dialogObject));
     }
 
     public Object getDialogObject() {

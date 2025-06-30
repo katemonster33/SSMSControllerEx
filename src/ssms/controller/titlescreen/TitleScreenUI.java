@@ -29,6 +29,7 @@ import ssms.controller.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.DirectionalUINavigator;
@@ -52,14 +53,24 @@ public class TitleScreenUI extends InputScreenBase {
         UIPanelAPI panel = titleScreenStateReflector.getScreenPanel();
         UIPanelReflector.initialize(panel.getClass());
 
-        indicators = new ArrayList<>();
-
         mainMenuButtons = null;
         directionalUINavigator = new DirectionalUINavigator(new ArrayList<>());
-        addDigitalJoystickHandler("Navigate Menu", Joystick.DPad, directionalUINavigator);
-        addButtonPressHandler("Confirm", LogicalButtons.A, this::clickButton);
-        addButtonPressHandler("Cancel", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
-        addButtonPressHandler("Reset keybindings", LogicalButtons.Select, (float advance) -> InputScreenManager.getInstance().transitionToScreen(AutoMapperUI.ID));
+    }
+
+    @Override
+    public List<Pair<Indicators, String>> getIndicators() {
+        if(indicators == null) {
+            indicators = new ArrayList<>();
+            if(titleScreenStateReflector.getDialogType() != null) {
+                addButtonPressHandler("Cancel", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+            } else {
+                addDigitalJoystickHandler("Navigate Menu", Joystick.DPad, directionalUINavigator);
+                addButtonPressHandler("Confirm", LogicalButtons.A, this::clickButton);
+                addButtonPressHandler("Cancel", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+                addButtonPressHandler("Reset keybindings", LogicalButtons.Select, (float advance) -> InputScreenManager.getInstance().transitionToScreen(AutoMapperUI.ID));
+            }
+        }
+        return indicators;
     }
 
     public void clickButton(float advance)
@@ -77,7 +88,7 @@ public class TitleScreenUI extends InputScreenBase {
     @Override
     public void preInput(float advance) {
         var curMainMenuButtons = titleScreenStateReflector.getMainMenuButtons();
-        Object curDialogType = titleScreenStateReflector.getDialogTypeField();
+        Object curDialogType = titleScreenStateReflector.getDialogType();
         if (mainMenuButtons == null || curMainMenuButtons.size() != mainMenuButtons.size()) {
 
             List<Pair<UIComponentAPI, Object>> directionalUiElements = new ArrayList<>();

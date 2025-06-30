@@ -19,13 +19,13 @@ public class TitleScreenStateReflector {
     public TitleScreenStateReflector() {
         cs = AppDriver.getInstance().getState(TitleScreenState.STATE_ID);
 
-        try {
-            var csReflector = new ClassReflector(cs.getClass());
-            getScreenPanel = csReflector.findDeclaredMethod("getScreenPanel");
-            dialogTypeField = csReflector.getDeclaredField("dialogType");
-            missionWidgetField = csReflector.getDeclaredField("missionWidget");
-        } catch(Throwable ex) {
-            Global.getLogger(getClass()).fatal("Couldn't reflect into TitleScreenStateReflector!");
+        var csReflector = new ClassReflector(cs.getClass());
+        getScreenPanel = csReflector.findDeclaredMethod("getScreenPanel");
+        dialogTypeField = csReflector.getDeclaredField("dialogType");
+        missionWidgetField = csReflector.getDeclaredField("missionWidget");
+
+        if(getScreenPanel == null || dialogTypeField == null || missionWidgetField == null) {
+            throw new RuntimeException("Couldn't reflect into Title Screen!");
         }
     }
 
@@ -33,7 +33,7 @@ public class TitleScreenStateReflector {
         return (UIPanelAPI) missionWidgetField.get(cs);
     }
 
-    public Object getDialogTypeField() {
+    public Object getDialogType() {
         return dialogTypeField.get(cs);
     }
 
