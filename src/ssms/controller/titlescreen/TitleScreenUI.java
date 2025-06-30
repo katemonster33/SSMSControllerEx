@@ -45,8 +45,6 @@ public class TitleScreenUI extends InputScreenBase {
     DirectionalUINavigator directionalUINavigator;
     List<ButtonAPI> mainMenuButtons = null;
     Object dialogType = null;
-    Fader missionWidgetFader = null;
-    boolean missionWidgetShown = false;
     TitleScreenStateReflector titleScreenStateReflector;
     @Override
     public void activate(Object ...args) {
@@ -62,7 +60,6 @@ public class TitleScreenUI extends InputScreenBase {
         addButtonPressHandler("Confirm", LogicalButtons.A, this::clickButton);
         addButtonPressHandler("Cancel", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
         addButtonPressHandler("Reset keybindings", LogicalButtons.Select, (float advance) -> InputScreenManager.getInstance().transitionToScreen(AutoMapperUI.ID));
-        missionWidgetFader = new UIPanelReflector(titleScreenStateReflector.getMissionWidget()).getFader();
     }
 
     public void clickButton(float advance)
@@ -94,16 +91,10 @@ public class TitleScreenUI extends InputScreenBase {
                 }
             }
             directionalUINavigator.setNavigationObjects(directionalUiElements);
-        } else if ((missionWidgetShown && missionWidgetFader.isFadedOut()) ||
-                (!missionWidgetShown && missionWidgetFader.isFadedIn())) {
-            missionWidgetShown = !missionWidgetShown;
-            mainMenuButtons.clear();
-            if(missionWidgetShown) {
-                List<Pair<UIComponentAPI, Object>> directionalUiElements = new ArrayList<>();
-                for (var btn : new UIPanelReflector(titleScreenStateReflector.getScreenPanel()).getChildButtons(true)) {
-                    directionalUiElements.add(new Pair<>(btn, null));
-                }
-                directionalUINavigator.setNavigationObjects(directionalUiElements);
+        } else {
+            var missionWidget = new UIPanelReflector(titleScreenStateReflector.getMissionWidget());
+            if (missionWidget.getFader().isFadedIn()) {
+                InputScreenManager.getInstance().transitionToScreen(MissionScreenUI.ID);
             }
         }
         mainMenuButtons = curMainMenuButtons;
