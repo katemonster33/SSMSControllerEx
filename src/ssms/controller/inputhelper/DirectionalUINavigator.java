@@ -121,7 +121,7 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     }
 
     public void advance(float amount) {
-        if(curIndex != -1) {
+        if(curIndex != -1 && InputShim.hasMouseControl()) {
             var selected = getSelected();
             var selectedCompPos = selected.one.getPosition();
             if(selectedCompPos.getX() != selectedItemX || selectedCompPos.getY() != selectedItemY) {

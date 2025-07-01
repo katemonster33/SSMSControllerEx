@@ -38,16 +38,20 @@ public class UIPanelReflector extends UIComponentReflector {
     }
 
     public List<?> getChildItems() {
-        try {
-            return (List<?>) getChildItemsHandle.invoke(panel);
-        } catch(Throwable ex) {
-            Global.getLogger(UIPanelReflector.class).fatal("Could not get child items of UIPanel! ", ex);
-            return new ArrayList<>();
+        return (List<?>) getChildItemsHandle.invoke(panel);
+    }
+
+    public List<?> getChildItems(int ... args) {
+        List<?> childrenTmp = getChildItems();
+        for (int arg : args) {
+            if (childrenTmp.size() > arg && childrenTmp.get(arg) instanceof UIPanelAPI uiPanelAPI) {
+                childrenTmp = new UIPanelReflector(uiPanelAPI).getChildItems();
+            } else return new ArrayList<>();
         }
+        return childrenTmp;
     }
 
     public UIComponentAPI getLastChild() {
-
         var items = getChildItems();
         if (!items.isEmpty()) {
             var lastChild = items.get(items.size() - 1);
@@ -62,24 +66,14 @@ public class UIPanelReflector extends UIComponentReflector {
     }
 
     public List<UIPanelAPI> getChildPanels(int ... args) {
-        try {
-            List<?> childrenTmp = getChildItems();
-            for(int arg : args) {
-                if(childrenTmp.size() > arg && childrenTmp.get(arg) instanceof UIPanelAPI uiPanelAPI) {
-                    childrenTmp = new UIPanelReflector(uiPanelAPI).getChildItems();
-                } else return new ArrayList<>();
+        List<?> childrenTmp = getChildItems(args);
+        List<UIPanelAPI> output = new ArrayList<>();
+        for (Object child : childrenTmp) {
+            if (child instanceof UIPanelAPI panelAPI) {
+                output.add(panelAPI);
             }
-            List<UIPanelAPI> output = new ArrayList<>();
-            for(Object child : childrenTmp) {
-                if(child instanceof  UIPanelAPI panelAPI) {
-                    output.add(panelAPI);
-                }
-            }
-            return output;
-        } catch(Throwable ex) {
-            Global.getLogger(UIPanelReflector.class).fatal("Could not get nested child panels of UIPanel! ", ex);
-            return new ArrayList<>();
         }
+        return output;
     }
 
     public List<ButtonAPI> getChildButtons()  {

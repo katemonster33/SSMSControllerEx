@@ -33,8 +33,10 @@ import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.LoadGameUI;
+import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
+import ssms.controller.reflection.MessageBoxReflector;
 import ssms.controller.reflection.TitleScreenStateReflector;
 import ssms.controller.reflection.UIPanelReflector;
 
@@ -107,6 +109,13 @@ public class TitleScreenUI extends InputScreenBase {
         } else if(curDialogType != null) {
             if(Objects.equals(curDialogType.toString(), "LOAD_GAME")) {
                 InputScreenManager.getInstance().transitionToScreen(LoadGameUI.ID, titleScreenStateReflector);
+            } else if(Objects.equals(curDialogType.toString(), "QUIT")) {
+                for(var child : new UIPanelReflector(getPanelForIndicators()).getChildPanels()) {
+                    if(MessageBoxReflector.isMsgBox(child)) {
+                        InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, new MessageBoxReflector(child), getId());
+                        return;
+                    }
+                }
             }
         } else {
             var missionWidget = new UIPanelReflector(titleScreenStateReflector.getMissionWidget());
