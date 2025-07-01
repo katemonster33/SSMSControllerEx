@@ -24,6 +24,7 @@ public class MessageBoxScreen extends InputScreenBase {
     String uiToReturnTo;
     HandlerController controller;
     MessageBoxReflector dialogReflector;
+    MessageBoxReflector dialogToReturnTo;
     List<ButtonAPI> dialogOptions;
     DirectionalUINavigator directionalUINavigator;
 
@@ -35,11 +36,14 @@ public class MessageBoxScreen extends InputScreenBase {
         controller = SSMSControllerModPluginEx.controller;
         dialogReflector = (MessageBoxReflector) args[0];
         uiToReturnTo = (String) args[1];
-        dialogOptions = dialogReflector.getDialogButtons();
+    }
 
+    @Override
+    public List<Pair<Indicators, String>> getIndicators() {
         indicators = new ArrayList<>();
+        dialogOptions = dialogReflector.getDialogButtons();
         if(!dialogOptions.isEmpty()) {
-            dialogOptions.get(0).highlight();
+            //dialogOptions.get(0).highlight();
             List<Pair<UIComponentAPI, Object>> directionalUiElements = new ArrayList<>();
             for(var btn : dialogOptions) {
                 directionalUiElements.add(new Pair<>(btn, null));
@@ -50,6 +54,7 @@ public class MessageBoxScreen extends InputScreenBase {
         }
         addButtonPressHandler("Confirm", LogicalButtons.Y, new KeySender(Keyboard.KEY_RETURN));
         addButtonPressHandler("Dismiss", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+        return indicators;
     }
 
     public void clickButton()
@@ -71,8 +76,20 @@ public class MessageBoxScreen extends InputScreenBase {
             dialogOptions = null;
             if(Global.getCurrentState() == GameState.COMBAT) {
                 InputScreenManager.getInstance().transitionToScope(BattleScope.ID, Global.getCombatEngine());
+            } else if(dialogToReturnTo != null) {
+                dialogReflector = dialogToReturnTo;
+                dialogToReturnTo = null;
+                refreshIndicators();
             } else {
                 InputScreenManager.getInstance().transitionToScreen(uiToReturnTo);
+            }
+        }
+        for(var child : dialogReflector.getChildPanels()) {
+            if(MessageBoxReflector.isMsgBox(child)) {
+                dialogToReturnTo = dialogReflector;
+                dialogReflector = new MessageBoxReflector(child);
+                refreshIndicators();
+                return;
             }
         }
     }

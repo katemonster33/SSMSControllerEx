@@ -7,7 +7,7 @@ import com.fs.starfarer.api.ui.UIPanelAPI;
 
 public class UIComponentReflector {
     UIComponentAPI uiComponentAPI;
-    static Class<? extends UIComponentAPI> uiComponentCls;
+    static Class<?> uiComponentCls;
     static MethodReflector getParentHandle;
     static MethodReflector getFaderMethod;
     public UIComponentReflector(UIComponentAPI uiComponentAPI) {
@@ -19,6 +19,11 @@ public class UIComponentReflector {
 
         getFaderMethod = uiCompReflector.getDeclaredMethod("getFader");
         getParentHandle = uiCompReflector.getDeclaredMethod("getParent");
+        uiComponentCls = uiCompCls;
+    }
+
+    public static Class<?> getUIComponentClass() {
+        return uiComponentCls;
     }
 
     public Fader getFader() {

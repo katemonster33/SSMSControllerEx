@@ -7,6 +7,7 @@ import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
+import com.fs.starfarer.campaign.save.LoadGameDialog;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
@@ -23,6 +24,7 @@ import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.inputhelper.DigitalJoystickHandler;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.*;
+import ssms.controller.generic.LoadGameUI;
 
 public class MainCampaignUI extends InputScreenBase {
     public static final String ID = "MainCampaign";
@@ -31,6 +33,7 @@ public class MainCampaignUI extends InputScreenBase {
     boolean leftStickActive = false, rightStickActive = false;
     CrosshairRenderer headingIndicator;
     ViewportAPI sectorViewport;
+    UIPanelReflector campaignPanelReflector;
     ControllerCrosshairRenderer hotbarIndicatorRenderer;
     int currentHotkeyGroup = 0, currentHotkey = 0;
     int lastFrameNumChildren = -1;
@@ -95,6 +98,7 @@ public class MainCampaignUI extends InputScreenBase {
         headingIndicator.setSize(32, 32);
         sectorViewport = Global.getSector().getViewport();
         indicators = null;
+        campaignPanelReflector = new UIPanelReflector(getPanelForIndicators());
         ControllerCrosshairRenderer.getControllerRenderer().disable();
     }
 
@@ -172,6 +176,13 @@ public class MainCampaignUI extends InputScreenBase {
                 return;
             } else if (Global.getSector().getCampaignUI().getCurrentCoreTab() != null) {
                 if (openScreenForCoreTab()) return;
+            } else {
+                for(var child : campaignPanelReflector.getChildPanels()) {
+                    if(child instanceof LoadGameDialog) {
+                        InputScreenManager.getInstance().transitionToScreen(LoadGameUI.ID);
+                        return;
+                    }
+                }
             }
         }
         if (isMessageBoxShown()) return;
@@ -189,15 +200,14 @@ public class MainCampaignUI extends InputScreenBase {
     }
 
     private boolean isMessageBoxShown() {
-        var children = new UIPanelReflector(getPanelForIndicators()).getChildItems();
+        var children = campaignPanelReflector.getChildItems();
         int numChildren = children.size();
         if(numChildren > lastFrameNumChildren) {
             for(int i = lastFrameNumChildren; i < numChildren; i++ ) {
                 var child = children.get(i);
-                if(UIPanelAPI.class.isAssignableFrom(child.getClass()) && InputScreenManager.getInstance().getDisplayPanel() != null && child != InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
-                    var msgBox = MessageBoxReflector.TryGet((UIPanelAPI) child);
-                    if(msgBox != null) {
-                        InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, msgBox, MainCampaignUI.ID);
+                if(child instanceof UIPanelAPI uiPanelAPI && InputScreenManager.getInstance().getDisplayPanel() != null && child != InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
+                    if(MessageBoxReflector.isMsgBox(uiPanelAPI)) {
+                        InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, new MessageBoxReflector(uiPanelAPI), MainCampaignUI.ID);
                         return true;
                     }
                 }

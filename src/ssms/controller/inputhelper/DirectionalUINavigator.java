@@ -12,6 +12,7 @@ import java.util.List;
 
 public class DirectionalUINavigator implements DigitalJoystickHandler {
     List<Pair<UIComponentAPI, Object>> navigationObjects;
+    float selectedItemX, selectedItemY;
     int curIndex = -1;
     public DirectionalUINavigator(List<Pair<UIComponentAPI, Object>> navigationObjects)
     {
@@ -24,6 +25,8 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
 
     public void onSelect(Pair<UIComponentAPI, Object> selectedPair) {
         PositionAPI pos = selectedPair.one.getPosition();
+        selectedItemX = pos.getX();
+        selectedItemY = pos.getY();
         InputShim.mouseMove((int) pos.getCenterX(),(int) pos.getCenterY());
     }
 
@@ -115,5 +118,15 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
 
     public Pair<UIComponentAPI, Object> getSelected() {
         return navigationObjects.get(curIndex);
+    }
+
+    public void advance(float amount) {
+        if(curIndex != -1) {
+            var selected = getSelected();
+            var selectedCompPos = selected.one.getPosition();
+            if(selectedCompPos.getX() != selectedItemX || selectedCompPos.getY() != selectedItemY) {
+                onSelect(selected);
+            }
+        }
     }
 }

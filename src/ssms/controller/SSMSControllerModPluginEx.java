@@ -17,8 +17,6 @@
  */
 package ssms.controller;
 
-import com.fs.starfarer.api.ui.UIComponentAPI;
-import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import ssms.controller.campaign.*;
 import ssms.controller.combat.*;
@@ -26,6 +24,7 @@ import ssms.controller.enums.*;
 import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.reflection.*;
 import ssms.controller.titlescreen.AutoMapperUI;
+import ssms.controller.generic.LoadGameUI;
 import ssms.controller.titlescreen.MissionScreenUI;
 import ssms.controller.titlescreen.TitleScreenUI;
 
@@ -77,6 +76,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         var testElem = testPnl.createUIElement(1.f, 1.f, false);
         var testBtn = testElem.addButton("TEST", null, 1.f, 1.f, 0.f);
         ButtonReflector.init(testBtn.getClass());
+        MessageBoxReflector.initialize();
 
         try {
             InputShim.install();
@@ -124,6 +124,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         man.registerScreen(new RefitTabUI());
         man.registerScreen(new CommandTabUI());
         man.registerScreen(new MissionScreenUI());
+        man.registerScreen(new LoadGameUI());
     }
 
      enum POVMapping

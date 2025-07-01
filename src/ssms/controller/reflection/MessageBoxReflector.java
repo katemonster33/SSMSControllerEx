@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class MessageBoxReflector {
+public class MessageBoxReflector extends UIPanelReflector {
     // The class representing the highest-order message dialog type
     static Class<?> messageBoxClass;
 
@@ -20,12 +20,8 @@ public class MessageBoxReflector {
     static MethodHandle actionPerformed;
     static MethodReflector getOptionMap;
     static MethodReflector getInnerPanel;
-    Object dialogObject;
-    private MessageBoxReflector(Object dialogObject) {
-        this.dialogObject = dialogObject;
-    }
 
-    public void initialize() {
+    public static void initialize() {
         try {
             Class<?> clsTmp = LoadGameDialog.class.getSuperclass();
             ClassReflector msgBoxReflector = new ClassReflector(clsTmp);
@@ -33,7 +29,7 @@ public class MessageBoxReflector {
 
             getInnerPanel = msgBoxReflector.findDeclaredMethod("getInnerPanel");
 
-            actionPerformed = lookup.findVirtual(clsTmp, "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
+            actionPerformed = MethodHandles.lookup().findVirtual(clsTmp, "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
 
             isBeingDismissed = new ClassReflector(clsTmp.getSuperclass()).getDeclaredMethod("isBeingDismissed");
 
@@ -43,39 +39,14 @@ public class MessageBoxReflector {
         }
     }
 
-    public static MessageBoxReflector TryGet(UIPanelAPI msgBoxObject) {
-        if (messageBoxClass == null) {
-            var lookup = MethodHandles.lookup();
-            try {
-                Class<?> clsTmp = msgBoxObject.getClass();
-                ClassReflector msgBoxReflector = new ClassReflector(clsTmp);
-                getOptionMap = msgBoxReflector.getDeclaredMethod("getOptionMap");
-                if (getOptionMap == null) {
-                    clsTmp = clsTmp.getSuperclass();
-                    msgBoxReflector = new ClassReflector(clsTmp);
+    public static boolean isMsgBox(UIPanelAPI obj) {
+        return messageBoxClass.isAssignableFrom(obj.getClass());
+    }
 
-                    getOptionMap = msgBoxReflector.getDeclaredMethod("getOptionMap");
-                    if (getOptionMap == null) {
-                        Global.getLogger(MessageBoxReflector.class).warn("Couldn't reflect MessageBox from class!");
-                        return null;
-                    }
-                }
-                getInnerPanel = msgBoxReflector.findDeclaredMethod("getInnerPanel");
-
-                actionPerformed = lookup.findVirtual(clsTmp, "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
-
-                isBeingDismissed = new ClassReflector(clsTmp.getSuperclass()).getDeclaredMethod("isBeingDismissed");
-
-                messageBoxClass = clsTmp;
-
-                return new MessageBoxReflector(msgBoxObject);
-            } catch (Throwable ex) {
-                Global.getLogger(MessageBoxReflector.class).fatal("Given object is not a dialog object!", ex);
-            }
-        } else if (messageBoxClass.isAssignableFrom(msgBoxObject.getClass())) {
-            return new MessageBoxReflector(msgBoxObject);
-        }
-        return null;
+    UIPanelAPI dialogObject;
+    public MessageBoxReflector(UIPanelAPI dialogObject) {
+        super(dialogObject);
+        this.dialogObject = dialogObject;
     }
 
     public boolean isBeingDismissed(){

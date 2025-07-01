@@ -60,9 +60,8 @@ public class BattleDeploymentScreen extends InputScreenBase {
             if(lastChild != lastUIOnTop && lastChild != dui.getDialogObject() && lastChild instanceof UIPanelAPI lastChildPanel) {
                 lastUIOnTop = lastChild;
                 // this nonsense tries to tell if the topmost UI element is the message box that shows up the first time we enter combat
-                MessageBoxReflector dr = MessageBoxReflector.TryGet(lastChildPanel);
-                if (dr != null) {
-                    InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, MessageBoxScreen.ID, new Object[]{ dr, getId() });
+                if (MessageBoxReflector.isMsgBox(lastChildPanel)) {
+                    InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, new MessageBoxReflector(lastChildPanel), getId());
                     return;
                 }
             }

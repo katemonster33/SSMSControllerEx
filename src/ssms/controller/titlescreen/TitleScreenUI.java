@@ -17,7 +17,6 @@
  */
 package ssms.controller.titlescreen;
 
-import com.fs.graphics.util.Fader;
 import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
@@ -28,10 +27,12 @@ import ssms.controller.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.LoadGameUI;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.TitleScreenStateReflector;
@@ -55,6 +56,7 @@ public class TitleScreenUI extends InputScreenBase {
 
         mainMenuButtons = null;
         directionalUINavigator = new DirectionalUINavigator(new ArrayList<>());
+        indicators = null;
     }
 
     @Override
@@ -102,11 +104,18 @@ public class TitleScreenUI extends InputScreenBase {
                 }
             }
             directionalUINavigator.setNavigationObjects(directionalUiElements);
+        } else if(curDialogType != null) {
+            if(Objects.equals(curDialogType.toString(), "LOAD_GAME")) {
+                InputScreenManager.getInstance().transitionToScreen(LoadGameUI.ID, titleScreenStateReflector);
+            }
         } else {
             var missionWidget = new UIPanelReflector(titleScreenStateReflector.getMissionWidget());
             if (missionWidget.getFader().isFadedIn()) {
                 InputScreenManager.getInstance().transitionToScreen(MissionScreenUI.ID);
             }
+        }
+        if(curDialogType != dialogType) {
+            refreshIndicators();
         }
         mainMenuButtons = curMainMenuButtons;
         dialogType = curDialogType;

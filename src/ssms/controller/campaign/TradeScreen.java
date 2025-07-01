@@ -124,10 +124,9 @@ public class TradeScreen extends InputScreenBase {
             if(numChildren > lastFrameChildCount) {
                 for(int i = lastFrameChildCount; i < numChildren; i++) {
                     var child = coreUiChildren.get(i);
-                    if(UIPanelAPI.class.isAssignableFrom(child.getClass()) && InputScreenManager.getInstance().getDisplayPanel() != null && child != InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
-                        MessageBoxReflector messageBoxReflector = MessageBoxReflector.TryGet((UIPanelAPI) child);
-                        if(messageBoxReflector != null) {
-                            InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, messageBoxReflector, TradeScreen.ID);
+                    if(child instanceof UIPanelAPI uiPanelAPI && InputScreenManager.getInstance().getDisplayPanel() != null && child != InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
+                        if(MessageBoxReflector.isMsgBox(uiPanelAPI)) {
+                            InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, new MessageBoxReflector(uiPanelAPI), TradeScreen.ID);
                             return;
                         }
                     }

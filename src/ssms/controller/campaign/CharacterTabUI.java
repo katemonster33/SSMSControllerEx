@@ -79,9 +79,8 @@ public class CharacterTabUI extends InputScreenBase {
             if(coreUiChildren.size() > lastFrameNumChildren) {
                 for(int index = lastFrameNumChildren; index < coreUiChildren.size(); index++) {
                     if(coreUiChildren.get(index) instanceof  UIPanelAPI childPanel) {
-                        MessageBoxReflector mbr = MessageBoxReflector.TryGet(childPanel);
-                        if(mbr != null) {
-                            InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, mbr, getId());
+                        if(MessageBoxReflector.isMsgBox(childPanel)) {
+                            InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, new MessageBoxReflector(childPanel), getId());
                             return;
                         }
                     }
