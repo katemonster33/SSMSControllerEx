@@ -26,6 +26,7 @@ import ssms.controller.reflection.*;
 import ssms.controller.titlescreen.AutoMapperUI;
 import ssms.controller.generic.LoadGameUI;
 import ssms.controller.titlescreen.MissionScreenUI;
+import ssms.controller.titlescreen.NewGameUI;
 import ssms.controller.titlescreen.TitleScreenUI;
 
 import com.fs.starfarer.api.BaseModPlugin;
@@ -125,6 +126,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         man.registerScreen(new CommandTabUI());
         man.registerScreen(new MissionScreenUI());
         man.registerScreen(new LoadGameUI());
+        man.registerScreen(new NewGameUI());
     }
 
      enum POVMapping

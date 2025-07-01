@@ -109,6 +109,8 @@ public class TitleScreenUI extends InputScreenBase {
         } else if(curDialogType != null) {
             if(Objects.equals(curDialogType.toString(), "LOAD_GAME")) {
                 InputScreenManager.getInstance().transitionToScreen(LoadGameUI.ID, titleScreenStateReflector);
+            } else if(Objects.equals(curDialogType.toString(), "NEW_GAME")) {
+                    InputScreenManager.getInstance().transitionToScreen(NewGameUI.ID, titleScreenStateReflector);
             } else if(Objects.equals(curDialogType.toString(), "QUIT")) {
                 for(var child : new UIPanelReflector(getPanelForIndicators()).getChildPanels()) {
                     if(MessageBoxReflector.isMsgBox(child)) {
