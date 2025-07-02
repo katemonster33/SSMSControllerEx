@@ -108,7 +108,7 @@ public class CargoStackPickerScreen  extends InputScreenBase {
                 var pickedUpStack = cargoTransferHandler.getPickedUpStack();
                 for(var item : gridToMoveTo.getStacks()) {
                     if(Objects.equals(item.getStack().getCommodityId(), pickedUpStack.getCommodityId())) {
-                        var pos = item.getPosition();
+                        var pos = ((UIComponentAPI)item).getPosition();
                         InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
                         return;
                     }
@@ -121,7 +121,7 @@ public class CargoStackPickerScreen  extends InputScreenBase {
 
                         boolean cellFilled = false;
                         for(var item : gridToMoveTo.getStacks()) {
-                            if(item.getPosition().getX() == xPos && item.getPosition().getY() == yPos) {
+                            if(((UIComponentAPI)item).getPosition().getX() == xPos && ((UIComponentAPI)item).getPosition().getY() == yPos) {
                                 cellFilled = true;
                                 break;
                             }
