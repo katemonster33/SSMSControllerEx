@@ -56,6 +56,7 @@ public class NewGameUI extends InputScreenBase {
                 }
             }
         };
+        refreshIndicators();
     }
 
     @Override
