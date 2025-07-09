@@ -67,6 +67,7 @@ public class FleetTabUI extends InputScreenBase {
             }
         };
         ControllerCrosshairRenderer.getControllerRenderer().enable();
+        indicators = null;
     }
 
     @Override

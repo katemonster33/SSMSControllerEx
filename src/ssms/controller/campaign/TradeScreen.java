@@ -1,5 +1,6 @@
 package ssms.controller.campaign;
 
+import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
@@ -88,7 +89,7 @@ public class TradeScreen extends InputScreenBase {
     }
 
     void clickStack(CargoDataGridViewReflector gridView, CargoStackView stackView) {
-        var stackPos = stackView.getPosition();
+        var stackPos = ((UIComponentAPI)stackView).getPosition();
         var mousePos = new Vector2f(stackPos.getCenterX(), stackPos.getCenterY());
         if(stackView.getStack().getSize() >= 4.f) {
             InputShim.keyDown(Keyboard.KEY_LSHIFT, '\0');
@@ -118,7 +119,7 @@ public class TradeScreen extends InputScreenBase {
                 }
             }
             List<?> coreUiChildren = null;
-            if(interactionDialogAPI != null) coreUiChildren = coreUiPanelReflector.getChildItems();
+            if(interactionDialogAPI != null && Global.getCurrentState() == GameState.COMBAT) coreUiChildren = coreUiPanelReflector.getChildItems();
             else coreUiChildren = new UIPanelReflector(coreUiPanelReflector.getParent()).getChildItems();
             int numChildren = coreUiChildren.size();
             if(numChildren > lastFrameChildCount) {
