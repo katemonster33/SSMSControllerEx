@@ -59,7 +59,6 @@ public class CharacterTabUI extends InputScreenBase {
         addButtonPressHandler("Open Codex", LogicalButtons.Y, new KeySender(Keyboard.KEY_F2));
         //indicators.add(new Pair<>(Indicators.Select, "Re-assign skills"));
         addButtonPressHandler("Select fleet tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_F, 'f'));
-        ControllerCrosshairRenderer.getControllerRenderer().disable();
         lastFrameNumChildren = new UIPanelReflector((UIPanelAPI) characterSheetReflector.getCoreUIAPI()).getChildItems().size();
     }
 

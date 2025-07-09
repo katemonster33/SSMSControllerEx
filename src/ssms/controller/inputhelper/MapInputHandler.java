@@ -5,6 +5,7 @@ import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
+import ssms.controller.CrosshairRenderer;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.InputShim;
@@ -19,8 +20,12 @@ public class MapInputHandler{
     boolean leftStickActive = false, rightStickActive = false;
     Vector2f leftStick, rightStick;
     boolean handledJoystickEvent = false;
+    CrosshairRenderer headingIndicator;
     public MapInputHandler(UIComponentAPI mapComponent) {
         this.mapComponent = mapComponent;
+
+        headingIndicator = new CrosshairRenderer();
+        headingIndicator.setSize(32, 32);
     }
 
     boolean isStickActive(ReadableVector2f stick) {
@@ -93,5 +98,12 @@ public class MapInputHandler{
             if (rightStickActive) handleRightJoystick(advance, rightStick);
         }
         handledJoystickEvent = false;
+    }
+
+    public void render() {
+        if(InputShim.hasMouseControl() && !isMovingMap && desiredMousePos != null) {
+            headingIndicator.setMousePos(desiredMousePos.x, desiredMousePos.y);
+            headingIndicator.render();
+        }
     }
 }

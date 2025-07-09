@@ -3,10 +3,11 @@ package ssms.controller;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
+import com.fs.starfarer.api.ui.PositionAPI;
+
 import java.awt.Color;
 
 public class ControllerCrosshairRenderer {
-    static ControllerCrosshairRenderer controllerRenderer;
     SpriteAPI indicTL = Global.getSettings().getSprite("ui","sortIcon");
     SpriteAPI indicTR = Global.getSettings().getSprite("ui","sortIcon");
     SpriteAPI indicBL = Global.getSettings().getSprite("ui","sortIcon");
@@ -22,12 +23,6 @@ public class ControllerCrosshairRenderer {
         this.maxWidth = this.width = initialSize;
     }
 
-    public static ControllerCrosshairRenderer getControllerRenderer() {
-        if(controllerRenderer == null) controllerRenderer = new ControllerCrosshairRenderer(58);
-
-        return controllerRenderer;
-    }
-
     public void setSize(int width) {
         this.width = width;
         float ratio = width / (float)maxWidth;
@@ -35,6 +30,10 @@ public class ControllerCrosshairRenderer {
         indicTR.setSize(indicTL.getWidth(), indicTL.getHeight());
         indicBL.setSize(indicTL.getWidth(), indicTL.getHeight());
         indicBR.setSize(indicTL.getWidth(), indicTL.getHeight());
+    }
+
+    public void setBounds(PositionAPI pos) {
+
     }
 
     public void disable() {

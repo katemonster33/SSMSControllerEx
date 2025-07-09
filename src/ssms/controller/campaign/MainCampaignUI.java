@@ -99,12 +99,6 @@ public class MainCampaignUI extends InputScreenBase {
         sectorViewport = Global.getSector().getViewport();
         indicators = null;
         campaignPanelReflector = new UIPanelReflector(getPanelForIndicators());
-        ControllerCrosshairRenderer.getControllerRenderer().disable();
-    }
-
-    @Override
-    public void deactivate() {
-        //ControllerCrosshairRenderer.getControllerRenderer().enable();
     }
 
     @Override

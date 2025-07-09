@@ -43,6 +43,8 @@ import java.util.List;
  */
 public class InputScreenBase {
 
+    DirectionalUINavigator directionalUINavigator;
+    MapInputHandler mapInputHandler;
     public static final String ID = "NoScreen";
     public static final String SCOPES = InputScopeBase.ID;
     protected List<Pair<Indicators, String>> indicators;
@@ -68,6 +70,8 @@ public class InputScreenBase {
     }
 
     public void deactivate() {
+        directionalUINavigator = null;
+        mapInputHandler = null;
     }
 
     public void activate(Object ...args) throws Throwable {
@@ -77,6 +81,13 @@ public class InputScreenBase {
     }
 
     public void renderUI(ViewportAPI viewport) {
+        if(directionalUINavigator != null) {
+            directionalUINavigator.render();
+        }
+
+        if(mapInputHandler != null) {
+            mapInputHandler.render();
+        }
     }
 
     public void preInput(float advance) {
@@ -177,6 +188,9 @@ public class InputScreenBase {
             indicators.add(new Pair<>(joystickIndicator, msg));
         }
         digitalJoystickHandlers.put(joystick, digitalJoystickHandler);
+        if(digitalJoystickHandler instanceof DirectionalUINavigator directionalUINavigator1) {
+            this.directionalUINavigator = directionalUINavigator1;
+        }
     }
 
     protected void addAnalogJoystickHandler(String msg, Joystick joystick, AnalogJoystickHandler analogJoystickHandler) {
@@ -188,7 +202,7 @@ public class InputScreenBase {
     }
 
     protected MapInputHandler addMapHandler(UIComponentAPI mapComponent) {
-        MapInputHandler mapInputHandler = new MapInputHandler(mapComponent);
+        mapInputHandler = new MapInputHandler(mapComponent);
         addAnalogJoystickHandler("Move cursor", Joystick.Left, mapInputHandler::handleLeftJoystick);
         addAnalogJoystickHandler("Move map", Joystick.Right, mapInputHandler::handleRightJoystick);
         addButtonChangeHandler("Select", LogicalButtons.A, mapInputHandler::handleAButton);

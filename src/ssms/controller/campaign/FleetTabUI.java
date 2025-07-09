@@ -66,7 +66,6 @@ public class FleetTabUI extends InputScreenBase {
                 mousePos.set(obj.one.getPosition().getCenterX(), obj.one.getPosition().getCenterY());
             }
         };
-        ControllerCrosshairRenderer.getControllerRenderer().enable();
         indicators = null;
     }
 

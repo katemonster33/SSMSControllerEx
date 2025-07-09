@@ -19,9 +19,6 @@ public class CampaignRenderer implements CampaignUIRenderingListener {
 
     @Override
     public void renderInUICoordsAboveUIAndTooltips(ViewportAPI viewport) {
-        if(InputShim.getMouseX() != null && InputShim.getMouseY() != null) {
-            ControllerCrosshairRenderer.getControllerRenderer().AttemptRender(viewport, (int) InputShim.getMouseX(), (int) InputShim.getMouseY());
-        }
         InputScreenManager.getInstance().renderUI(Global.getSector().getViewport());
     }
 }

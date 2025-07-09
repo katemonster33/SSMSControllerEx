@@ -67,7 +67,6 @@ public class TradeScreen extends InputScreenBase {
         playerDataGrid = tradeUiReflector.getPlayerCargoView();
         otherDataGrid = tradeUiReflector.getOtherCargoView();
         cargoTransferHandler = tradeUiReflector.getCargoTransferHandler();
-        ControllerCrosshairRenderer.getControllerRenderer().setSize(100);
         interactionDialogAPI = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
         if(interactionDialogAPI != null) {
             interactionDialogReflector = new InteractionDialogReflector(interactionDialogAPI);

@@ -1,11 +1,16 @@
 package ssms.controller.inputhelper;
 
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.combat.ViewportAPI;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.util.vector.Vector2f;
+import ssms.controller.ControllerCrosshairRenderer;
 import ssms.controller.InputShim;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -14,6 +19,7 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     List<Pair<UIComponentAPI, Object>> navigationObjects;
     float selectedItemX, selectedItemY;
     int curIndex = -1;
+    DirectionalUiReticle reticle;
     public DirectionalUINavigator(List<Pair<UIComponentAPI, Object>> navigationObjects)
     {
         this.navigationObjects = new ArrayList<>(navigationObjects);
@@ -21,6 +27,7 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
             curIndex = 0;
             onSelect(navigationObjects.get(curIndex));
         }
+        reticle = new DirectionalUiReticle();
     }
 
     public void onSelect(Pair<UIComponentAPI, Object> selectedPair) {
@@ -129,4 +136,44 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
             }
         }
     }
+
+    public void render() {
+        if(getSelected() != null && InputShim.hasMouseControl()) {
+            reticle.render(getSelected().one.getPosition());
+        }
+    }
+
+
+    public static class DirectionalUiReticle {
+        SpriteAPI indicTL = Global.getSettings().getSprite("ui","sortIcon");
+        SpriteAPI indicTR = Global.getSettings().getSprite("ui","sortIcon");
+        SpriteAPI indicBL = Global.getSettings().getSprite("ui","sortIcon");
+        SpriteAPI indicBR = Global.getSettings().getSprite("ui","sortIcon");
+        Color indicColor = new Color(0xFFD200);
+
+        public DirectionalUiReticle() {
+            indicTL.setSize(20, 20);
+            indicTR.setSize(20, 20);
+            indicBL.setSize(20, 20);
+            indicBR.setSize(20, 20);
+            indicTL.setAngle(45);
+            indicTR.setAngle(-45);
+            indicBL.setAngle(135);
+            indicBR.setAngle(225);
+            indicTL.setColor(indicColor);
+            indicTR.setColor(indicColor);
+            indicBL.setColor(indicColor);
+            indicBR.setColor(indicColor);
+        }
+
+        public void render(PositionAPI pos) {
+            float x1 = pos.getX() - indicTL.getWidth(), x2 = pos.getX() + pos.getWidth();
+            float y1 = pos.getY() + pos.getHeight(), y2 = pos.getY() - indicTL.getHeight();
+            indicTL.render(x1, y1);
+            indicTR.render(x2, y1);
+            indicBL.render(x1, y2);
+            indicBR.render(x2, y2);
+        }
+    }
+
 }
