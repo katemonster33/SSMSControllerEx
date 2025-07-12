@@ -39,16 +39,14 @@ public class IntelTabReflector {
 
     public static IntelTabReflector TryGet(CoreUIAPI coreUIAPI, BorderedPanelReflector borderedPanelReflector) {
         if(intelTabCls == null) {
-            try {
-                var intelTabUi = borderedPanelReflector.getInnerPanel().getPanel();
-                ClassReflector intelTabClsReflector = new ClassReflector(intelTabUi.getClass());
-                getFactionPanel = intelTabClsReflector.getDeclaredMethod("getFactionPanel");
-                getEventsPanel = intelTabClsReflector.getDeclaredMethod("getEventsPanel");
-                getPlanetsPanel = intelTabClsReflector.getDeclaredMethod("getPlanetsPanel");
+            var intelTabUi = borderedPanelReflector.getInnerPanel().getPanel();
+            ClassReflector intelTabClsReflector = new ClassReflector(intelTabUi.getClass());
+            getFactionPanel = intelTabClsReflector.getDeclaredMethod("getFactionPanel");
+            getEventsPanel = intelTabClsReflector.getDeclaredMethod("getEventsPanel");
+            getPlanetsPanel = intelTabClsReflector.getDeclaredMethod("getPlanetsPanel");
+            if(getFactionPanel != null && getEventsPanel != null && getPlanetsPanel != null) {
                 intelTabCls = intelTabUi.getClass();
                 return new IntelTabReflector(coreUIAPI, borderedPanelReflector, intelTabUi);
-            } catch (Throwable ex) {
-                Global.getLogger(IntelTabReflector.class).error("Couldn't reflect into IntelTab UI!", ex);
             }
         } else if(intelTabCls.isAssignableFrom(borderedPanelReflector.getInnerPanel().getPanel().getClass())) {
             return new IntelTabReflector(coreUIAPI, borderedPanelReflector, borderedPanelReflector.getInnerPanel().getPanel());

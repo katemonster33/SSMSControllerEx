@@ -56,7 +56,7 @@ public class MessageBoxReflector extends UIPanelReflector {
     }
 
     public List<ButtonAPI> getDialogButtons() {
-        return getInnerPanel().getChildButtons();
+        return getInnerPanel().getChildButtons(true);
     }
 
     public UIPanelReflector getInnerPanel() {

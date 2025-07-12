@@ -11,11 +11,9 @@ import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.inputhelper.DirectionalUINavigator;
-import ssms.controller.reflection.BorderedPanelReflector;
-import ssms.controller.reflection.InteractionDialogReflector;
-import ssms.controller.reflection.TradeUiReflector;
-import ssms.controller.reflection.UIPanelReflector;
+import ssms.controller.reflection.*;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -64,7 +62,7 @@ public class DialogUI extends InputScreenBase {
 
     @Override
     public void preInput(float advance) {
-        if(!Global.getSector().getCampaignUI().isShowingDialog()) {
+        if (!Global.getSector().getCampaignUI().isShowingDialog()) {
             InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
         } else {
             var interactionCoreUi = interactReflector.getCoreUI(interactionDialogAPI);
@@ -81,10 +79,16 @@ public class DialogUI extends InputScreenBase {
                         }
                     }
                 }
+            } else {
+                for (var child : interactReflector.getChildPanels()) {
+                    if (MessageBoxReflector.isMsgBox(child)) {
+                        InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, new MessageBoxReflector(child), getId());
+                    }
+                }
             }
         }
         List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
-        for(var btn : optionsPanel.getChildButtons()) {
+        for (var btn : optionsPanel.getChildButtons()) {
             directionalObjects.add(new Pair<>(btn, null));
         }
         directionalUINavigator.setNavigationObjects(directionalObjects);

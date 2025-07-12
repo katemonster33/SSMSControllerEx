@@ -138,8 +138,10 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     }
 
     public void render() {
-        if(getSelected() != null && InputShim.hasMouseControl()) {
-            reticle.render(getSelected().one.getPosition());
+        if(curIndex != -1 && InputShim.hasMouseControl()) {
+            var selected = getSelected();
+            var selectedCompPos = selected.one.getPosition();
+            reticle.render(selectedCompPos);
         }
     }
 
