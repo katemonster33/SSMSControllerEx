@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
+import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.ReadableVector2f;
@@ -12,6 +13,10 @@ import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.inputhelper.ButtonPressOrHoldHandler;
+import ssms.controller.inputhelper.DirectionalUINavigator;
+import ssms.controller.inputhelper.KeySender;
+import ssms.controller.reflection.UIPanelReflector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +25,11 @@ public class RefitTabUI extends InputScreenBase {
     public static final String ID = "RefitTab";
     List<Pair<Indicators, String>> indicators;
     ViewportAPI viewportAPI;
+    UIPanelReflector refitPanel;
     Vector2f desiredMousePos = null;
     float mouseMoveFactor = 4.f;
+    List<Pair<UIComponentAPI, Object>> directionalObjects;
+    DirectionalUINavigator refitNavigator;
     @Override
     public String getId() {
         return ID;
@@ -31,11 +39,32 @@ public class RefitTabUI extends InputScreenBase {
     public List<Pair<Indicators, String>> getIndicators() {
         if(indicators == null) {
             indicators = new ArrayList<>();
-            indicators.add(new Pair<>(Indicators.LeftStick, "Navigate"));
-            indicators.add(new Pair<>(Indicators.A, "Select"));
-            indicators.add(new Pair<>(Indicators.B, "Return to campaign view"));
-            indicators.add(new Pair<>(Indicators.BumperLeft, "Select fleet tab"));
-            indicators.add(new Pair<>(Indicators.BumperRight, "Select cargo tab"));
+            directionalObjects = new ArrayList<>();
+            for(var pnl : refitPanel.getChildButtons(true)) {
+                directionalObjects.add(new Pair<>(pnl, null));
+            }
+            refitNavigator = new DirectionalUINavigator(directionalObjects);
+            addDigitalJoystickHandler("Navigate", Joystick.DPad, refitNavigator);
+            addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> {
+                if(refitNavigator.getSelected() != null) {
+                    var pos = refitNavigator.getSelected().one.getPosition();
+                    InputShim.mouseDownUp((int) pos.getX(), (int) pos.getY(), InputEventMouseButton.LEFT);
+                }
+            });
+            addButtonPressOrHoldHandler("More Info", "Open Codex", LogicalButtons.Y, new ButtonPressOrHoldHandler() {
+                @Override
+                public void performHoldAction(float advance) {
+                    InputShim.keyDownUp(Keyboard.KEY_F2, '\0');
+                }
+
+                @Override
+                public void performPressAction(float advance) {
+                    InputShim.keyDownUp(Keyboard.KEY_F1, '\0');
+                }
+            });
+            addButtonPressHandler("Return to campaign view", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+            addButtonPressHandler("Select fleet tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_F, 'f'));
+            addButtonPressHandler("Select cargo tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_I, 'i'));
         }
         return indicators;
     }
@@ -43,6 +72,8 @@ public class RefitTabUI extends InputScreenBase {
     @Override
     public void activate(Object ... args) {
         viewportAPI = Global.getSector().getViewport();
+        refitPanel = (UIPanelReflector) args[0];
+        indicators = null;
     }
 
     @Override
@@ -52,24 +83,13 @@ public class RefitTabUI extends InputScreenBase {
             return;
         }
 
-        ReadableVector2f leftStick = controller.getJoystick(Joystick.Left);
-        if (leftStick.getX() != 0 || leftStick.getY() != 0) {
-            if (desiredMousePos == null) {
-                desiredMousePos = new Vector2f((int) viewportAPI.convertWorldXtoScreenX(viewportAPI.getCenter().getX()), (int) viewportAPI.convertWorldYtoScreenY(viewportAPI.getCenter().getY()));
-            } else {
-                desiredMousePos.set(desiredMousePos.getX() + (leftStick.getX() * mouseMoveFactor), desiredMousePos.getY() - (leftStick.getY() * mouseMoveFactor));
-            }
-            InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
+        List<Pair<UIComponentAPI, Object>> directionalObjectsTmp = new ArrayList<>();
+        for(var pnl : refitPanel.getChildButtons(true)) {
+            directionalObjectsTmp.add(new Pair<>(pnl, null));
         }
-
-        if(desiredMousePos != null && controller.getButtonEvent(LogicalButtons.A) == -1) {
-            InputShim.mouseDownUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.LEFT);
-        } else if(controller.getButtonEvent(LogicalButtons.B) == -1) {
-            InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
-        } else if(controller.getButtonEvent(LogicalButtons.BumperLeft) == -1) {
-            InputShim.keyDownUp(Keyboard.KEY_F, 'f');
-        } else if(controller.getButtonEvent(LogicalButtons.BumperRight) == -1) {
-            InputShim.keyDownUp(Keyboard.KEY_I, 'i');
+        if(directionalObjectsTmp.size() != directionalObjects.size()) {
+            directionalObjects = directionalObjectsTmp;
+            refitNavigator.setNavigationObjects(directionalObjects);
         }
     }
 }
