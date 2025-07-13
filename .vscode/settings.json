@@ -1,41 +1,8 @@
 {
-    "java.project.referencedLibraries": [
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\commons-compiler.jar",
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\commons-compiler-jdk.jar",
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\fs.common_obf.jar",
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\fs.sound_obf.jar",
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\janino.jar",
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\jaxb-api-2.4.0-b180830.0359.jar",
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\jaxb-api-2.4.0-b180830.0359-sources.jar",
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\jinput.jar",
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\jogg-0.0.7.jar",
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\jorbis-0.0.15.jar",
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\json.jar",
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\log4j-1.2.9.jar",
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\lwjgl.jar",
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\lwjgl_util.jar",
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\starfarer.api.jar",
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\starfarer_obf.jar",
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\txw2-3.0.2.jar",
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\webp-imageio-0.1.6.jar",
-        "c:\\Users\\pn1711\\starsector\\starsector-core\\xstream-1.4.10.jar",
-        "c:\\Users\\pn1711\\starsector\\mods\\LunaLib\\jars\\LunaLib.jar",
-        "c:\\Users\\pn1711\\starsector\\mods\\LunaLib\\jars\\LunaLib-Kotlin.jar",
-        "c:\\Users\\pn1711\\starsector\\mods\\LazyLib\\jars\\internal\\Kotlin-Runtime.jar",
-        "c:\\Users\\pn1711\\starsector\\mods\\LazyLib\\jars\\LazyLib.jar",
-        "c:\\Users\\pn1711\\starsector\\mods\\SSMSQoL-1.6\\jars\\SSMSQoL.jar",
-        "c:\\Users\\pn1711\\starsector\\mods\\SSMSQoLEx\\jars\\SSMSQoLEx.jar"
-    ],
     "java.project.sourcePaths": [
         "src"
     ],
     "java.project.outputPath": "out/",
     "java.project.exportJar.targetPath": "${workspaceFolder}/jars/${workspaceFolderBasename}.jar",
-    "java.configuration.runtimes": [
-        {
-            "name":"JavaSE-17",
-            "path":"C:\\Program Files\\Amazon Corretto\\jdk17.0.14_7",
-            "default":true
-        }
-    ]
+    "java.configuration.updateBuildConfiguration": "automatic"
 }

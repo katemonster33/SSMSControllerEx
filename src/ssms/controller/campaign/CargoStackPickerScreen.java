@@ -109,6 +109,8 @@ public class CargoStackPickerScreen  extends InputScreenBase {
                 for(var item : gridToMoveTo.getStacks()) {
                     if(Objects.equals(item.getStack().getCommodityId(), pickedUpStack.getCommodityId())) {
                         var pos = ((UIComponentAPI)item).getPosition();
+                        mouseX = (int) pos.getCenterX();
+                        mouseY = (int) pos.getCenterY();
                         InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
                         return;
                     }

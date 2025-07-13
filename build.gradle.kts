@@ -195,6 +195,7 @@ tasks {
             into("$starsectorCoreDirectory\\native\\windows")
             include("*.dll")
         }
+        dependsOn("build", "jar", "create-metadata-files")
     }
 }
 

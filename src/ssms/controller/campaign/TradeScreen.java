@@ -119,20 +119,22 @@ public class TradeScreen extends InputScreenBase {
             }
             List<?> coreUiChildren = null;
             if(interactionDialogAPI != null && Global.getCurrentState() == GameState.COMBAT) coreUiChildren = coreUiPanelReflector.getChildItems();
-            else coreUiChildren = new UIPanelReflector(coreUiPanelReflector.getParent()).getChildItems();
-            int numChildren = coreUiChildren.size();
-            if(numChildren > lastFrameChildCount) {
-                for(int i = lastFrameChildCount; i < numChildren; i++) {
-                    var child = coreUiChildren.get(i);
-                    if(child instanceof UIPanelAPI uiPanelAPI && InputScreenManager.getInstance().getDisplayPanel() != null && child != InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
-                        if(MessageBoxReflector.isMsgBox(uiPanelAPI)) {
-                            InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, new MessageBoxReflector(uiPanelAPI), TradeScreen.ID);
-                            return;
+            else if(coreUiPanelReflector.getParent() != null) coreUiChildren = new UIPanelReflector(coreUiPanelReflector.getParent()).getChildItems();
+            if(coreUiChildren != null) {
+                int numChildren = coreUiChildren.size();
+                if(numChildren > lastFrameChildCount) {
+                    for(int i = lastFrameChildCount; i < numChildren; i++) {
+                        var child = coreUiChildren.get(i);
+                        if(child instanceof UIPanelAPI uiPanelAPI && InputScreenManager.getInstance().getDisplayPanel() != null && child != InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
+                            if(MessageBoxReflector.isMsgBox(uiPanelAPI)) {
+                                InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, new MessageBoxReflector(uiPanelAPI), TradeScreen.ID);
+                                return;
+                            }
                         }
                     }
                 }
+                lastFrameChildCount = numChildren;
             }
-            lastFrameChildCount = numChildren;
         }
 
         var buttons = tradeUiReflector.getChildButtons(true);
