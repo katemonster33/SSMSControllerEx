@@ -23,7 +23,6 @@ import java.util.List;
 
 public class RefitTabUI extends InputScreenBase {
     public static final String ID = "RefitTab";
-    List<Pair<Indicators, String>> indicators;
     ViewportAPI viewportAPI;
     UIPanelReflector refitPanel;
     Vector2f desiredMousePos = null;
