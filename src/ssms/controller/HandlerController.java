@@ -22,6 +22,7 @@ import java.util.function.Function;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.util.Pair;
+import com.fs.starfarer.ui.P;
 import org.lwjgl.input.Controller;
 import org.lwjgl.input.Controllers;
 import org.lwjgl.util.input.ControllerAdapter;
@@ -192,7 +193,7 @@ public class HandlerController {
                     }
                 } else if(Controllers.isEventAxis()) {
                     int axisIdx = Controllers.getEventControlIndex();
-                    if(axisMappingByIndex != null && axisMappingByIndex.length > axisIdx) {
+                    if(axisMappingByIndex != null && axisMappingByIndex.length > axisIdx && axisMappingByIndex[axisIdx] != null) {
                         var axisMapping = axisMappingByIndex[axisIdx];
                         float axisVal = getAxisValue(axisMapping);
                         // Controller.poll compares the joystick value to last frame already,
@@ -263,7 +264,11 @@ public class HandlerController {
     float getAxisValue(AxisMapping axisMapping) {
         float val = 0.f;
         try {
-            int index = axisIndexByMapping.get(axisMapping);
+            Integer axisIdxRaw = axisIndexByMapping.get(axisMapping);
+            if(axisIdxRaw == null) {
+                return -1.f;
+            }
+            int index = axisIdxRaw;
             val = controller.getAxisValue(index);
             if(val >= -joystickDeadzone && val <= joystickDeadzone) {
                 val = 0.f;
