@@ -303,7 +303,7 @@ public class HandlerController {
             int btnIdx = btnIndexByMapping.get(btnMapping);
             return controller.isButtonPressed(btnIdx);
         } else if (btn == LogicalButtons.LeftTrigger) {
-            return getAxisValue(AxisMapping.LeftTrigger) <= -axisBtnConversionDeadzone;
+            return getAxisValue(AxisMapping.LeftTrigger) >= axisBtnConversionDeadzone;
         } else if (btn == LogicalButtons.RightTrigger) {
             return isTriggerRight();
         } else {
