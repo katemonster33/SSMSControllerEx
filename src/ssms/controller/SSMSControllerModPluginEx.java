@@ -333,13 +333,19 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                         controllerMappingsByGuid = configureControllerMappingEx();
                     }
                     conMap = controllerMappingsByGuid.get(guid);
-                    if(conMap != null && System.getProperty("os.name").contains("Windows")) {
-                        convertAxisInstanceToIdx(conMap, con);
+                    if(conMap != null) {
+                        if(System.getProperty("os.name").contains("Windows")) {
+                            convertAxisInstanceToIdx(conMap, con);
+                        }
+                        Global.getLogger(SSMSControllerModPluginEx.class).log(Level.INFO, "Successfully matched controller GUID in config [" + guid + "]");
                     }
                 }
                 if(conMap == null) {
                     //String conName = con.getName(); //new StringBuilder(con.getName()).append("(").append(con.getAxisCount()).append(",").append(con.getButtonCount()).append(")").toString();
                     conMap = controllerMappings.get(con.getName());
+                    if(conMap != null) {
+                        Global.getLogger(SSMSControllerModPluginEx.class).log(Level.INFO, "Successfully matched controller name in legacy config [" + con.getName() + "]");
+                    }
                 }
                 if ( conMap != null ) {
                     con.poll();

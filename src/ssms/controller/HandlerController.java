@@ -22,7 +22,6 @@ import java.util.function.Function;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.ui.P;
 import org.lwjgl.input.Controller;
 import org.lwjgl.input.Controllers;
 import org.lwjgl.util.input.ControllerAdapter;
@@ -68,7 +67,7 @@ public class HandlerController {
                     if (index != 0xFF) {
                         axisMappingByIndex[index] = axisData.getAxisMapping();
                     }
-                    axisIndexByMapping.put(axisData.getAxisMapping(), axisData.getAxisIndex());
+                    axisIndexByMapping.put(axisData.getAxisMapping(), index);
                 }
             }
             btnMappingByIndex = new ButtonMapping[controller.getButtonCount()];
@@ -117,7 +116,14 @@ public class HandlerController {
    {
        if(axisId == null) {
            if(axisIndex != null && axisIndex >= 0) {
-               return axisIndex;
+               if(axisIndex == 0xFF) {
+                   return axisIndex;
+               }
+               int axisIdx = axisIndex;
+               if(controller.getAxisName(0).equals("Unknown")) {
+                   axisIdx++;
+               }
+               return axisIdx;
            }
            return -1;
        }
@@ -195,7 +201,7 @@ public class HandlerController {
                     int axisIdx = Controllers.getEventControlIndex();
                     if(axisMappingByIndex != null && axisMappingByIndex.length > axisIdx && axisMappingByIndex[axisIdx] != null) {
                         var axisMapping = axisMappingByIndex[axisIdx];
-                        float axisVal = getAxisValue(axisMapping);
+                        float axisVal = getAxisValue(axisIdx);
                         // Controller.poll compares the joystick value to last frame already,
                         //  we do it again here to not have multiple events of 0.0f because of our manual deadzone code
                         if(axisVal != lastFrameAxisValues[axisIdx]) {
@@ -261,6 +267,14 @@ public class HandlerController {
         return false;
     }
 
+    float getAxisValue(int index) {
+        float val = controller.getAxisValue(index);
+        if(val >= -joystickDeadzone && val <= joystickDeadzone) {
+            val = 0.f;
+        }
+        return val;
+    }
+
     float getAxisValue(AxisMapping axisMapping) {
         float val = 0.f;
         try {
@@ -268,11 +282,7 @@ public class HandlerController {
             if(axisIdxRaw == null) {
                 return -1.f;
             }
-            int index = axisIdxRaw;
-            val = controller.getAxisValue(index);
-            if(val >= -joystickDeadzone && val <= joystickDeadzone) {
-                val = 0.f;
-            }
+            val = getAxisValue(axisIdxRaw);
         } catch(IllegalArgumentException ex) {
             Global.getLogger(getClass()).info("Axis not mapped :" + axisMapping.toString());
         }
