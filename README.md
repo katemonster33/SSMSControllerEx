@@ -13,6 +13,9 @@ LazyLib - https://github.com/LazyWizard/lazylib
 ## Installation (WINDOWS ONLY)
 After unzipping the mod contents to mods\SSMSControllerEx , from the SSMSControllerEx\native\windows folder, copy SSMSControllerExNative.dll to the folder Starsector\starsector-core\native\windows . If your controller worked in the previous version of SSMSControllerEx you shouldn't notice any difference in behavior. This step should ensure that just about any controller with a layout similar to an X-Box controller should work with the mod. To be clear, this is ONLY necessary on windows.
 
+## Installation (STEAM DECK ONLY)
+After unzipping the mod contents to mods/SSMSControllerEx, replace the jinput.jar under the starsector folder with the one here https://github.com/katemonster33/SSMSControllerEx/tree/master/dependencies/jinput.jar and replace libjinput-linux64.so under starsector/native/linux with this one https://github.com/katemonster33/SSMSControllerEx/blob/master/dependencies/native/linux/libjinput-linux64.so the version shipped with Starsector has some bugs with interpreting the buttons/axes from the Steam Deck controller.
+
 ## FAQ
 
  - Can this be added to and removed from an ongoing save? **Yes.**
@@ -46,7 +49,8 @@ Use the directional pad to move the hovered selection (current selection marked 
 Since the Sector View (main campaign view) isn't completely self-explanatory, here is a short video and explanation
 
 ![Sector View](https://raw.githubusercontent.com/katemonster33/SSMSControllerEx/refs/heads/master/images/campaignview.gif)
-Pressing the joystick in a direction causes the crosshair to render in the direction from the player's fleet that the joystick is pressed. The further it is pressed, the further out from the player's fleet the reticle appears. The reticle functions as the mouse pointer, but without preventing the use of the user's mouse. If you wish to use your mouse instead of the joystick, simply put the joystick down, and move the mouse over the screen, and note how the crosshair disappears in response. This is a universal design philosophy of SSMSControllerEx, since bugs can happen, the joystick will never prevent the user from using the game normally with the mouse and keyboard.
+
+Pressing the joystick in a direction causes the crosshair to render in the direction from the player's fleet that the joystick is pressed. The further it is pressed, the further out from the player's fleet the reticle appears. The reticle functions as the mouse pointer, but without preventing the use of the user's mouse. If you wish to use your mouse instead of the joystick, simply put the joystick down, and move the mouse over the screen, and note how the crosshair disappears in response.
 
 ### Sector View Controls (Paused)
 
@@ -81,7 +85,7 @@ The ship will face the target with the selected broadside while accelerating and
 
 #### Targeting
 
-![Battle Targeting](https://raw.githubusercontent.com/razuhl/SSMSController/master/images/Battle_Targeting.png)
+![Battle Targeting](https://raw.githubusercontent.com/katemonster33/SSMSControllerEx/refs/heads/master/images/BattleTargeting.png)
 
 While targeting the combat is paused and the available targets can be cycled through using the bumpers. The targets are ordered by distance to the players ship. After selecting or clearing the target the battle resumes immediately.
 
