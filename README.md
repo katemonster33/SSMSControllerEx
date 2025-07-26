@@ -58,12 +58,26 @@ Since there is a periodic need to mouse-over things like the supply consumption 
 ![Sector View Paused](https://raw.githubusercontent.com/katemonster33/SSMSControllerEx/refs/heads/master/images/CampaignViewInputsPaused.png)
 Note how the selection reticle only shows while the game is paused, and functions as the mouse pointer (in terms of mouse-hover showing the tooltips) only while paused. Pay close attention to the binding for the Y/Triangle button here - holding the button has different behavior than press-and-releasing it. This is a common feature in SSMSControllerEx due to the sheer number of controls needed on certain screens.
 
-## Campaign Tab Controls
+### Campaign Tab Controls
 
 Much of the behavior within campaign tabs is commonized. The bumpers will always navigate between the tabs. Each tab provides directional pad input for moving the highlighted element, and the A/Cross button to mouse-click the highlighted element.
 The character sheet, for example:
 ![Character Sheet](https://raw.githubusercontent.com/katemonster33/SSMSControllerEx/refs/heads/master/images/CharacterScreenTab.png)
 
+### Map Tab
+![Map Tab](https://raw.githubusercontent.com/katemonster33/SSMSControllerEx/refs/heads/master/images/MapInputs.png)
+
+The inputs for a map are common between the Map Tab, the Intel Tab, the Planet view (the single star system view that shows a map) and the War-Room view in combat.
+
+The left joystick controls the cursor, the right joystick moves the map itself. The A/Cross button acts like a left-click, but note that pressing the button down only does the mouse down, and the button-up is only sent when the controller button is released. This is how the user is able to lay in a course to a given target, by holding the A/Cross button, moving the cursor over the intended on-screen button, and then releasing the button.
+
+Moving on, the triggers zoom in and out. Note that, on other UI, the triggers move the selected sub-tab, but on the Map Tab itself, these only zoom the map. Changing the selected sub-tab on the Map Tab involves navigating to it with the directional pad and pressing A/Cross.
+
+### Intel Screen
+Note that on the Intel screen there is a map, as well as elements selectable with the directional pad. Since the map controls involve the triggers for zooming, and the Intel tab controls also involve using the triggers to change the selected sub-tab within the Intel tab, the map controls only become active when the map itself is navigated to using the directional pad.
+
+### Crew/Cargo Tab, Planetary Market View, etc
+This screen can be quite busy if viewing a planet, but only the directional pad, the A/Cross button, and B/Circle button are needed for this screen. Note that, for convenience, when using A/Cross to pick up a partial or full stack of cargo, the items are automatically moved to an empty slot in the opposite cargo grid for placement. The usage of the directional controls to change where the stack is placed can break this easily, so it's highly recommended to only press A/Cross to confirm, or B/Circle to cancel.
 
 ## Combat View
 
