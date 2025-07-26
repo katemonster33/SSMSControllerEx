@@ -7,8 +7,8 @@ LazyLib - https://github.com/LazyWizard/lazylib
 
 ## Features
 
-* Provides controller support for combat controls.
-* Orbiting mode that allows circling targets. Supports broadsides.
+* Provides controller support for Starsector
+* Allows controlling the player ship with the left joystick, and navigating menus in UIs with the directional pad. Additionally, map elements can be navigated with a combination of the left joystick (crosshair), right joystick (camera), triggers (zoom) and A/Cross button (Selection of element pointed at with crosshair)
 
 ## Installation (WINDOWS ONLY)
 After unzipping the mod contents to mods\SSMSControllerEx , from the SSMSControllerEx\native\windows folder, copy SSMSControllerExNative.dll to the folder Starsector\starsector-core\native\windows . If your controller worked in the previous version of SSMSControllerEx you shouldn't notice any difference in behavior. This step should ensure that just about any controller with a layout similar to an X-Box controller should work with the mod. To be clear, this is ONLY necessary on windows.
@@ -27,62 +27,70 @@ Currently, the mod relies on auto-detection of any connected controller via the 
 
 There's a controller auto-mapper for the title screen that should allow you to map your controller using the on-screen prompts. it doesnt save the mapping between game loads though, sorry :(
 
-Images can be installed by any mod and are searched in the sub directory "graphics/indicators/" but must be added to data/config/settings.json. They must be PNG files with the ending ".png" and will be displayed in 
-25x25 dimension. The majority of default images come in a resolution of 100x100 and are provided by Nicolae Berbece through his [FREE Keyboard and controllers prompts pack](https://opengameart.org/content/free-keyboard-and-controllers-prompts-pack), the positional stick images are custom derivatives.
+## Title
 
-### Finding controller buttons and axis
+Title screen is mostly supported minus the Codex and Settings
 
-Under windows going to the settings and typing "controllers" will show the option "Setup USB Game Controllers". Click that, select the controller and choose "properties". 
-There a "Test" tab is available showing the interactive button mappings and axis names. If the lowest button is listed as 1 the number must be reduced by one when configuring it.
-In addition the starsector log file will print out controller information like this.
+### Default Controls
 
-Found controller: Controller (XBOX 360 For Windows)
-with axis: Y Axis
-with axis: X Axis
-with axis: Y Rotation
-with axis: X Rotation
-with axis: Z Axis
-with button: Button 0
-with button: Button 1
-...
-with button: Button 9
+Use the directional pad to move the hovered selection (current selection marked by the 4 arrows as pictured below) and press A, or X to select the current element
 
-However which axis/button is which must be figured out manually or looked up through google. The framework in use is "DirectInput".
+### Title Screen Controls
 
-## Default Controls
+![Title Screen](https://raw.githubusercontent.com/katemonster33/SSMSControllerEx/refs/heads/master/images/TitleScreenInputs.png)
+
+## Campaign View
+
+### Sector View Controls
+
+Since the Sector View (main campaign view) isn't completely self-explanatory, here is a short video and explanation
+
+![Sector View](https://raw.githubusercontent.com/katemonster33/SSMSControllerEx/refs/heads/master/images/campaignview.gif)
+Pressing the joystick in a direction causes the crosshair to render in the direction from the player's fleet that the joystick is pressed. The further it is pressed, the further out from the player's fleet the reticle appears. The reticle functions as the mouse pointer, but without preventing the use of the user's mouse. If you wish to use your mouse instead of the joystick, simply put the joystick down, and move the mouse over the screen, and note how the crosshair disappears in response. This is a universal design philosophy of SSMSControllerEx, since bugs can happen, the joystick will never prevent the user from using the game normally with the mouse and keyboard.
+
+### Sector View Controls (Paused)
+
+Since there is a periodic need to mouse-over things like the supply consumption rate or other elements from the sector view, the mod provides extra features while the game is paused.
+![Sector View Paused](https://raw.githubusercontent.com/katemonster33/SSMSControllerEx/refs/heads/master/images/CampaignViewInputsPaused.png)
+Note how the selection reticle only shows while the game is paused, and functions as the mouse pointer (in terms of mouse-hover showing the tooltips) only while paused. Pay close attention to the binding for the Y/Triangle button here - holding the button has different behavior than press-and-releasing it. This is a common feature in SSMSControllerEx due to the sheer number of controls needed on certain screens.
+
+## Campaign Tab Controls
+
+Much of the behavior within campaign tabs is commonized. The bumpers will always navigate between the tabs. Each tab provides directional pad input for moving the highlighted element, and the A/Cross button to mouse-click the highlighted element.
+The character sheet, for example:
+![Character Sheet](https://raw.githubusercontent.com/katemonster33/SSMSControllerEx/refs/heads/master/images/CharacterScreenTab.png)
+
+
+## Combat View
+
+### Default Controls
 
 Weapons are aimed automatically and individually, even if the player fires them as a linked group. Omni shields will be raised in the direction of the broadside(by default front) and are controlled by the AI afterwards. Activating autopilot disables controller steering.
 
-### Directional Steering
+#### Directional Steering
 
-![Steering Directional](https://raw.githubusercontent.com/razuhl/SSMSController/master/images/Battle_Steering_Directional.png)
+![Steering Directional](https://raw.githubusercontent.com/katemonster33/SSMSControllerEx/refs/heads/master/images/BattleSteeringInputs.png)
 
 In this mode the left stick controls the facing of the ship. Triggers control forward and backward acceleration and bumpers allow strafing.
 
-### Orbital Steering (Requires Target)
+#### Orbital Steering (Requires Target)
 
-![Steering Orbital](https://raw.githubusercontent.com/razuhl/SSMSController/master/images/Battle_Steering_Orbital.png)
+![Steering Orbital](https://raw.githubusercontent.com/katemonster33/SSMSControllerEx/refs/heads/master/images/OrbitalSteering.png)
 
 The ship will face the target with the selected broadside while accelerating and strafing to reach the desired position automatically. The desired position is marked with a green pentagon. The left stick controls the relative position of the ship to the target. The triggers change the desired distance to the target.
 
-### Targeting
+#### Targeting
 
 ![Battle Targeting](https://raw.githubusercontent.com/razuhl/SSMSController/master/images/Battle_Targeting.png)
 
 While targeting the combat is paused and the available targets can be cycled through using the bumpers. The targets are ordered by distance to the players ship. After selecting or clearing the target the battle resumes immediately.
 
-### Battle Menu
+#### Battle Menu
 
-![Battle Menu](https://raw.githubusercontent.com/razuhl/SSMSController/master/images/Battle_Menu.png)
+![Battle Menu](https://raw.githubusercontent.com/katemonster33/SSMSControllerEx/refs/heads/master/images/BattleMenu.png)
 
 Combat is paused when the menu is open. The available menu entries can be cycled through using the bumpers. After selecting an entry the battle resumes immediately.
 
-## Custom Controls
-
-Besides mapping the input it is also possible to add custom steering modes via modding. The mods mod_info.json should contain an entry `"loadAfter":["SSMSController"]`. Then adding this mods jar as a library dependency to the java project gives access to the required classes. The javadoc next to the jar should be linked so that the documentation is available when coding the necessary class. 
-
-The javadoc for the interface "ssms.controller.steering.SteeringController" contains all the documentation on what the class must do and how it can be put into service. In addition the default steering mode classes "ssms.controller.steering.SteeringController_FreeFlight" and "ssms.controller.steering.SteeringController_OrbitTarget" can be viewed in the source files to get an idea on how to query the controller or steer the ship.
-
-###Credits
+### Credits
 
 Many thanks to razuhl (https://github.com/razuhl) for his great work on the original SSMSController mod, most of the work done to this repo uses his work on the UI and controller handling as a base, so far I have simply re-written the original mod's usage of reflection and deleted the in-game settings dialogs.
