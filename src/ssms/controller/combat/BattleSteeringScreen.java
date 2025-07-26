@@ -103,6 +103,8 @@ public class BattleSteeringScreen extends InputScreenBase {
         csr = CombatStateReflector.GetInstance();
         engine = scope.engine;
         psCache = scope.psCache;
+        lastSteeringController = null;
+        updateIndicators(psCache.steeringController);
     }
     
     protected boolean processShipInputs(ShipAPI ps) {

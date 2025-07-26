@@ -45,12 +45,17 @@ public class BattleTargetingScreen extends InputScreenBase {
     protected ShipAPI ps;
     protected BattleScope.PlayerShipCache psCache;
 
-    public BattleTargetingScreen() {
-        indicators = new ArrayList<>();
-        indicators.add(new Pair<>(Indicators.BumperRight, "Next"));
-        indicators.add(new Pair<>(Indicators.BumperLeft, "Previous"));
-        indicators.add(new Pair<>(Indicators.Select, "Select"));
-        indicators.add(new Pair<>(Indicators.Start, "Clear"));
+
+    @Override
+    public List<Pair<Indicators, String>> getIndicators() {
+        if(indicators == null) {
+            indicators = new ArrayList<>();
+            indicators.add(new Pair<>(Indicators.BumperRight, "Next"));
+            indicators.add(new Pair<>(Indicators.BumperLeft, "Previous"));
+            indicators.add(new Pair<>(Indicators.Select, "Select"));
+            indicators.add(new Pair<>(Indicators.Start, "Clear"));
+        }
+        return indicators;
     }
     
     /**
@@ -112,6 +117,7 @@ public class BattleTargetingScreen extends InputScreenBase {
             psCache.steeringController.onTargetSelected();
             scope.timeDilation(true,"TARGETING");
         }
+        indicators = null;
     }
 
     protected void closeTargeting() {
