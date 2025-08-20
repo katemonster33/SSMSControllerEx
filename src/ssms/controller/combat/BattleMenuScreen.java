@@ -86,6 +86,20 @@ public class BattleMenuScreen extends InputScreenBase {
             show();
         }
 
+        public void selectNext() {
+            buttons.get(currentSelectedIndex).unhighlight();
+            currentSelectedIndex++;
+            if(currentSelectedIndex >= buttons.size()) currentSelectedIndex = 0;
+            buttons.get(currentSelectedIndex).highlight();
+        }
+
+        public void selectPrev() {
+            buttons.get(currentSelectedIndex).unhighlight();
+            currentSelectedIndex--;
+            if(currentSelectedIndex < 0) currentSelectedIndex = buttons.size() - 1;
+            buttons.get(currentSelectedIndex).highlight();
+        }
+
         public void show() {
             parentPanel.addComponent(subpanel);
         }
@@ -94,47 +108,12 @@ public class BattleMenuScreen extends InputScreenBase {
             parentPanel.removeComponent(subpanel);
         }
 
-        public void buttonSelected(int index) {
-            if(currentSelectedIndex != -1) {
-                buttons.get(index).unhighlight();
-            }
-            if(index >= 0 && index < buttons.size()) {
-                buttons.get(index).highlight();
-                currentSelectedIndex = index;
-            }
+        public int getCurrentSelectedIndex() {
+            return currentSelectedIndex;
         }
 
         public abstract void onClicked(int index);
-
-        public void handleInput(HandlerController controller) throws IllegalArgumentException {
-            if(buttons.isEmpty()) {
-                throw new IllegalArgumentException("Cannot handle inputs on empty BattleMenuUI!");
-            }
-            if ( controller.getButtonEvent(LogicalButtons.BumperLeft) == 1) {
-                buttons.get(currentSelectedIndex).unhighlight();
-                currentSelectedIndex--;
-                if(currentSelectedIndex < 0) currentSelectedIndex = buttons.size() - 1;
-                buttons.get(currentSelectedIndex).highlight();
-            } else if(controller.getButtonEvent(LogicalButtons.BumperRight) == 1) {
-                buttons.get(currentSelectedIndex).unhighlight();
-                currentSelectedIndex++;
-                if(currentSelectedIndex >= buttons.size()) currentSelectedIndex = 0;
-                buttons.get(currentSelectedIndex).highlight();
-            }
-            if ( controller.getButtonEvent(LogicalButtons.Select) == 1 ) {
-                if(currentSelectedIndex != -1) {
-                    onClicked(currentSelectedIndex);
-                }
-            }
-        }
     };
-
-    public BattleMenuScreen() {
-        indicators = new ArrayList<>();
-        indicators.add(new Pair<>(Indicators.BumperRight, "Next"));
-        indicators.add(new Pair<>(Indicators.BumperLeft, "Previous"));
-        indicators.add(new Pair<>(Indicators.Select, "Select"));
-    }
     
     @Override
     public void deactivate() {
@@ -154,6 +133,34 @@ public class BattleMenuScreen extends InputScreenBase {
     }
 
     @Override
+    public List<Pair<Indicators, String>> getIndicators() {
+        if(indicators == null) {
+            indicators = new ArrayList<>();
+            addButtonPressHandler("Prev", LogicalButtons.DpadUp, (float advance) -> {
+                if(currentMenu != null) {
+                    currentMenu.selectPrev();
+                }
+            });
+            addButtonPressHandler("Next", LogicalButtons.DpadDown, (float advance) -> {
+                if(currentMenu != null) {
+                    currentMenu.selectNext();
+                }
+            });
+            addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> {
+                if(currentMenu != null) {
+                    currentMenu.onClicked(currentMenu.getCurrentSelectedIndex());
+                }
+            });
+            addButtonPressHandler("Close", LogicalButtons.B, (float advance) -> {
+                if(currentMenu != null) {
+                    closeMenu();
+                }
+            });
+        }
+        return indicators;
+    }
+
+    @Override
     public void activate(Object ... args) {
         scope = (BattleScope) InputScreenManager.getInstance().getCurrentScope();
         engine = scope.engine;
@@ -165,15 +172,9 @@ public class BattleMenuScreen extends InputScreenBase {
 //            engine.getCombatUI().addMessage(0, "error: "+t.getMessage());
 //            Global.getLogger(SSMSControllerModPluginEx.class).error("Failed to hide HUD!", t);
 //        }
+        indicators = null;
         if(currentMenu != null) {
             currentMenu.show();
-        }
-    }
-    
-    @Override
-    public void preInput(float advance) {
-        if(currentMenu != null) {
-            currentMenu.handleInput(controller);
         }
     }
 
@@ -189,9 +190,8 @@ public class BattleMenuScreen extends InputScreenBase {
             currentMenu.hide();
             currentMenu = null;
         }
-        InputScreenManager.getInstance().transitionDelayed("BattleSteering");
+        InputScreenManager.getInstance().transitionDelayed(BattleSteeringScreen.ID);
     }
-
 
     void showBroadsideMenu() {
         if(currentMenu != null) {
