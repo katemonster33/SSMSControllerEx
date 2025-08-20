@@ -124,7 +124,11 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     }
 
     public Pair<UIComponentAPI, Object> getSelected() {
-        return navigationObjects.get(curIndex);
+        if(curIndex != -1 && curIndex < navigationObjects.size()) {
+            return navigationObjects.get(curIndex);
+        } else {
+            return null;
+        }
     }
 
     public void advance(float amount) {
