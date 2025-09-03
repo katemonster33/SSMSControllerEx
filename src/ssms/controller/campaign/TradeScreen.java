@@ -5,6 +5,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
+import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
@@ -36,6 +37,8 @@ public class TradeScreen extends InputScreenBase {
     DirectionalUINavigator directionalUINavigator;
     int lastFrameChildCount = 0;
     boolean isCargoTab = false;
+    UIPanelReflector marketInfoWidget;
+    boolean isMarketInfoShown;
 
     @Override
     public void activate(Object ... args) {
@@ -72,6 +75,13 @@ public class TradeScreen extends InputScreenBase {
             interactionDialogReflector = new InteractionDialogReflector(interactionDialogAPI);
         }
         lastFrameChildCount = 0;
+
+        var tradeUiChildren = tradeUiReflector.getChildItems();
+        if(tradeUiChildren.size() == 12) {
+            marketInfoWidget = new UIPanelReflector((UIPanelAPI) tradeUiChildren.get(7));
+            isMarketInfoShown = marketInfoWidget.getFader().getBrightness() == 1.f;
+        }
+        updateDirectionalObjects();
     }
 
     void clickSelected(boolean takeAllIfStack) {
@@ -137,18 +147,62 @@ public class TradeScreen extends InputScreenBase {
             }
         }
 
-        var buttons = tradeUiReflector.getChildButtons(true);
+        if(marketInfoWidget != null) {
+            var isMarketInfoShownTmp = marketInfoWidget.getFader().getBrightness() == 1.f;
+            if (isMarketInfoShownTmp == isMarketInfoShown && !isMarketInfoShownTmp) {
+                return;
+            }
+            isMarketInfoShown = isMarketInfoShownTmp;
+        }
+        updateDirectionalObjects();
+    }
+
+    private void updateDirectionalObjects() {
         List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
-        for(var btn : buttons) {
-            if(btn.isEnabled()) {
+        var tradeUiChildren = tradeUiReflector.getChildItems();
+        List<ButtonAPI> buttons = new ArrayList<>();
+//        if(marketInfoWidget != null) {
+//            if(isMarketInfoShown) {
+//                buttons.addAll(marketInfoWidget.getChildButtons(true));
+//            } else {
+//                for( var item : tradeUiChildren) {
+//                    if (item != marketInfoWidget.getPanel()) {
+//                        if (item instanceof UIPanelAPI uiPanelAPI) {
+//                            buttons.addAll(new UIPanelReflector(uiPanelAPI).getChildButtons(true));
+//                        } else if (item instanceof ButtonAPI buttonAPI) {
+//                            buttons.add(buttonAPI);
+//                        }
+//                    }
+//                }
+//            }
+//        } else {
+//            buttons.addAll(tradeUiReflector.getChildButtons(true));
+//        }
+
+        for( var item : tradeUiChildren) {
+            if(UIComponentReflector.isComponent(item.getClass())) {
+                UIComponentReflector uiComponentReflector = new UIComponentReflector((UIComponentAPI) item);
+                if(uiComponentReflector.getFader() != null && uiComponentReflector.getFader().getBrightness() == 1.f) {
+                    if (item instanceof UIPanelAPI uiPanelAPI) {
+                        buttons.addAll(new UIPanelReflector(uiPanelAPI).getChildButtons(true));
+                    } else if (item instanceof ButtonAPI buttonAPI) {
+                        buttons.add(buttonAPI);
+                    }
+                }
+            }
+        }
+        for (var btn : buttons) {
+            if (btn.isEnabled()) {
                 directionalObjects.add(new Pair<>(btn, null));
             }
         }
-        for(var stack : playerDataGrid.getStacks()) {
-            directionalObjects.add(new Pair<>(stack, playerDataGrid));
-        }
-        for(var stack : otherDataGrid.getStacks()) {
-            directionalObjects.add(new Pair<>(stack, otherDataGrid));
+        if(marketInfoWidget == null || !isMarketInfoShown) {
+            for (var stack : playerDataGrid.getStacks()) {
+                directionalObjects.add(new Pair<>(stack, playerDataGrid));
+            }
+            for (var stack : otherDataGrid.getStacks()) {
+                directionalObjects.add(new Pair<>(stack, otherDataGrid));
+            }
         }
         directionalUINavigator.setNavigationObjects(directionalObjects);
     }

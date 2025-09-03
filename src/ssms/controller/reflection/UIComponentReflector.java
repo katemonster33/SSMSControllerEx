@@ -33,4 +33,8 @@ public class UIComponentReflector {
     public UIPanelAPI getParent() {
         return (UIPanelAPI) getParentHandle.invoke(uiComponentAPI);
     }
+
+    public static boolean isComponent(Class<?> cls) {
+        return uiComponentCls.isAssignableFrom(cls);
+    }
 }
