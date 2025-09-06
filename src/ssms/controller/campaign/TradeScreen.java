@@ -13,7 +13,6 @@ import com.fs.starfarer.campaign.ui.trade.CargoStackView;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
-import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.MessageBoxScreen;
@@ -37,8 +36,8 @@ public class TradeScreen extends InputScreenBase {
     DirectionalUINavigator directionalUINavigator;
     int lastFrameChildCount = 0;
     boolean isCargoTab = false;
-    UIPanelReflector marketInfoWidget;
-    boolean isMarketInfoShown;
+    UIPanelReflector colonyInfoWidget;
+    boolean isColonyInfoShown;
 
     @Override
     public void activate(Object ... args) {
@@ -78,8 +77,10 @@ public class TradeScreen extends InputScreenBase {
 
         var tradeUiChildren = tradeUiReflector.getChildItems();
         if(tradeUiChildren.size() == 12) {
-            marketInfoWidget = new UIPanelReflector((UIPanelAPI) tradeUiChildren.get(7));
-            isMarketInfoShown = marketInfoWidget.getFader().getBrightness() == 1.f;
+            colonyInfoWidget = new UIPanelReflector((UIPanelAPI) tradeUiChildren.get(7));
+            isColonyInfoShown = colonyInfoWidget.getFader().getBrightness() == 1.f;
+        } else {
+            colonyInfoWidget = null;
         }
         updateDirectionalObjects();
     }
@@ -147,12 +148,12 @@ public class TradeScreen extends InputScreenBase {
             }
         }
 
-        if(marketInfoWidget != null) {
-            var isMarketInfoShownTmp = marketInfoWidget.getFader().getBrightness() == 1.f;
-            if (isMarketInfoShownTmp == isMarketInfoShown && !isMarketInfoShownTmp) {
+        if(colonyInfoWidget != null) {
+            var isMarketInfoShownTmp = colonyInfoWidget.getFader().getBrightness() == 1.f;
+            if (isMarketInfoShownTmp == isColonyInfoShown && !isMarketInfoShownTmp) {
                 return;
             }
-            isMarketInfoShown = isMarketInfoShownTmp;
+            isColonyInfoShown = isMarketInfoShownTmp;
         }
         updateDirectionalObjects();
     }
@@ -196,7 +197,7 @@ public class TradeScreen extends InputScreenBase {
                 directionalObjects.add(new Pair<>(btn, null));
             }
         }
-        if(marketInfoWidget == null || !isMarketInfoShown) {
+        if(colonyInfoWidget == null || !isColonyInfoShown) {
             for (var stack : playerDataGrid.getStacks()) {
                 directionalObjects.add(new Pair<>(stack, playerDataGrid));
             }

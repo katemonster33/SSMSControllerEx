@@ -101,42 +101,47 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
         return Math.max(1.f, Math.abs(a - b));
     }
 
+    float getDeltaOrNegative(float a, float b, float delta) {
+        if(a <= b) return -1;
+        else return (a - b) * delta;
+    }
+
     float getLeastDeltaOrOne(float a1, float a2, float b1, float b2) {
-        if((a1 >= b1 && a1 <= b2) ||
-            (a2 >= b1 && a2 <= b2)) {
+        if((a1 >= b1 && a1 < b2) ||
+            (a2 > b1 && a2 <= b2)) {
             return 1;
         } else {
-            float delta = Math.min(Math.min(Math.abs(a1 - b1), Math.abs((a1 - b2))),
-                    Math.min(Math.abs(a2 - b1), Math.abs((a2 - b2))));
-            delta += 1;
+            float delta = Math.max(Math.max(Math.abs(a1 - b1), Math.abs((a1 - b2))),
+                    Math.max(Math.abs(a2 - b1), Math.abs((a2 - b2))));
+            delta += 5000;
             return delta;
         }
     }
 
     public void performLeftAction(float advance) {
         moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
-                (int) ((o1.getPosition().getCenterX() - o2.getPosition().getCenterX()) *
+                (int) (getDeltaOrNegative(o1.getPosition().getCenterX(), o2.getPosition().getCenterX(),
                         getLeastDeltaOrOne(o1.getPosition().getY(), o1.getPosition().getY() + o1.getPosition().getHeight(),
-                                o2.getPosition().getY(), o2.getPosition().getY() + o2.getPosition().getHeight())));
+                                o2.getPosition().getY(), o2.getPosition().getY() + o2.getPosition().getHeight()))));
     }
 
     public void performRightAction(float advance) {
         moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
-                (int) ((o2.getPosition().getCenterX() - o1.getPosition().getCenterX()) *
+                (int) getDeltaOrNegative(o2.getPosition().getCenterX(), o1.getPosition().getCenterX(),
                         getLeastDeltaOrOne(o1.getPosition().getY(), o1.getPosition().getY() + o1.getPosition().getHeight(),
                                 o2.getPosition().getY(), o2.getPosition().getY() + o2.getPosition().getHeight())));
     }
 
     public void performUpAction(float advance) {
         moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
-                (int) ((o2.getPosition().getCenterY() - o1.getPosition().getCenterY()) *
+                (int) getDeltaOrNegative(o2.getPosition().getCenterY(), o1.getPosition().getCenterY(),
                         getLeastDeltaOrOne(o1.getPosition().getX(), o1.getPosition().getX() + o1.getPosition().getWidth(),
                                 o2.getPosition().getX(), o2.getPosition().getX() + o2.getPosition().getWidth())));
     }
 
     public void performDownAction(float advance) {
         moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
-                (int) ((o1.getPosition().getCenterY() - o2.getPosition().getCenterY()) *
+                (int) getDeltaOrNegative(o1.getPosition().getCenterY(), o2.getPosition().getCenterY(),
                         getLeastDeltaOrOne(o1.getPosition().getX(), o1.getPosition().getX() + o1.getPosition().getWidth(),
                                 o2.getPosition().getX(), o2.getPosition().getX() + o2.getPosition().getWidth())));
     }
