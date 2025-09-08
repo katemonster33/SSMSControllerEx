@@ -16,6 +16,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import java.util.Collections;
+import java.util.function.Function;
 
 public class DirectionalUINavigator implements DigitalJoystickHandler {
     List<Pair<UIComponentAPI, Object>> navigationObjects;
@@ -119,10 +120,46 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     }
 
     public void performLeftAction(float advance) {
-        moveSelection((UIComponentAPI o1, UIComponentAPI o2) ->
-                (int) (getDeltaOrNegative(o1.getPosition().getCenterX(), o2.getPosition().getCenterX(),
-                        getLeastDeltaOrOne(o1.getPosition().getY(), o1.getPosition().getY() + o1.getPosition().getHeight(),
-                                o2.getPosition().getY(), o2.getPosition().getY() + o2.getPosition().getHeight()))));
+        UIComponentAPI selectedComp = navigationObjects.get(curIndex).one;
+        Pair<UIComponentAPI, Object> closestPairPrime = null, closestPairSecondary = null;
+        float distPrime = Float.MAX_VALUE, distSecondary = Float.MAX_VALUE;
+        int tmpIndex = -1, newIndexPrime = -1, newIndexSecondary = -1;
+        float x1 = selectedComp.getPosition().getX();
+        for (Pair<UIComponentAPI, Object> other : navigationObjects) {
+            ++tmpIndex;
+            if (other.one == selectedComp) {
+                continue;
+            }
+            if((other.one.getPosition().getX() + other.one.getPosition().getWidth()) < selectedComp.getPosition().getX()) {
+                if ((other.one.getPosition().getY() >= selectedComp.getPosition().getY() && other.one.getPosition().getY() < (selectedComp.getPosition().getY() + selectedComp.getPosition().getHeight())) ||
+                        ((other.one.getPosition().getY() + other.one.getPosition().getHeight()) <= (selectedComp.getPosition().getY() + selectedComp.getPosition().getHeight()) && (other.one.getPosition().getY() + other.one.getPosition().getHeight()) < (selectedComp.getPosition().getY() + selectedComp.getPosition().getHeight()))) {
+
+                    float x2 = other.one.getPosition().getX() + other.one.getPosition().getWidth();
+                    float dist = x1 - (x2);
+                    if (dist >= 0 && dist < distPrime) {
+                        distPrime = dist;
+                        closestPairPrime = other;
+                        newIndexPrime = tmpIndex;
+                    }
+                } else {
+                    float dist = (float) Math.sqrt(Math.pow(Math.abs(other.one.getPosition().getCenterX() - selectedComp.getPosition().getCenterX()), 2) +
+                            Math.pow(Math.abs(other.one.getPosition().getCenterY() - selectedComp.getPosition().getCenterY()), 2));
+                    if (dist < distSecondary) {
+                        distSecondary = dist;
+                        closestPairSecondary = other;
+                        newIndexSecondary = tmpIndex;
+                    }
+                }
+            }
+        }
+
+        if (closestPairPrime != null) {
+            curIndex = newIndexPrime;
+            onSelect(closestPairPrime);
+        } else if (closestPairSecondary != null) {
+            curIndex = newIndexSecondary;
+            onSelect(closestPairSecondary);
+        }
     }
 
     public void performRightAction(float advance) {
