@@ -41,11 +41,13 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     }
 
     public float getDeltaX(PositionAPI a, PositionAPI b) {
-        float ax2 = a.getX() + a.getWidth(), bx2 = b.getX() + b.getWidth();
+       float ax2 = a.getX() + a.getWidth(), bx2 = b.getX() + b.getWidth();
         if ((a.getX() >= b.getX() && a.getX() < bx2) ||
-                (ax2 > b.getX() && ax2 <= bx2)) {
+                (ax2 > b.getX() && ax2 <= bx2) ||
+                (b.getX() >= a.getX() && b.getX() < ax2) ||
+                (bx2 > a.getX() && bx2 <= ax2)) {
             return 0;
-        } else if (ax2 < b.getX()) {
+        } else if (ax2 <= b.getX()) {
             return b.getCenterX() - a.getCenterX();
         } else {
             return -1;
@@ -55,9 +57,11 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     public float getDeltaY(PositionAPI a, PositionAPI b) {
         float ay2 = a.getY() + a.getHeight(), by2 = b.getY() + b.getHeight();
         if ((a.getY() >= b.getY() && a.getY() < by2) ||
-                (ay2 > b.getY() && ay2 <= by2)) {
+                (ay2 > b.getY() && ay2 <= by2) ||
+                (b.getY() >= a.getY() && b.getY() < ay2) ||
+                (by2 > a.getY() && by2 <= ay2)) {
             return 0;
-        } else if (ay2 < b.getY()) {
+        } else if (ay2 <= b.getY()) {
             return b.getCenterY() - a.getCenterY();
         } else {
             return -1;
@@ -93,7 +97,13 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     }
 
     public void moveSelection(Comparator<PositionAPI> getDeltaA, Comparator<PositionAPI> getDeltaB) {
-
+        if(curIndex == -1) {
+            if(!navigationObjects.isEmpty()) {
+                curIndex = 0;
+                onSelect(navigationObjects.get(0));
+            }
+            return;
+        }
         UIComponentAPI selectedComp = navigationObjects.get(curIndex).one;
         Pair<UIComponentAPI, Object> closestPairPrime = null, closestPairSecondary = null;
         float distPrime = Float.MAX_VALUE, distSecondary = Float.MAX_VALUE;
@@ -121,6 +131,14 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
                         newIndexSecondary = tmpIndex;
                     }
                 }
+            } else if(deltaA == 0 && deltaB == 0) {
+                float distBackup = (float) Math.sqrt(Math.pow(Math.abs(other.one.getPosition().getCenterX() - selectedComp.getPosition().getCenterX()), 2) +
+                        Math.pow(Math.abs(other.one.getPosition().getCenterY() - selectedComp.getPosition().getCenterY()), 2));
+                if (distBackup < distPrime) {
+                    distPrime = distBackup;
+                    closestPairPrime = other;
+                    newIndexPrime = tmpIndex;
+                }
             }
         }
 
@@ -134,22 +152,22 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     }
 
     public void performLeftAction(float advance) {
-        moveSelection((PositionAPI orig, PositionAPI other) -> (int) getDeltaX(orig, other),
-                (PositionAPI orig, PositionAPI other) -> (int) getDeltaY(orig, other));
-    }
-
-    public void performRightAction(float advance) {
         moveSelection((PositionAPI orig, PositionAPI other) -> (int) getDeltaX(other, orig),
                 (PositionAPI orig, PositionAPI other) -> (int) getDeltaY(orig, other));
     }
 
+    public void performRightAction(float advance) {
+        moveSelection((PositionAPI orig, PositionAPI other) -> (int) getDeltaX(orig, other),
+                (PositionAPI orig, PositionAPI other) -> (int) getDeltaY(orig, other));
+    }
+
     public void performUpAction(float advance) {
-        moveSelection((PositionAPI orig, PositionAPI other) -> (int) getDeltaY(other, orig),
+        moveSelection((PositionAPI orig, PositionAPI other) -> (int) getDeltaY(orig, other),
                 (PositionAPI orig, PositionAPI other) -> (int) getDeltaX(orig, other));
     }
 
     public void performDownAction(float advance) {
-        moveSelection((PositionAPI orig, PositionAPI other) -> (int) getDeltaY(orig, other),
+        moveSelection((PositionAPI orig, PositionAPI other) -> (int) getDeltaY(other, orig),
                 (PositionAPI orig, PositionAPI other) -> (int) getDeltaX(orig, other));
     }
 

@@ -85,7 +85,10 @@ public class UIPanelReflector extends UIComponentReflector {
         List<?> childItems = getChildItems();
         for(Object childItem : childItems) {
             if (recursive && childItem instanceof UIPanelAPI uiPanelAPI) {
-                output.addAll(new UIPanelReflector(uiPanelAPI).getChildButtons(true));
+                var reflector = new UIPanelReflector(uiPanelAPI);
+                if(reflector.getFader().getBrightness() != 0.f) {
+                    output.addAll(reflector.getChildButtons(true));
+                }
             } else if (childItem instanceof ButtonAPI buttonAPI) {
                 output.add(buttonAPI);
             }

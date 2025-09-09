@@ -3,6 +3,7 @@ package ssms.controller.campaign;
 import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
+import com.fs.starfarer.api.campaign.CoreUIAPI;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.UIComponentAPI;
@@ -60,11 +61,25 @@ public class MainCampaignUI extends InputScreenBase {
         });
         if(gameCurrentlyPaused) {
             List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<Pair<UIComponentAPI,Object>>();
-            for(var pnl : campaignPanelReflector.getChildPanels(0, 3)) {
-                directionalObjects.add(new Pair<UIComponentAPI,Object>(pnl, null));
+            UIPanelReflector panelReflector = null;
+            for(var child : campaignPanelReflector.getChildItems()) {
+                if(child instanceof CoreUIAPI) {
+                    panelReflector = new UIPanelReflector((UIPanelAPI) child);
+                }
             }
-            for(var pnl : campaignPanelReflector.getChildPanels(0, 10)) {
-                directionalObjects.add(new Pair<UIComponentAPI,Object>(pnl, null));
+            if(panelReflector != null) {
+                for (var pnl : panelReflector.getChildPanels(3)) {
+                    directionalObjects.add(new Pair<UIComponentAPI, Object>(pnl, null));
+                }
+
+                for (var pnl : panelReflector.getChildPanels()) {
+                    CoreUIHUD coreUIHUD = CoreUIHUD.tryGet(pnl);
+                    if(coreUIHUD != null) {
+                        for(var coreUiChild : coreUIHUD.getChildPanels()) {
+                            directionalObjects.add(new Pair<UIComponentAPI, Object>(coreUiChild, null));
+                        }
+                    }
+                }
             }
             shipInfoNavigator = new DirectionalUINavigator(directionalObjects);
             addDigitalJoystickHandler("Navigate ship information / hotkeys", Joystick.DPad, shipInfoNavigator);
