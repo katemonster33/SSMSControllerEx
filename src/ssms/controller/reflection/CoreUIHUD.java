@@ -13,11 +13,13 @@ public class CoreUIHUD extends UIPanelReflector {
     }
 
     public static CoreUIHUD tryGet(UIPanelAPI pnl) {
-        if(coreUiHudType != null && coreUiHudType.isAssignableFrom(pnl.getClass())) {
-            return new CoreUIHUD(pnl);
+        if(coreUiHudType != null) {
+            if(coreUiHudType.isAssignableFrom(pnl.getClass())) {
+                return new CoreUIHUD(pnl);
+            }
         } else {
             try {
-                forceSync = new MethodReflector(new ClassReflector(pnl.getClass()).getDeclaredMethod("forceSync"));
+                forceSync = new ClassReflector(pnl.getClass()).getDeclaredMethod("forceSync");
                 if(forceSync != null) {
                     coreUiHudType = pnl.getClass();
                     return new CoreUIHUD(pnl);
