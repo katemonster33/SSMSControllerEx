@@ -120,16 +120,16 @@ public class BattleSteeringScreen extends InputScreenBase {
         } else if(Global.getCombatEngine().getCombatUI().isShowingCommandUI()) {
             InputScreenManager.getInstance().transitionDelayed(WarroomScreen.ID);
         }
+        if ( controller.getButtonEvent(LogicalButtons.Select) == 1 ) {
+            InputScreenManager.getInstance().transitionDelayed(BattleTargetingScreen.ID);
+        }
+        if ( controller.getButtonEvent(LogicalButtons.Start) == 1 ) {
+            InputScreenManager.getInstance().transitionDelayed(BattleMenuScreen.ID);
+        }
         ShipAPI ps = psCache.ps;
         if ( processShipInputs(ps) ) {
             //autopilot flag is inverted!
             if ( engine.isUIAutopilotOn() && !engine.isPaused() && amount > 0f ) {
-                if ( controller.getButtonEvent(LogicalButtons.Select) == 1 ) {
-                    InputScreenManager.getInstance().transitionDelayed(BattleTargetingScreen.ID);
-                }
-                if ( controller.getButtonEvent(LogicalButtons.Start) == 1 ) {
-                    InputScreenManager.getInstance().transitionDelayed(BattleMenuScreen.ID);
-                }
                 if ( controller.getButtonEvent(LogicalButtons.LeftStickButton) == 1 ) {
                     isAlternateSteering = !isAlternateSteering;
                     if ( isAlternateSteering ) {
