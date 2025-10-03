@@ -23,17 +23,16 @@ import ssms.controller.combat.*;
 import ssms.controller.enums.*;
 import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.reflection.*;
-import ssms.controller.titlescreen.AutoMapperUI;
+import ssms.controller.titlescreen.*;
 import ssms.controller.generic.LoadGameUI;
-import ssms.controller.titlescreen.MissionScreenUI;
-import ssms.controller.titlescreen.NewGameUI;
-import ssms.controller.titlescreen.TitleScreenUI;
 
 import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
 
 import java.io.IOException;
+import java.lang.instrument.Instrumentation;
 import java.util.*;
+import java.net.JarURLConnection;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -63,6 +62,39 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
             Global.getLogger(getClass()).error("no settings!!!");
             return;
         }
+        //f.setAccessible(true);
+
+        var classLoader = Thread.currentThread().getContextClassLoader();
+        var packagePath = "com/fs/starfarer/ui";
+        var resources = classLoader.getResources(packagePath);
+        ClassReflector.suppressWarnings = true;
+        while (resources.hasMoreElements()) {
+            var resource = resources.nextElement();
+            if (resource.getProtocol() == "jar") {
+                var jarConnection = (JarURLConnection) resource.openConnection() ;
+                var jarFile = jarConnection.getJarFile();
+                var entries = jarFile.entries();
+
+                while (entries.hasMoreElements()) {
+                    var entry = entries.nextElement();
+                    var entryName = entry.getName();
+
+                    if (entryName.startsWith(packagePath) && entryName.endsWith(".class")) {
+                        var className = entryName.replace('/', '.').substring(0, entryName.length() - 6);
+
+                        try {
+                            var clazz = Class.forName(className);
+                            if(ComboBoxReflector.tryInit(clazz)) {
+                                break;
+                            }
+                        } catch (Exception ex) {
+                            // Skip classes that can't be loaded
+                        }
+                    }
+                }
+            }
+        }
+        ClassReflector.suppressWarnings = false;
         Global.getLogger(InputShim.class).setLevel(Level.ERROR);
         controllerMappings = configureControllerMappings(obj.getJSONObject("controllerMappings"));
         var indicatorsByController = configureSettingsApplicationController(obj.getJSONObject("graphics"));
@@ -127,6 +159,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         man.registerScreen(new MissionScreenUI());
         man.registerScreen(new LoadGameUI());
         man.registerScreen(new NewGameUI());
+        man.registerScreen(new ControllerSettingsUI());
     }
 
      enum POVMapping

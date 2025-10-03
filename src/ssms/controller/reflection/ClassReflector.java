@@ -16,12 +16,15 @@ public class ClassReflector {
     static MethodHandle getDeclaredFields;
     static MethodHandle getDeclaredMethod;
     static MethodHandle getDeclaredMethods;
+    static MethodHandle getDeclaredConstructor;
 
+    public static boolean suppressWarnings = false;
     static
     {
         try {
             Class<?> fieldClass = Class.forName("java.lang.reflect.Field", false, Class.class.getClassLoader());
             Class<?> methodClass = Class.forName("java.lang.reflect.Method", false, Class.class.getClassLoader());
+            Class<?> ctorClass = Class.forName("java.lang.reflect.Constructor", false, Class.class.getClassLoader());
             Lookup lookup = MethodHandles.lookup();
 
             getDeclaredField = lookup.findVirtual(Class.class, "getDeclaredField", MethodType.methodType(fieldClass, String.class));
@@ -31,6 +34,8 @@ public class ClassReflector {
             getDeclaredMethod = lookup.findVirtual(Class.class, "getDeclaredMethod", MethodType.methodType(methodClass, String.class, Class[].class));
 
             getDeclaredMethods = lookup.findVirtual(Class.class, "getDeclaredMethods", MethodType.methodType(methodClass.arrayType()));
+
+            getDeclaredConstructor = lookup.findVirtual(Class.class, "getDeclaredConstructor", MethodType.methodType(ctorClass, Class[].class));
         } catch(Throwable ex) {
             throw new RuntimeException(ex);
         }
@@ -45,7 +50,9 @@ public class ClassReflector {
         try {
             return new FieldReflector(getDeclaredField.invoke(cls, name));
         } catch(Throwable ex) {
-            Global.getLogger(getClass()).error("Couldn't get declared fields of class!", ex);
+            if(!suppressWarnings) {
+                Global.getLogger(getClass()).error("Couldn't get declared fields of class!", ex);
+            }
         }
         return null;
     }
@@ -61,7 +68,9 @@ public class ClassReflector {
                 }
             }
         } catch(Throwable ex) {
-            Global.getLogger(getClass()).error("Couldn't invoke getDeclaredFields!", ex);
+            if(!suppressWarnings) {
+                Global.getLogger(getClass()).error("Couldn't invoke getDeclaredFields!", ex);
+            }
         }
         return output;
     }
@@ -70,7 +79,9 @@ public class ClassReflector {
          try {
              return new MethodReflector(getDeclaredMethod.invoke(cls, name, classes));
          } catch(Throwable ex) {
-             Global.getLogger(getClass()).error("Couldn't invoke getDeclaredMethods!", ex);
+             if(!suppressWarnings) {
+                 Global.getLogger(getClass()).error("Couldn't invoke getDeclaredMethods!", ex);
+             }
          }
          return null;
     }
@@ -89,7 +100,9 @@ public class ClassReflector {
                 }
             }
         }
-        Global.getLogger(getClass()).log(Level.WARN, "Unable to find method! cls=" + cls + ", name=" + name);
+        if(!suppressWarnings) {
+            Global.getLogger(getClass()).log(Level.WARN, "Unable to find method! cls=" + cls + ", name=" + name);
+        }
         return null;
     }
 
@@ -104,8 +117,21 @@ public class ClassReflector {
                 }
             }
         } catch(Throwable ex) {
-            Global.getLogger(getClass()).error("Couldn't invoke getDeclaredMethods!");
+            if(!suppressWarnings) {
+                Global.getLogger(getClass()).error("Couldn't invoke getDeclaredMethods!");
+            }
         }
         return output;
+    }
+
+    public ConstructorReflector getDeclaredConstructor(Class<?> ... classes) {
+        try {
+            return new ConstructorReflector(getDeclaredConstructor.invoke(cls, classes));
+        } catch(Throwable ex) {
+            if(!suppressWarnings) {
+                Global.getLogger(getClass()).error("Couldn't invoke getDeclaredMethods!", ex);
+            }
+        }
+        return null;
     }
 }

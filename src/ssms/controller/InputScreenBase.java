@@ -19,6 +19,7 @@ package ssms.controller;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
+import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
@@ -91,6 +92,9 @@ public class InputScreenBase {
     }
 
     public void preInput(float advance) {
+    }
+
+    public void processInputEvents(float advance, List<InputEventAPI> events) {
     }
 
     public final void processControllerEvents(float advance, List<Pair<LogicalButtons, Boolean>> buttonEvents, List<Pair<AxisMapping, Float>> axisEvents) {

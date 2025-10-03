@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.apache.log4j.Level;
 import org.lwjgl.util.vector.Vector2f;
@@ -263,6 +264,10 @@ public class InputScreenManager {
     
     public void preInput(float advance) {
         currentScreen.preInput(advance);
+    }
+
+    public void processInputEvents(float advance, List<InputEventAPI> events) {
+        currentScreen.processInputEvents(advance, events);
     }
 
     public void processControllerEvents(float advance, List<Pair<LogicalButtons, Boolean>> buttonEvents, List<Pair<AxisMapping, Float>> axisEvents) {
