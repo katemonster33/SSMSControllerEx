@@ -17,12 +17,20 @@
  */
 package ssms.controller.titlescreen;
 
+import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
-import com.fs.starfarer.api.ui.ButtonAPI;
-import com.fs.starfarer.api.ui.UIComponentAPI;
-import com.fs.starfarer.api.ui.UIPanelAPI;
+import com.fs.starfarer.api.ui.*;
+import com.fs.starfarer.api.util.Misc;
 import com.fs.starfarer.api.util.Pair;
+import lunalib.lunaUI.panel.LunaBaseCustomPanelPlugin;
+import org.lazywizard.lazylib.MathUtils;
+import org.lazywizard.lazylib.ui.FontException;
+import org.lazywizard.lazylib.ui.LazyFont;
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.GL11;
+import java.awt.Color;
 import ssms.controller.*;
 
 import java.util.ArrayList;
@@ -45,20 +53,143 @@ import ssms.controller.reflection.UIPanelReflector;
  * @author Malte Schulze
  */
 public class TitleScreenUI extends InputScreenBase {
+
+    public class TitleScreenSettingsButtonPanel extends LunaBaseCustomPanelPlugin {
+
+        @Override
+        public void init() {
+
+        }
+    }
     public static final String ID = "TitleScreen";
     DirectionalUINavigator directionalUINavigator;
     List<ButtonAPI> mainMenuButtons = null;
     Object dialogType = null;
     TitleScreenStateReflector titleScreenStateReflector;
+    CustomPanelAPI customBtnPanel = null;
+    float buttonWidth = 130f;
+    float buttonHeight = 50f;
+    LazyFont.DrawableString settingsButtonText;
     @Override
     public void activate(Object ...args) {
         titleScreenStateReflector = new TitleScreenStateReflector();
         UIPanelAPI panel = titleScreenStateReflector.getScreenPanel();
         UIPanelReflector.initialize(panel.getClass());
-
+        customBtnPanel = Global.getSettings().createCustom(buttonWidth, buttonHeight, )
+        panel.addComponent()
         mainMenuButtons = null;
         directionalUINavigator = new DirectionalUINavigator(new ArrayList<>());
         indicators = null;
+        try {
+            LazyFont font = LazyFont.loadFont(Fonts.DEFAULT_SMALL);
+
+            settingsButtonText = font.createText("Controller Settings", Misc.getBasePlayerColor(), 15f);
+        } catch(FontException fe) {
+            Global.getLogger(getClass()).error("Failed to load default font", fe);
+        }
+    }
+
+    @Override
+    public void deactivate() {
+
+    }
+
+    void drawButton(float x, float y, float width, float height, Color back, Color border)
+    {
+        //background
+        GL11.glPushMatrix();
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+
+        GL11.glDisable(GL11.GL_BLEND);
+
+        GL11.glColor4f(back.getRed() / 255f,
+                back.getGreen() / 255f,
+                back.getBlue() / 255f,
+                back.getAlpha() / 255f);
+
+        GL11.glRectf(x, y , x + width, y + height);
+
+        GL11.glEnd();
+        GL11.glPopMatrix();
+
+        //border
+        GL11.glPushMatrix();
+
+        GL11.glTranslatef(0f, 0f, 0f);
+        GL11.glRotatef(0f, 0f, 0f, 1f);
+
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+
+        GL11.glDisable(GL11.GL_BLEND);
+
+        GL11.glColor4f(border.getRed() / 255f,
+                border.getGreen() / 255f,
+                border.getBlue() / 255f,
+                border.getAlpha() / 255f );
+
+        GL11.glEnable(GL11.GL_LINE_SMOOTH);
+        GL11.glBegin(GL11.GL_LINE_STRIP);
+
+        GL11.glVertex2f(x, y);
+        GL11.glVertex2f(x, y + height);
+        GL11.glVertex2f(x + width, y + height);
+        GL11.glVertex2f(x + width, y);
+        GL11.glVertex2f(x, y);
+
+        GL11.glEnd();
+        GL11.glPopMatrix();
+    }
+
+    float cooldown = 0f;
+    @Override
+    public void renderUI(ViewportAPI viewport) {
+        super.renderUI(viewport);
+
+        var x = 5f;
+        var y = Global.getSettings().getScreenHeight() * 0.975f - buttonHeight * 3 - 10f;
+        var back = Misc.getDarkPlayerColor().darker();
+        var border = Misc.getDarkPlayerColor();
+
+        var scale = Global.getSettings().getScreenScaleMult();
+
+        var mouseX = Mouse.getX() / scale;
+        var mouseY = Mouse.getY() / scale;
+
+        cooldown--;
+        cooldown = MathUtils.clamp(cooldown, -1f, 1000f);
+
+        if (mouseX >= x && mouseX <= (x + buttonWidth) && mouseY >= y && mouseY <= (y + buttonHeight)) {
+            border = Misc.getDarkPlayerColor().brighter();
+
+            if (cooldown < 1 && Mouse.isButtonDown(0)) {
+                cooldown = 20f;
+                Global.getSoundPlayer().playUISound("ui_button_pressed", 1f, 1f);
+
+
+//                try {
+//                    settingsPlugin = LunaSettingsUIMainPanel(false)
+//                    settingsPanel = Global.getSettings().createCustom(Global.getSettings().screenWidth * 0.8f, Global.getSettings().screenHeight * 0.8f, settingsPlugin)
+//                    settingsPlugin!!.initFromScript(settingsPanel!!)
+//                    settingsPanel!!.position.inTL(Global.getSettings().screenWidth * 0.1f, Global.getSettings().screenHeight * 0.1f)
+//
+//                    var titlescreen: TitleScreenState = AppDriver.getInstance().currentState as TitleScreenState
+//                    getScreenPanel().addComponent(settingsPanel)
+//
+//                    (settingsPlugin as LunaSettingsUIMainPanel).handler = this
+//
+//
+//                    LunaSettingsUIMainPanel.panelOpen = true
+//
+//
+//                } catch (e: Throwable) {
+//                throw Exception("Error occured while creating panel" + e.printStackTrace())
+//            }
+            }
+        }
+        drawButton(x, y, buttonWidth, buttonHeight, back, border);
+        if (settingsButtonText != null) {
+            settingsButtonText.draw((x + buttonWidth / 2) - settingsButtonText.getWidth() / 2f, (y + buttonHeight / 2) + settingsButtonText.getHeight() / 2f);
+        }
     }
 
     @Override
