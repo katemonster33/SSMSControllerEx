@@ -54,19 +54,11 @@ import ssms.controller.reflection.UIPanelReflector;
  */
 public class TitleScreenUI extends InputScreenBase {
 
-    public class TitleScreenSettingsButtonPanel extends LunaBaseCustomPanelPlugin {
-
-        @Override
-        public void init() {
-
-        }
-    }
     public static final String ID = "TitleScreen";
     DirectionalUINavigator directionalUINavigator;
     List<ButtonAPI> mainMenuButtons = null;
     Object dialogType = null;
     TitleScreenStateReflector titleScreenStateReflector;
-    CustomPanelAPI customBtnPanel = null;
     float buttonWidth = 130f;
     float buttonHeight = 50f;
     LazyFont.DrawableString settingsButtonText;
@@ -75,8 +67,6 @@ public class TitleScreenUI extends InputScreenBase {
         titleScreenStateReflector = new TitleScreenStateReflector();
         UIPanelAPI panel = titleScreenStateReflector.getScreenPanel();
         UIPanelReflector.initialize(panel.getClass());
-        customBtnPanel = Global.getSettings().createCustom(buttonWidth, buttonHeight, )
-        panel.addComponent()
         mainMenuButtons = null;
         directionalUINavigator = new DirectionalUINavigator(new ArrayList<>());
         indicators = null;
@@ -164,7 +154,7 @@ public class TitleScreenUI extends InputScreenBase {
             if (cooldown < 1 && Mouse.isButtonDown(0)) {
                 cooldown = 20f;
                 Global.getSoundPlayer().playUISound("ui_button_pressed", 1f, 1f);
-
+                InputScreenManager.getInstance().transitionToScreen(ControllerSettingsUI.ID);
 
 //                try {
 //                    settingsPlugin = LunaSettingsUIMainPanel(false)
