@@ -17,8 +17,7 @@ public enum ButtonMapping {
     DPadLeft,
     DPadRight,
     DPadUp,
-    DPadDown,
-    Invalid;
+    DPadDown;
 
     public static ButtonMapping fromButton(LogicalButtons logicalButtons) {
         return switch(logicalButtons) {

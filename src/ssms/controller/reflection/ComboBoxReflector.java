@@ -12,7 +12,6 @@ public class ComboBoxReflector extends UIPanelReflector {
     static MethodReflector getSelected;
     static MethodReflector setSelected;
 
-    UIPanelAPI cmbObj;
     public ComboBoxReflector(float width, String text, List<String> items, String selectedItem)  {
         super((UIPanelAPI) ctor.newInstance(width, text, items));
     }
