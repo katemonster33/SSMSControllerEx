@@ -65,6 +65,11 @@ public class ControllerSettingsUI extends InputScreenBase {
                 btn.getButtonText().getPosition().inTL(btn.getButtonText().getPosition().getWidth() / 2 - btn.getButtonText().computeTextWidth(btn.getButtonText().getText()) / 2, btn.getButtonText().getPosition().getHeight() - btn.getButtonText().computeTextHeight(btn.getButtonText().getText()) / 2);
             }
             btn.onClick((LunaUIBaseElement elem, InputEventAPI evt) -> {
+                try {
+                    SSMSControllerModPluginEx.reconnectController();
+                } catch(Exception ex) {
+                    Global.getLogger(getClass()).warn("Couldn't refresh controllers!", ex);
+                }
                 refreshList();
                 return Unit.INSTANCE;
             });
@@ -77,20 +82,44 @@ public class ControllerSettingsUI extends InputScreenBase {
             if(customIndicatorsPanel != null) {
                 getPanel().removeComponent(customIndicatorsPanel);
             }
-            try {
-                SSMSControllerModPluginEx.reconnectController();
-            } catch(Exception ex) {
-                Global.getLogger(getClass()).warn("Couldn't refresh controllers!", ex);
-            }
             ArrayList<String> test = new ArrayList<>();
 
+            int controllerActiveIndex = -1;
             for (int i = 0; i < Controllers.getControllerCount(); i++ ) {
                 Controller con = Controllers.getController(i);
                 test.add("Controller " + i + ": " + con.getName());
+                if(SSMSControllerModPluginEx.controller.controller == con) {
+                    controllerActiveIndex = i;
+                }
             }
-            cmbReflector = new ComboBoxReflector(400.f, "Controller list... (" + Controllers.getControllerCount() + ")", test, "2");
+            String cmbText = "No controllers detected";
+            if(Controllers.getControllerCount() > 0) {
+                cmbText = controllerActiveIndex != -1 ? test.get(controllerActiveIndex) : "No controller mapped...";
+            }
+            cmbReflector = new ComboBoxReflector(400.f, cmbText, test, "2");
             cmbReflector.getPanel().getPosition().inTR(4.f, 4.f);
             getPanel().addComponent(cmbReflector.getPanel());
+
+            var btnElem = subpanel.createUIElement(100, 35.f, false);
+
+            btnElem.getPosition().inTL(0.f, 0.f);
+            getPanel().addUIElement(btnElem);
+
+            LunaUIButton btn = new LunaUIButton(false, false, 85.f, 30.f, "Rescan", "0", subpanel, btnElem);
+            if(btn.getButtonText() != null) {
+                btn.getButtonText().setText("Select controller");
+                btn.getButtonText().getPosition().inTL(btn.getButtonText().getPosition().getWidth() / 2 - btn.getButtonText().computeTextWidth(btn.getButtonText().getText()) / 2, btn.getButtonText().getPosition().getHeight() - btn.getButtonText().computeTextHeight(btn.getButtonText().getText()) / 2);
+            }
+            btn.onClick((LunaUIBaseElement elem, InputEventAPI evt) -> {
+                try {
+                    SSMSControllerModPluginEx.reconnectController();
+                } catch(Exception ex) {
+                    Global.getLogger(getClass()).warn("Couldn't refresh controllers!", ex);
+                }
+                refreshList();
+                return Unit.INSTANCE;
+            });
+
 
             customIndicatorsPanel = getPanel().createCustomPanel(getPanel().getPosition().getWidth(), getPanel().getPosition().getHeight() - cmbReflector.getPanel().getPosition().getHeight() - 45, this);
             customIndicatorsPanel.getPosition().inTL(0.f, cmbReflector.getPanel().getPosition().getHeight() + 8.f);
@@ -113,7 +142,6 @@ public class ControllerSettingsUI extends InputScreenBase {
             var elem1 = cardPanel.getLunaElement().createUIElement(getPanel().getPosition().getWidth() , 25 * (indicatorsLst.length + axisMapLst.length), false);
             var elem2 = cardPanel.getLunaElement().createUIElement(getPanel().getPosition().getWidth() , 25 * (indicatorsLst.length + axisMapLst.length), false);
             for(var btnMapPair : btnList) {
-                elem1.addI
                 elem1.addImage(SSMSControllerModPluginEx.defaultIndicators.get(Indicators.fromButton(btnMapPair.getSecond())), 25, 0.f);
                 String mappingTxt = getMappingTxt(btnMapPair);
                 elem2.addPara(mappingTxt, 10.f);
