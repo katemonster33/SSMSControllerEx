@@ -14,10 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.lwjgl.input.Controller;
 import org.lwjgl.input.Controllers;
 import org.lwjgl.input.Keyboard;
-import ssms.controller.ControllerMapper;
-import ssms.controller.InputScreenBase;
-import ssms.controller.InputScreenManager;
-import ssms.controller.SSMSControllerModPluginEx;
+import ssms.controller.*;
 import ssms.controller.enums.AxisMapping;
 import ssms.controller.enums.ButtonMapping;
 import ssms.controller.enums.Indicators;
@@ -31,7 +28,10 @@ import java.util.ArrayList;
 public class ControllerSettingsUI extends InputScreenBase {
     public static String ID = "ControllerSettings";
     ControllerSettingsPanel controllerSettingsPanel = null;
-    public static class ControllerSettingsPanel extends LunaBaseCustomPanelPlugin {
+    ControllerMapper controllerMapper;
+    LogicalButtons buttonToMap = null;
+    boolean parsedBtn = false;
+    public class ControllerSettingsPanel extends LunaBaseCustomPanelPlugin {
         LogicalButtons[] buttons = new LogicalButtons[]{
                 LogicalButtons.A, LogicalButtons.B, LogicalButtons.X, LogicalButtons.Y, LogicalButtons.BumperLeft, LogicalButtons.BumperRight,
                 LogicalButtons.Start, LogicalButtons.Select, LogicalButtons.LeftStickButton, LogicalButtons.RightStickButton,
@@ -39,18 +39,15 @@ public class ControllerSettingsUI extends InputScreenBase {
                 LogicalButtons.LeftTrigger, LogicalButtons.RightTrigger,
                 LogicalButtons.DpadLeft, LogicalButtons.DpadRight, LogicalButtons.DpadUp, LogicalButtons.DpadDown
         };
-        ControllerMapper controllerMapper;
         ArrayList<String> controllerNames = new ArrayList<>();
-        ButtonMapping[] indicatorsLst;
-        List<Pair<ButtonMapping, LogicalButtons>> btnList;
-        AxisMapping[] axisMapLst;
+
         UIPanelAPI parentPanel;
         CustomPanelAPI subpanel;
         CustomPanelAPI customIndicatorsPanel;
         ComboBoxReflector cmbReflector;
         public ControllerSettingsPanel(UIPanelAPI parentPanel) {
             this.parentPanel = parentPanel;
-            subpanel =  Global.getSettings().createCustom(700, 500, this);
+            subpanel = Global.getSettings().createCustom(700, 500, this);
 
             subpanel.getPosition().inMid();
 
@@ -123,6 +120,9 @@ public class ControllerSettingsUI extends InputScreenBase {
             String cmbText = "No controllers detected";
             if(Controllers.getControllerCount() > 0) {
                 cmbText = controllerActiveIndex != -1 ? controllerNames.get(controllerActiveIndex) : "No controller mapped...";
+                if(controllerActiveIndex != -1) {
+                    controllerMapper = new ControllerMapper(Controllers.getController(controllerActiveIndex));
+                }
             }
             cmbReflector = new ComboBoxReflector(400.f, cmbText, controllerNames, "2");
             cmbReflector.getPanel().getPosition().inTR(4.f, 4.f);
@@ -132,70 +132,69 @@ public class ControllerSettingsUI extends InputScreenBase {
             customIndicatorsPanel = getPanel().createCustomPanel(getPanel().getPosition().getWidth(), getPanel().getPosition().getHeight() - cmbReflector.getPanel().getPosition().getHeight() - 45, this);
             customIndicatorsPanel.getPosition().inTL(0.f, cmbReflector.getPanel().getPosition().getHeight() + 8.f);
             getPanel().addComponent(customIndicatorsPanel);
-            indicatorsLst = ButtonMapping.values();
-            btnList = new ArrayList<>();
-            for(var btnMap : indicatorsLst) {
-                var logicalBtn = LogicalButtons.fromMapping(btnMap);
-                if(logicalBtn != null) {
-                    btnList.add(new Pair<>(btnMap, logicalBtn));
-                }
-            }
-            axisMapLst = AxisMapping.values();
 
             var indicatorImages = customIndicatorsPanel.createUIElement(customIndicatorsPanel.getPosition().getWidth(), customIndicatorsPanel.getPosition().getHeight(), true);
             indicatorImages.getPosition().inTL(0.f, 0.f);
-            var cardPanel = new LunaUIPlaceholder(true, getPanel().getPosition().getWidth() , 25 * (indicatorsLst.length + axisMapLst.length), "empty", "none", getPanel(), indicatorImages);
+            var cardPanel = new LunaUIPlaceholder(true, getPanel().getPosition().getWidth() , 25 * buttons.length, "empty", "none", getPanel(), indicatorImages);
             assert cardPanel.getLunaElement() != null;
             cardPanel.getPosition().inTL(0.f, 0.f);
-            var elem1 = cardPanel.getLunaElement().createUIElement(getPanel().getPosition().getWidth() , 25 * (indicatorsLst.length + axisMapLst.length), false);
-            var elem2 = cardPanel.getLunaElement().createUIElement(getPanel().getPosition().getWidth() , 25 * (indicatorsLst.length + axisMapLst.length), false);
-            for(var btnMapPair : btnList) {
-                elem1.addImage(SSMSControllerModPluginEx.defaultIndicators.get(Indicators.fromButton(btnMapPair.getSecond())), 25, 0.f);
-                String mappingTxt = getMappingTxt(btnMapPair);
+            var elem1 = cardPanel.getLunaElement().createUIElement(50, 25 * buttons.length, false);
+            var elem2 = cardPanel.getLunaElement().createUIElement(300, 25 * buttons.length, false);
+            var elemBtns = cardPanel.getLunaElement().createUIElement(100, 25 * buttons.length, false);
+            for(var logicalBtn : buttons) {
+                elem1.addImage(SSMSControllerModPluginEx.defaultIndicators.get(Indicators.fromButton(logicalBtn)), 25, 0.f);
+                String mappingTxt = getMappingTxt(logicalBtn);
                 elem2.addPara(mappingTxt, 10.f);
+
+                LunaUIButton btn = new LunaUIButton(false, false, 95.f, 25.f, logicalBtn, "", subpanel, elemBtns);
+
+                if(btn.getButtonText() != null) {
+                    btn.getButtonText().setText("Remap");
+                    btn.getButtonText().getPosition().inTL(btn.getButtonText().getPosition().getWidth() / 2 - btn.getButtonText().computeTextWidth(btn.getButtonText().getText()) / 2, btn.getButtonText().getPosition().getHeight() - btn.getButtonText().computeTextHeight(btn.getButtonText().getText()) / 2);
+                }
+                btn.onClick((LunaUIBaseElement elem, InputEventAPI evt) -> {
+                    buttonToMap = (LogicalButtons) elem.getKey();
+                    refreshList();
+                    return Unit.INSTANCE;
+                });
             }
-            for(var axisPair : axisMapLst) {
-                elem1.addImage(SSMSControllerModPluginEx.defaultIndicators.get(Indicators.fromButton(axisPair.getLowerLimitButton())), 25, 0.f);
-                elem2.addPara(getMappingTxt(axisPair), 10.f);
-            }
+
             elem1.getPosition().inTL(0.f, 0.f);
             elem2.getPosition().inTL(50.f, -5.f);
+            elemBtns.getPosition().inTR(0.0f, 0.0f);
             cardPanel.getLunaElement().addUIElement(elem1);
             cardPanel.getLunaElement().addUIElement(elem2);
+            cardPanel.getLunaElement().addUIElement(elemBtns);
             customIndicatorsPanel.addUIElement(indicatorImages);
         }
 
         @NotNull
-        private static String getMappingTxt(Pair<ButtonMapping, LogicalButtons> btnMapPair) {
+        private String getMappingTxt(LogicalButtons button) {
+            if(buttonToMap == button) {
+                return "Press any button...";
+            }
             String mappingTxt = SSMSControllerModPluginEx.controller.controller != null ? "Controller " + SSMSControllerModPluginEx.controller.controller.getIndex() : "No Controller";
             var mapping = SSMSControllerModPluginEx.controller.mapping;
             boolean mapFound = false;
             if(mapping != null) {
-                for (var mappedBtn : mapping.getMappedButtons()) {
-                    if (mappedBtn.getButtonMapping() == btnMapPair.component1()) {
-                        mapFound = true;
-                        mappingTxt += ", button " + mappedBtn.getButtonIndex();
-                        break;
+                var btnMap = ButtonMapping.fromButton(button);
+                var axisMap = AxisMapping.fromButton(button);
+                if(btnMap != null) {
+                    for (var mappedBtn : mapping.getMappedButtons()) {
+                        if (mappedBtn.getButtonMapping() == ButtonMapping.fromButton(button)) {
+                            mapFound = true;
+                            mappingTxt += ", button " + mappedBtn.getButtonIndex();
+                            break;
+                        }
                     }
                 }
-            }
-            if(!mapFound && SSMSControllerModPluginEx.controller.controller != null) {
-                mappingTxt += ", not mapped!!";
-            }
-            return mappingTxt;
-        }
-
-        @NotNull
-        private static String getMappingTxt(AxisMapping axisMapping) {
-            String mappingTxt = SSMSControllerModPluginEx.controller.controller != null ? "Controller " + SSMSControllerModPluginEx.controller.controller.getIndex() : "No Controller";
-            var mapping = SSMSControllerModPluginEx.controller.mapping;
-            boolean mapFound = false;
-            if(mapping != null) {
-                for (var mappedBtn : mapping.getMappedAxes()) {
-                    if (mappedBtn.getAxisMapping() == axisMapping) {
-                        mapFound = true;
-                        mappingTxt += ", axis " + mappedBtn.getAxisIndex();
-                        break;
+                if(axisMap != null && !mapFound) {
+                    for (var mappedBtn : mapping.getMappedAxes()) {
+                        if (mappedBtn.getAxisMapping() == axisMap) {
+                            mapFound = true;
+                            mappingTxt += ", axis " + mappedBtn.getAxisIndex();
+                            break;
+                        }
                     }
                 }
             }
@@ -226,6 +225,23 @@ public class ControllerSettingsUI extends InputScreenBase {
             if(evt.isKeyDownEvent() && evt.getEventValue() == Keyboard.KEY_ESCAPE) {
                 evt.consume();
                 InputScreenManager.getInstance().transitionToScreen(TitleScreenUI.ID);
+            }
+        }
+    }
+
+    @Override
+    public void preInput(float advance) {
+
+        if(controllerMapper != null && buttonToMap != null) {
+            if (!controllerMapper.isControllerInRestingState()) {
+                parsedBtn = true;
+            } else if (parsedBtn) {
+                ControllerMapping mapping = SSMSControllerModPluginEx.controller.mapping == null ? new ControllerMapping() : SSMSControllerModPluginEx.controller.mapping;
+                controllerMapper.setMappingIndices(buttonToMap, mapping);
+                SSMSControllerModPluginEx.controller = new HandlerController(SSMSControllerModPluginEx.controller.controller, mapping);
+                parsedBtn = false;
+                buttonToMap = null;
+                controllerSettingsPanel.refreshList();
             }
         }
     }
