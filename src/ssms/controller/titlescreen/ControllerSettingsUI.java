@@ -112,7 +112,7 @@ public class ControllerSettingsUI extends InputScreenBase {
             int controllerActiveIndex = -1;
             for (int i = 0; i < Controllers.getControllerCount(); i++ ) {
                 Controller con = Controllers.getController(i);
-                controllerNames.add("Controller " + i + ": " + con.getName());
+                controllerNames.add(i + ": " + con.getName() + " [" + con.getButtonCount() + " buttons, " + con.getAxisCount() + " axes]");
                 if(SSMSControllerModPluginEx.controller.controller == con) {
                     controllerActiveIndex = i;
                 }
@@ -124,7 +124,7 @@ public class ControllerSettingsUI extends InputScreenBase {
                     controllerMapper = new ControllerMapper(Controllers.getController(controllerActiveIndex));
                 }
             }
-            cmbReflector = new ComboBoxReflector(400.f, cmbText, controllerNames, "2");
+            cmbReflector = new ComboBoxReflector(500.f, cmbText, controllerNames, "2");
             cmbReflector.getPanel().getPosition().inTR(4.f, 4.f);
             getPanel().addComponent(cmbReflector.getPanel());
 
