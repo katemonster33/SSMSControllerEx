@@ -301,8 +301,12 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         }
         return output;
     }
+
+    static public void reconnectController() throws Exception{
+         reconnectController(null);
+    }
     
-    static public void reconnectController() throws Exception {
+    static public void reconnectController(Controller controllerToConnect) throws Exception {
         //only works during application start lwjgl does not refresh the list if connection status changes.
         Logger logger = Global.getLogger(SSMSControllerModPluginEx.class);
         logger.setLevel(Level.INFO);
@@ -356,6 +360,9 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         if ( controllerMappings != null || controllerMappingsByGuid != null ) {
             for ( int i = 0; i < Controllers.getControllerCount(); i++ ) {
                 Controller con = Controllers.getController(i);
+                if(controllerToConnect != null && con.getIndex() != controllerToConnect.getIndex()) {
+                    continue;
+                }
                 if(con.getButtonCount() == 0) {
                     continue;
                 }
@@ -385,11 +392,16 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                     controller = new HandlerController(con, conMap);
                     Global.getLogger(SSMSControllerModPluginEx.class).log(Level.INFO, "Identified controller [" + con.getName() + "], mappings associated successfully!");
                     break;
+                } else if(controllerToConnect != null) {
+                    con.poll();
+                    controller = new HandlerController(con, null);
+                    Global.getLogger(SSMSControllerModPluginEx.class).log(Level.INFO, "Identified controller [" + con.getName() + "], no mappings loaded!!");
+                    break;
                 }
             }
         }
         if(controller == null) {
-            for ( int i = 0; i < Controllers.getControllerCount(); i++ ) {
+            for (int i = 0; i < Controllers.getControllerCount(); i++) {
                 Controller con = Controllers.getController(i);
                 if (con.getButtonCount() > 6 && con.getAxisCount() >= 2) {
                     controller = new HandlerController(con, null);

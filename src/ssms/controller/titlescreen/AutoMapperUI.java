@@ -22,18 +22,12 @@ public class AutoMapperUI extends InputScreenBase {
     public static final String ID = "AutoMapper";
     LogicalButtons[] buttons = LogicalButtons.values();
     int calibrationIndex = -1;
-    int btnCount = -1;
-    boolean[] buttonsChanged;
-    boolean[] axesChanged;
-    boolean[] btnRestingState;
-    boolean povXChanged, povYChanged;
 
-    float[] axisRestingState;
-    float povXRestingState, povYRestingState;
     ControllerMapping tempMapping = null;
     boolean parsedBtn = false;
     AutoMapperPanel autoMapperPanel;
     TitleScreenStateReflector titleScreenStateReflector;
+    ControllerMapper controllerMapper;
 
     static class AutoMapperPanel extends LunaBaseCustomPanelPlugin {
         UIPanelAPI parentPanel;
@@ -90,22 +84,9 @@ public class AutoMapperUI extends InputScreenBase {
         titleScreenStateReflector = new TitleScreenStateReflector();
         tempMapping = new ControllerMapping();
         calibrationIndex = 0;
-        btnCount = SSMSControllerModPluginEx.controller.controller.getAxisCount() * 2 + SSMSControllerModPluginEx.controller.controller.getButtonCount();
         parsedBtn = false;
         SSMSControllerModPluginEx.controller.poll();
-        btnRestingState = new boolean[SSMSControllerModPluginEx.controller.controller.getButtonCount()];
-        buttonsChanged = new boolean[SSMSControllerModPluginEx.controller.controller.getButtonCount()];
-        for(int i = 0; i < btnRestingState.length; i++) {
-            btnRestingState[i] = SSMSControllerModPluginEx.controller.controller.isButtonPressed(i);
-        }
-        axisRestingState = new float[SSMSControllerModPluginEx.controller.controller.getAxisCount()];
-        axesChanged = new boolean[SSMSControllerModPluginEx.controller.controller.getAxisCount()];
-        for(int i = 0; i < axisRestingState.length; i++) {
-            axisRestingState[i] = SSMSControllerModPluginEx.controller.controller.getAxisValue(i);
-        }
-        povXChanged = povYChanged = false;
-        povXRestingState = SSMSControllerModPluginEx.controller.controller.getPovX();
-        povYRestingState = SSMSControllerModPluginEx.controller.controller.getPovY();
+        controllerMapper = new ControllerMapper(SSMSControllerModPluginEx.controller.controller);
         if(Global.getCurrentState() == GameState.TITLE) {
             var panel = titleScreenStateReflector.getScreenPanel();
             autoMapperPanel = new AutoMapperPanel(panel);
@@ -125,68 +106,9 @@ public class AutoMapperUI extends InputScreenBase {
         return List.of();
     }
 
-    boolean isControllerInRestingState() {
-        boolean retval = false;
-        for(int i = 0; i < SSMSControllerModPluginEx.controller.controller.getButtonCount(); i++) {
-            if(SSMSControllerModPluginEx.controller.controller.isButtonPressed(i) != btnRestingState[i]) {
-                retval = buttonsChanged[i] = true;
-            }
-        }
-        for(int i = 0; i < SSMSControllerModPluginEx.controller.controller.getAxisCount(); i++) {
-            if(Math.abs(SSMSControllerModPluginEx.controller.controller.getAxisValue(i) - axisRestingState[i]) > 0.2) {
-                retval = axesChanged[i] = true;
-            }
-        }
-        if(SSMSControllerModPluginEx.controller.controller.getPovX() != povXRestingState) {
-            retval = povXChanged = true;
-        }
-        if(SSMSControllerModPluginEx.controller.controller.getPovY() != povYRestingState) {
-            retval = povYChanged = true;
-        }
-        return !retval;
-    }
-
-    void resetControllerState() {
-        for(int i = 0; i < SSMSControllerModPluginEx.controller.controller.getButtonCount(); i++) {
-            buttonsChanged[i] = false;
-        }
-        for(int i = 0; i < SSMSControllerModPluginEx.controller.controller.getAxisCount(); i++) {
-            axesChanged[i] = false;
-        }
-        povXChanged = false;
-        povYChanged = false;
-    }
-
-    void setMappingIndices() {
-        LogicalButtons btn = buttons[calibrationIndex];
-        var btnMapping = ButtonMapping.fromButton(btn);
-        var axisMapping = AxisMapping.fromButton(btn);
-        if(btnMapping != null) {
-            for(int i = 0; i < SSMSControllerModPluginEx.controller.controller.getButtonCount(); i++) {
-                if(buttonsChanged[i]) {
-                    tempMapping.mapButton(new ControllerMapping.ButtonData(btnMapping, i));
-                    break;
-                }
-            }
-        }
-        if(axisMapping != null) {
-            for (int i = 0; i < SSMSControllerModPluginEx.controller.controller.getAxisCount(); i++) {
-                if (axesChanged[i]) {
-                    tempMapping.mapAxis(new ControllerMapping.AxisData(axisMapping, null, i));
-                    break;
-                }
-            }
-        }
-        if(povXChanged) {
-            tempMapping.mapPov(AxisMapping.DPadX);
-        }
-        if(povYChanged) {
-            tempMapping.mapPov(AxisMapping.DPadY);
-        }
-    }
 
     void moveNextButton() {
-        resetControllerState();
+        controllerMapper.resetControllerState();
         timeSinceButtonPressed = 0.f;
         calibrationIndex++;
         if(calibrationIndex < buttons.length) {
@@ -225,14 +147,15 @@ public class AutoMapperUI extends InputScreenBase {
             Global.getLogger(getClass()).warn("we reached preInput with a calibration index greater than the max. how?!");
             InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TitleScreenUI.ID, new Object[]{});
         }
-        if(!isControllerInRestingState()) {
+        if(!controllerMapper.isControllerInRestingState()) {
             parsedBtn = true;
             timeSinceButtonPressed += advance;
             if(timeSinceButtonPressed >= 2) {
                 moveNextButton();
             }
         } else if(parsedBtn) {
-            setMappingIndices();
+            LogicalButtons btn = buttons[calibrationIndex];
+            controllerMapper.setMappingIndices(btn, tempMapping);
             moveNextButton();
         }
     }
