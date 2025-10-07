@@ -2,13 +2,16 @@ package ssms.controller.titlescreen;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
+import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.CustomPanelAPI;
+import com.fs.starfarer.api.ui.TooltipMakerAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import kotlin.Pair;
 import kotlin.Unit;
 import lunalib.backend.ui.components.base.LunaUIBaseElement;
 import lunalib.backend.ui.components.base.LunaUIButton;
 import lunalib.backend.ui.components.base.LunaUIPlaceholder;
+import lunalib.backend.ui.components.util.TooltipHelper;
 import lunalib.lunaUI.panel.LunaBaseCustomPanelPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.input.Controller;
@@ -58,8 +61,14 @@ public class ControllerSettingsUI extends InputScreenBase {
         @Override
         public void init() {
 
+            var element = panel.createUIElement(getPanel().getPosition().getWidth(), 20f, false);
+            element.addSectionHeading("Controller Settings", Alignment.MID, 0f);
+            element.addTooltipToPrevious(new TooltipHelper("View/Edit Controller Settings For SSMSControllerEx", 500f), TooltipMakerAPI.TooltipLocation.BELOW);
+
+            element.getPosition().inTL(0f, 0f);
+            panel.addUIElement(element);
             var btnElem2 = subpanel.createUIElement(200, 35.f, false);
-            btnElem2.getPosition().inTL(0.f, 0.f);
+            btnElem2.getPosition().inTL(0.f, 20.f);
             getPanel().addUIElement(btnElem2);
             LunaUIButton btn2 = new LunaUIButton(false, false, 185.f, 23.f, "Rescan", "0", subpanel, btnElem2);
             if(btn2.getButtonText() != null) {
@@ -125,12 +134,12 @@ public class ControllerSettingsUI extends InputScreenBase {
                 }
             }
             cmbReflector = new ComboBoxReflector(500.f, cmbText, controllerNames, "2");
-            cmbReflector.getPanel().getPosition().inTR(4.f, 4.f);
+            cmbReflector.getPanel().getPosition().inTR(4.f, 24.f);
             getPanel().addComponent(cmbReflector.getPanel());
 
 
-            customIndicatorsPanel = getPanel().createCustomPanel(getPanel().getPosition().getWidth(), getPanel().getPosition().getHeight() - cmbReflector.getPanel().getPosition().getHeight() - 45, this);
-            customIndicatorsPanel.getPosition().inTL(0.f, cmbReflector.getPanel().getPosition().getHeight() + 8.f);
+            customIndicatorsPanel = getPanel().createCustomPanel(getPanel().getPosition().getWidth(), getPanel().getPosition().getHeight() - cmbReflector.getPanel().getPosition().getHeight() - 45 - 20, this);
+            customIndicatorsPanel.getPosition().inTL(0.f, cmbReflector.getPanel().getPosition().getHeight() + 28.f);
             getPanel().addComponent(customIndicatorsPanel);
 
             var indicatorImages = customIndicatorsPanel.createUIElement(customIndicatorsPanel.getPosition().getWidth(), customIndicatorsPanel.getPosition().getHeight(), true);
