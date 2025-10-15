@@ -18,6 +18,7 @@
 package ssms.controller;
 
 import com.fs.starfarer.api.util.Pair;
+import org.jetbrains.annotations.NotNull;
 import ssms.controller.campaign.*;
 import ssms.controller.combat.*;
 import ssms.controller.enums.*;
@@ -30,7 +31,6 @@ import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
 
 import java.io.IOException;
-import java.lang.instrument.Instrumentation;
 import java.util.*;
 import java.net.JarURLConnection;
 
@@ -50,8 +50,9 @@ import org.lwjgl.input.Controllers;
 public final class SSMSControllerModPluginEx extends BaseModPlugin {
     public static final String modId = "SSMSControllerEx";
     static public HandlerController controller = new HandlerController();
-    static public HashMap<String, ControllerMapping> controllerMappings;
-    static public HashMap<String, ControllerMapping> controllerMappingsByGuid;
+    static HashMap<String, EnumMap<Indicators, String>> indicatorsByController;
+    static public JSONObject oldMappingsJson;
+    static public JSONObject newMappingsJson;
     static public EnumMap<Indicators,String> defaultIndicators;
     
     @Override
@@ -96,13 +97,8 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         }
         ClassReflector.suppressWarnings = false;
         Global.getLogger(InputShim.class).setLevel(Level.ERROR);
-        controllerMappings = configureControllerMappings(obj.getJSONObject("controllerMappings"));
-        var indicatorsByController = configureSettingsApplicationController(obj.getJSONObject("graphics"));
-        for(var mapping : controllerMappings.values()) {
-            if(!mapping.indicatorProfile.isEmpty()) {
-                mapping.indicators = indicatorsByController.get(mapping.indicatorProfile);
-            }
-        }
+        oldMappingsJson = obj.getJSONObject("controllerMappings");
+        indicatorsByController = configureSettingsApplicationController(obj.getJSONObject("graphics"));
         var testPnl = Global.getSettings().createCustom(1.f, 1.f, null);
         UIPanelReflector.initialize(testPnl.getClass().getSuperclass());
         UIComponentReflector.initialize(testPnl.getClass().getSuperclass().getSuperclass());
@@ -171,53 +167,52 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
          Invalid
      };
 
-     // TODO : This is the preferred approach to map controller buttons. But without a reliable way to get USB device info (vendor, product, version) and turn it into the GUID we need to lookup the device in our table, this can't work.
-     static HashMap<String, ControllerMapping> configureControllerMappingEx() {
-         HashMap<String, ControllerMapping> output = new HashMap<>();
-         var axisMappingsIndexed = AxisMapping.values();
+     static JSONObject configureControllerMappingEx() {
+         JSONObject output = null;
          try {
              var controllerMapJson = Global.getSettings().loadJSON("data/config/controllerMappings.json");
              String platform = System.getProperty("os.name");
              if(platform.contains("Windows")) platform = "Windows";
              else if(platform.contains("OS X")) platform = "Mac OS X";
              else if(platform.contains("Linux")) platform = "Linux";
-             var platformMappings = controllerMapJson.getJSONObject(platform);
-             for(int i = 0; i < platformMappings.length(); i++) {
-                 var controllerName = platformMappings.names().getString(i);
-                 var controller = platformMappings.getJSONObject(controllerName);
-                 var buttons = controller.getJSONArray("buttons");
-                 ControllerMapping newMapping = new ControllerMapping();
-                 for(int btnIdx = 0; btnIdx < buttons.length(); btnIdx++) {
-                     if(!buttons.isNull(btnIdx)) {
-                         ButtonMapping btnId = ButtonMapping.values()[buttons.getInt(btnIdx)];
-                         newMapping.mapButton(new ControllerMapping.ButtonData(btnId, btnIdx));
-                     }
-                 }
-                 var axes = controller.getJSONArray("axes");
-                 for(int axisIdx = 0; axisIdx < axes.length(); axisIdx++) {
-                     if(!axes.isNull(axisIdx)) {
-                         newMapping.mapAxis(new ControllerMapping.AxisData(axisMappingsIndexed[axes.getInt(axisIdx)], null, axisIdx));
-                     }
-                 }
-                 var povs = controller.getJSONArray("povs");
-                 for(int povIdx = 0; povIdx < povs.length(); povIdx++) {
-                     if(!povs.isNull(povIdx)) {
-                         POVMapping povId = POVMapping.values()[povs.getInt(povIdx)];
-                         switch(povId) {
-                             case DPadDown, DPadUp -> newMapping.mapPov(AxisMapping.DPadY);
-                             case DPadLeft, DPadRight -> newMapping.mapPov(AxisMapping.DPadX);
-                         }
-                     }
-                 }
-                 // TODO: make indicators based off controller name somehow??
-                 newMapping.indicatorProfile = "xbox360";
-                 output.put(controllerName, newMapping);
-             }
+             output = controllerMapJson.getJSONObject(platform);
          } catch(IOException | JSONException ex) {
              Global.getLogger(SSMSControllerModPluginEx.class).log(Level.FATAL, "Couldn't read controller button mappings!");
          }
          return output;
      }
+
+    @NotNull
+    private static ControllerMapping createControllerMappingFromJson(JSONObject controller) throws JSONException {
+        var buttons = controller.getJSONArray("buttons");
+        ControllerMapping newMapping = new ControllerMapping();
+        for(int btnIdx = 0; btnIdx < buttons.length(); btnIdx++) {
+            if(!buttons.isNull(btnIdx)) {
+                ButtonMapping btnId = ButtonMapping.values()[buttons.getInt(btnIdx)];
+                newMapping.mapButton(new ControllerMapping.ButtonData(btnId, btnIdx));
+            }
+        }
+        var axisMappingsIndexed = AxisMapping.values();
+        var axes = controller.getJSONArray("axes");
+        for(int axisIdx = 0; axisIdx < axes.length(); axisIdx++) {
+            if(!axes.isNull(axisIdx)) {
+                newMapping.mapAxis(new ControllerMapping.AxisData(axisMappingsIndexed[axes.getInt(axisIdx)], null, axisIdx));
+            }
+        }
+        var povs = controller.getJSONArray("povs");
+        for(int povIdx = 0; povIdx < povs.length(); povIdx++) {
+            if(!povs.isNull(povIdx)) {
+                POVMapping povId = POVMapping.values()[povs.getInt(povIdx)];
+                switch(povId) {
+                    case DPadDown, DPadUp -> newMapping.mapPov(AxisMapping.DPadY);
+                    case DPadLeft, DPadRight -> newMapping.mapPov(AxisMapping.DPadX);
+                }
+            }
+        }
+        // TODO: make indicators based off controller name somehow??
+        newMapping.indicatorProfile = "xbox360";
+        return newMapping;
+    }
 
     @Override
     public void onGameLoad(boolean newGame) {
@@ -225,49 +220,35 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         Global.getSector().getListenerManager().addListener(new CampaignRenderer());
     }
 
-    protected HashMap<String, ControllerMapping> configureControllerMappings(JSONObject controllerMappingsObj) {
-        HashMap<String, ControllerMapping> output = new HashMap<>();
-        AxisMapping[] axisMappings = AxisMapping.values();
-        try {
-            for (int conIdx = 0; conIdx < controllerMappingsObj.length(); conIdx++) {
-                String deviceName = controllerMappingsObj.names().getString(conIdx);
-                JSONObject deviceMappings = controllerMappingsObj.getJSONObject(deviceName);
-                if(deviceMappings == null) {
-                    Global.getLogger(getClass()).log(Level.ERROR, "Failed to parse controller mappings for " + deviceName);
-                } else {
-                    ControllerMapping newMapping = new ControllerMapping();
-                    newMapping.deviceName = deviceName;
-                    if(deviceMappings.has("indicatorProfile")) newMapping.indicatorProfile = deviceMappings.getString("indicatorProfile");
-                    JSONArray deviceButtons = deviceMappings.getJSONArray("buttons");
+    @NotNull
+    private static ControllerMapping createMappingFromLegacyJson(JSONObject deviceMappings) throws JSONException {
+        ControllerMapping newMapping = new ControllerMapping();
+        newMapping.deviceName = deviceMappings.getString("deviceName");
+        if(deviceMappings.has("indicatorProfile")) newMapping.indicatorProfile = deviceMappings.getString("indicatorProfile");
+        JSONArray deviceButtons = deviceMappings.getJSONArray("buttons");
 
-                    if(deviceButtons != null) {
-                        for(int btnIdx = 0; btnIdx < deviceButtons.length(); btnIdx++) {
-                            String btnName = deviceButtons.getString(btnIdx);
-                            try {
-                                var btn = Enum.valueOf(LogicalButtons.class, btnName);
-                                newMapping.mapButton(new ControllerMapping.ButtonData(ButtonMapping.fromButton(btn), btnIdx));
-                            } catch(IllegalArgumentException e) {
-                                Global.getLogger(SSMSControllerModPluginEx.class).warn("Couldn't match button enum from string: " + btnName);
-                            }
-                        }
-                    }
-                    JSONObject deviceAxes = deviceMappings.getJSONObject("axes");
-
-                    if(deviceAxes != null) {
-                        for(var axisMapping : axisMappings) {
-                            var mappingString = axisMapping.toString();
-                            if(deviceAxes.has(mappingString)) {
-                                newMapping.mapAxis(new ControllerMapping.AxisData(axisMapping, Enum.valueOf(AxisId.class, deviceAxes.getString(mappingString)), -1));
-                            }
-                        }
-                    }
-                    output.put(deviceName, newMapping);
+        if(deviceButtons != null) {
+            for(int btnIdx = 0; btnIdx < deviceButtons.length(); btnIdx++) {
+                String btnName = deviceButtons.getString(btnIdx);
+                try {
+                    var btn = Enum.valueOf(LogicalButtons.class, btnName);
+                    newMapping.mapButton(new ControllerMapping.ButtonData(ButtonMapping.fromButton(btn), btnIdx));
+                } catch(IllegalArgumentException e) {
+                    Global.getLogger(SSMSControllerModPluginEx.class).warn("Couldn't match button enum from string: " + btnName);
                 }
             }
-        } catch(JSONException je) {
-            Global.getLogger(getClass()).log(Level.ERROR, "Failed to load controller mappings - Mod cannot function! " + je.getMessage());
         }
-        return output;
+        JSONObject deviceAxes = deviceMappings.getJSONObject("axes");
+
+        if(deviceAxes != null) {
+            for(var axisMapping : AxisMapping.values()) {
+                var mappingString = axisMapping.toString();
+                if(deviceAxes.has(mappingString)) {
+                    newMapping.mapAxis(new ControllerMapping.AxisData(axisMapping, Enum.valueOf(AxisId.class, deviceAxes.getString(mappingString)), -1));
+                }
+            }
+        }
+        return newMapping;
     }
 
     private HashMap<String, EnumMap<Indicators, String>> configureSettingsApplicationController(JSONObject graphicsObject) {
@@ -357,7 +338,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
             }
             logger.info(rumblersInfo);
         }
-        if ( controllerMappings != null || controllerMappingsByGuid != null ) {
+        if ( oldMappingsJson != null || newMappingsJson != null ) {
             for ( int i = 0; i < Controllers.getControllerCount(); i++ ) {
                 Controller con = Controllers.getController(i);
                 if(controllerToConnect != null && con.getIndex() != controllerToConnect.getIndex()) {
@@ -369,11 +350,12 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                 ControllerMapping conMap = null;
                 String guid = getControllerGuid(con);
                 if (guid != null) {
-                    if(controllerMappingsByGuid == null) {
-                        controllerMappingsByGuid = configureControllerMappingEx();
+                    if(newMappingsJson == null) {
+                        newMappingsJson = configureControllerMappingEx();
                     }
-                    conMap = controllerMappingsByGuid.get(guid);
-                    if(conMap != null) {
+                    if(newMappingsJson.has(guid)) {
+                        var obj = newMappingsJson.getJSONObject(guid);
+                        conMap = createControllerMappingFromJson(obj);
                         if(System.getProperty("os.name").contains("Windows")) {
                             convertAxisInstanceToIdx(conMap, con);
                         }
@@ -382,8 +364,10 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                 }
                 if(conMap == null) {
                     //String conName = con.getName(); //new StringBuilder(con.getName()).append("(").append(con.getAxisCount()).append(",").append(con.getButtonCount()).append(")").toString();
-                    conMap = controllerMappings.get(con.getName());
-                    if(conMap != null) {
+                    if(oldMappingsJson.has(con.getName())) {
+                        var obj = oldMappingsJson.getJSONObject(con.getName());
+                        conMap = createMappingFromLegacyJson(obj);
+                        conMap.indicators = indicatorsByController.get(conMap.indicatorProfile);
                         Global.getLogger(SSMSControllerModPluginEx.class).log(Level.INFO, "Successfully matched controller name in legacy config [" + con.getName() + "]");
                     }
                 }
