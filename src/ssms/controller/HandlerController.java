@@ -25,7 +25,6 @@ import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Controller;
 import org.lwjgl.input.Controllers;
 import org.lwjgl.util.input.ControllerAdapter;
-import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.enums.*;
 
@@ -63,7 +62,7 @@ public class HandlerController {
             axisMappingByIndex = new AxisMapping[controller.getAxisCount()];
             for(var axisData : mapping.getMappedAxes()) {
                 var index = getAxisIndex(axisData.getAxisId(), axisData.getAxisIndex(), axisIndices, controller.getAxisCount());
-                if(index != -1) {
+                if(index != -1 && index < axisMappingByIndex.length) {
                     if (index != 0xFF) {
                         axisMappingByIndex[index] = axisData.getAxisMapping();
                     }
