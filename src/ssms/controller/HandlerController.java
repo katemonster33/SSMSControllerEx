@@ -166,12 +166,16 @@ public class HandlerController {
 
     void generateAxisButtonEvents(AxisMapping axisMapping, float curVal, float lastFrameVal) {
         switch(axisMapping) {
-            case LeftTrigger -> generateAxisButtonEvent(LogicalButtons.LeftTrigger, curVal, lastFrameVal, this::isUpperAxisBtnLimitReached);
-            case RightTrigger -> {
-                if(axisIndexByMapping.containsKey(AxisMapping.RightTrigger)) {
-                    generateAxisButtonEvent(LogicalButtons.RightTrigger, curVal, lastFrameVal, this::isUpperAxisBtnLimitReached);
-                } else {
+            case LeftTrigger -> {
+                generateAxisButtonEvent(LogicalButtons.LeftTrigger, curVal, lastFrameVal, this::isUpperAxisBtnLimitReached);
+                if(!axisIndexByMapping.containsKey(AxisMapping.RightTrigger)) {
                     generateAxisButtonEvent(LogicalButtons.RightTrigger, curVal, lastFrameVal, this::isLowerAxisBtnLimitReached);
+                }
+            }
+            case RightTrigger -> {
+                generateAxisButtonEvent(LogicalButtons.RightTrigger, curVal, lastFrameVal, this::isUpperAxisBtnLimitReached);
+                if(!axisIndexByMapping.containsKey(AxisMapping.LeftTrigger)) {
+                    generateAxisButtonEvent(LogicalButtons.LeftTrigger, curVal, lastFrameVal, this::isLowerAxisBtnLimitReached);
                 }
             }
             default -> {
