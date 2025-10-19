@@ -60,7 +60,7 @@ public class MainCampaignUI extends InputScreenBase {
             else InputShim.mouseUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
         });
         if(gameCurrentlyPaused) {
-            List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<Pair<UIComponentAPI,Object>>();
+            List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>();
             UIPanelReflector panelReflector = null;
             for(var child : campaignPanelReflector.getChildItems()) {
                 if(child instanceof CoreUIAPI) {
@@ -68,16 +68,12 @@ public class MainCampaignUI extends InputScreenBase {
                 }
             }
             if(panelReflector != null) {
-                for (var pnl : panelReflector.getChildPanels(3)) {
-                    directionalObjects.add(new Pair<UIComponentAPI, Object>(pnl, null));
-                }
+                directionalObjects.addAll(panelReflector.getChildPanels(3).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
 
                 for (var pnl : panelReflector.getChildPanels()) {
                     CoreUIHUD coreUIHUD = CoreUIHUD.tryGet(pnl);
                     if(coreUIHUD != null) {
-                        for(var coreUiChild : coreUIHUD.getChildPanels()) {
-                            directionalObjects.add(new Pair<UIComponentAPI, Object>(coreUiChild, null));
-                        }
+                        directionalObjects.addAll(coreUIHUD.getChildPanels().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
                     }
                 }
             }

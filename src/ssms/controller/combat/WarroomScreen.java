@@ -48,12 +48,7 @@ public class WarroomScreen extends InputScreenBase {
             }
         });
         addButtonPressHandler("Return to deployment screen", LogicalButtons.Y, new KeySender(Keyboard.KEY_G, 'G'));
-        var buttons = warroomReflector.getChildButtons(true);
-        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
-        for(var btn : buttons) {
-            directionalObjects.add(new Pair<>(btn, null));
-        }
-        directionalUINavigator = new DirectionalUINavigator(directionalObjects);
+        directionalUINavigator = new DirectionalUINavigator(warroomReflector.getChildButtons(true).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         addDigitalJoystickHandler("Select buttons", Joystick.DPad, directionalUINavigator);
     }
 
@@ -74,12 +69,7 @@ public class WarroomScreen extends InputScreenBase {
         } else if(Global.getCombatEngine().getCombatUI().isShowingDeploymentDialog()) {
             InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, BattleDeploymentScreen.ID, new Object[]{ csr });
         }
-        var buttons = warroomReflector.getChildButtons(true);
-        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
-        for(var btn : buttons) {
-            directionalObjects.add(new Pair<>(btn, null));
-        }
-        directionalUINavigator.setNavigationObjects(directionalObjects);
+        directionalUINavigator.setNavigationObjects(warroomReflector.getChildButtons(true).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         mapInputHandler.advance(advance);
     }
 }

@@ -48,23 +48,21 @@ public class LoadGameUI extends InputScreenBase {
             throw new RuntimeException("Couldn't reflect the dialog box type from the LoadGameDialog!");
         }
         loadGameDialog = new MessageBoxReflector(tmpDlg);
-        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
+        List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>();
         for(var childItem : loadGameDialog.getInnerPanel().getChildItems()) {
             if(childItem instanceof ButtonAPI btn) {
-                directionalObjects.add(new Pair<>(btn, null));
+                directionalObjects.add(new DirectionalUINavigator.NavigationObject(btn));
             } else if(childItem instanceof UITable uiTable) {
                 uiTableReflector = new UITableReflector(uiTable);
-                for(var scrollableObj : uiTableReflector.getItems()) {
-                    directionalObjects.add(new Pair<>(scrollableObj, uiTableReflector));
-                }
+                directionalObjects.addAll(uiTableReflector.getItems().stream().map(scrollObj -> new DirectionalUINavigator.NavigationObject(scrollObj, uiTableReflector)).toList());
             }
         }
         directionalUINavigator = new DirectionalUINavigator(directionalObjects){
             @Override
-            public void onSelect(Pair<UIComponentAPI, Object> selectedObj) {
+            public void onSelect(NavigationObject selectedObj) {
                 super.onSelect(selectedObj);
-                if(selectedObj.two instanceof UITableReflector) {
-                    uiTableReflector.ensureVisible(selectedObj.one);
+                if(selectedObj.tag instanceof UITableReflector) {
+                    uiTableReflector.ensureVisible(selectedObj.component);
                 }
             }
         };
@@ -78,8 +76,8 @@ public class LoadGameUI extends InputScreenBase {
             addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
             addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> {
                 if(directionalUINavigator.getSelected() != null) {
-                    var pos = directionalUINavigator.getSelected().one.getPosition();
-                    InputShim.mouseDownUp((int) pos.getCenterX(), (int) pos.getCenterY(), InputEventMouseButton.LEFT);
+                    var sel = directionalUINavigator.getSelected();
+                    InputShim.mouseDownUp((int) sel.getCenterX(), (int) sel.getCenterY(), InputEventMouseButton.LEFT);
                 }
             });
             addButtonPressHandler("Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));

@@ -19,84 +19,77 @@ import java.util.Collections;
 import java.util.function.Function;
 
 public class DirectionalUINavigator implements DigitalJoystickHandler {
-    List<Pair<UIComponentAPI, Object>> navigationObjects;
+    List<NavigationObject> navigationObjects;
     float selectedItemX, selectedItemY;
     int curIndex = -1;
     DirectionalUiReticle reticle;
-    public DirectionalUINavigator(List<Pair<UIComponentAPI, Object>> navigationObjects)
+    public DirectionalUINavigator(List<NavigationObject> navigationObjects)
     {
-        this.navigationObjects = new ArrayList<>(navigationObjects);
-        if(!navigationObjects.isEmpty()) {
-            curIndex = 0;
-            onSelect(navigationObjects.get(curIndex));
-        }
+        setNavigationObjects(navigationObjects);
         reticle = new DirectionalUiReticle();
     }
 
-    public void onSelect(Pair<UIComponentAPI, Object> selectedPair) {
-        PositionAPI pos = selectedPair.one.getPosition();
-        selectedItemX = pos.getX();
-        selectedItemY = pos.getY();
-        InputShim.mouseMove((int) pos.getCenterX(),(int) pos.getCenterY());
+    public void onSelect(NavigationObject selectedNav) {
+        selectedItemX = selectedNav.x1;
+        selectedItemY = selectedNav.y1;
+        InputShim.mouseMove((int) selectedNav.getCenterX(),(int) selectedNav.getCenterY());
     }
 
-    public float getDeltaX(PositionAPI a, PositionAPI b) {
-       float ax2 = a.getX() + a.getWidth(), bx2 = b.getX() + b.getWidth();
-        if ((a.getX() >= b.getX() && a.getX() < bx2) ||
-                (ax2 > b.getX() && ax2 <= bx2) ||
-                (b.getX() >= a.getX() && b.getX() < ax2) ||
-                (bx2 > a.getX() && bx2 <= ax2)) {
+    public float getDeltaX(NavigationObject a, NavigationObject b) {
+        if ((a.x1 >= b.x1 && a.x1 < b.x2) ||
+                (a.x2 > b.x1 && a.x2 <= b.x2) ||
+                (b.x1 >= a.x1 && b.x1 < a.x2) ||
+                (b.x2 > a.x1 && b.x2 <= a.x2)) {
             return 0;
-        } else if (ax2 <= b.getX()) {
+        } else if (a.x2 <= b.x1) {
             return b.getCenterX() - a.getCenterX();
         } else {
             return -1;
         }
     }
 
-    public float getDeltaY(PositionAPI a, PositionAPI b) {
-        float ay2 = a.getY() + a.getHeight(), by2 = b.getY() + b.getHeight();
-        if ((a.getY() >= b.getY() && a.getY() < by2) ||
-                (ay2 > b.getY() && ay2 <= by2) ||
-                (b.getY() >= a.getY() && b.getY() < ay2) ||
-                (by2 > a.getY() && by2 <= ay2)) {
+    public float getDeltaY(NavigationObject a, NavigationObject b) {
+        if ((a.y1 >= b.y1 && a.y1 < b.y2) ||
+                (a.y2 > b.y1 && a.y2 <= b.y2) ||
+                (b.y1 >= a.y2 && b.y1 < a.y2) ||
+                (b.y2 > a.y1 && b.y2 <= a.y2)) {
             return 0;
-        } else if (ay2 <= b.getY()) {
-            return b.getCenterY() - a.getCenterY();
+        } else if (a.y2 <= b.y1) {
+            return ((b.y1 + b.y2) / 2) - a.getCenterY();
         } else {
             return -1;
         }
     }
 
-    public void setNavigationObjects(List<Pair<UIComponentAPI, Object>> navigationObjects) {
-        PositionAPI curObjPos = null;
-        if (curIndex != -1 && curIndex < navigationObjects.size()) {
-            curObjPos = navigationObjects.get(curIndex).one.getPosition();
-        }
+    public void setNavigationObjects(List<NavigationObject> navigationObjects) {
         this.navigationObjects = new ArrayList<>(navigationObjects);
 
         if (navigationObjects.isEmpty()) {
             curIndex = -1;
             return;
         }
-        if (curObjPos != null) {
+        NavigationObject curObj = null;
+        if (curIndex != -1 && curIndex < navigationObjects.size()) {
+            curObj = navigationObjects.get(curIndex);
+        }
+        if (curObj != null) {
             for (curIndex = 0; curIndex < navigationObjects.size(); curIndex++) {
-                UIComponentAPI comp = navigationObjects.get(curIndex).one;
-                if (comp.getPosition().getCenterX() == curObjPos.getCenterX() && comp.getPosition().getCenterY() == curObjPos.getCenterY()) {
+                NavigationObject obj = navigationObjects.get(curIndex);
+                if (obj.getCenterX() == curObj.getCenterX() && obj.getCenterY() == curObj.getCenterY()) {
                     break;
                 }
             }
             if (curIndex >= navigationObjects.size()) {
                 curIndex = 0;
-                onSelect(navigationObjects.get(curIndex));
+                onSelect(this.navigationObjects.get(curIndex));
             }
         } else {
             curIndex = 0;
-            onSelect(navigationObjects.get(curIndex));
+            onSelect(this.navigationObjects.get(curIndex));
         }
     }
 
-    public void moveSelection(Comparator<PositionAPI> getDeltaA, Comparator<PositionAPI> getDeltaB) {
+    public void moveSelection(Comparator<NavigationObject> getDeltaA, Comparator<NavigationObject> getDeltaB) {
         if(curIndex == -1) {
             if(!navigationObjects.isEmpty()) {
                 curIndex = 0;
@@ -104,22 +97,22 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
             }
             return;
         }
-        UIComponentAPI selectedComp = navigationObjects.get(curIndex).one;
-        Pair<UIComponentAPI, Object> closestPairPrime = null, closestPairSecondary = null;
+        NavigationObject selectedObj = navigationObjects.get(curIndex);
+        NavigationObject closestNavObj = null, closestNavObjSecondary = null;
         float distPrime = Float.MAX_VALUE, distSecondary = Float.MAX_VALUE;
         int tmpIndex = -1, newIndexPrime = -1, newIndexSecondary = -1;
-        for (Pair<UIComponentAPI, Object> other : navigationObjects) {
+        for (var other : navigationObjects) {
             ++tmpIndex;
-            if (other.one == selectedComp) {
+            if (other == selectedObj) {
                 continue;
             }
-            float deltaA = getDeltaA.compare(selectedComp.getPosition(), other.one.getPosition());
-            float deltaB = getDeltaB.compare(selectedComp.getPosition(), other.one.getPosition());
+            float deltaA = getDeltaA.compare(selectedObj, other);
+            float deltaB = getDeltaB.compare(selectedObj, other);
             if(deltaA > 0) {
                 if (deltaB == 0) {
                     if (deltaA < distPrime) {
                         distPrime = deltaA;
-                        closestPairPrime = other;
+                        closestNavObj = other;
                         newIndexPrime = tmpIndex;
                     }
                 } else {
@@ -127,51 +120,51 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
                             Math.pow(Math.abs(deltaB), 2));
                     if (dist < distSecondary) {
                         distSecondary = dist;
-                        closestPairSecondary = other;
+                        closestNavObjSecondary = other;
                         newIndexSecondary = tmpIndex;
                     }
                 }
             } else if(deltaA == 0 && deltaB == 0) {
-                float distBackup = (float) Math.sqrt(Math.pow(Math.abs(other.one.getPosition().getCenterX() - selectedComp.getPosition().getCenterX()), 2) +
-                        Math.pow(Math.abs(other.one.getPosition().getCenterY() - selectedComp.getPosition().getCenterY()), 2));
+                float distBackup = (float) Math.sqrt(Math.pow(Math.abs(other.getCenterX() - selectedObj.getCenterX()), 2) +
+                        Math.pow(Math.abs(other.getCenterY() - selectedObj.getCenterY()), 2));
                 if (distBackup < distPrime) {
                     distPrime = distBackup;
-                    closestPairPrime = other;
+                    closestNavObj = other;
                     newIndexPrime = tmpIndex;
                 }
             }
         }
 
-        if (closestPairPrime != null) {
+        if (closestNavObj != null) {
             curIndex = newIndexPrime;
-            onSelect(closestPairPrime);
-        } else if (closestPairSecondary != null) {
+            onSelect(closestNavObj);
+        } else if (closestNavObjSecondary != null) {
             curIndex = newIndexSecondary;
-            onSelect(closestPairSecondary);
+            onSelect(closestNavObjSecondary);
         }
     }
 
     public void performLeftAction(float advance) {
-        moveSelection((PositionAPI orig, PositionAPI other) -> (int) getDeltaX(other, orig),
-                (PositionAPI orig, PositionAPI other) -> (int) getDeltaY(orig, other));
+        moveSelection((NavigationObject orig, NavigationObject other) -> (int) getDeltaX(other, orig),
+                (NavigationObject orig, NavigationObject other) -> (int) getDeltaY(orig, other));
     }
 
     public void performRightAction(float advance) {
-        moveSelection((PositionAPI orig, PositionAPI other) -> (int) getDeltaX(orig, other),
-                (PositionAPI orig, PositionAPI other) -> (int) getDeltaY(orig, other));
+        moveSelection((NavigationObject orig, NavigationObject other) -> (int) getDeltaX(orig, other),
+                (NavigationObject orig, NavigationObject other) -> (int) getDeltaY(orig, other));
     }
 
     public void performUpAction(float advance) {
-        moveSelection((PositionAPI orig, PositionAPI other) -> (int) getDeltaY(orig, other),
-                (PositionAPI orig, PositionAPI other) -> (int) getDeltaX(orig, other));
+        moveSelection((NavigationObject orig, NavigationObject other) -> (int) getDeltaY(orig, other),
+                (NavigationObject orig, NavigationObject other) -> (int) getDeltaX(orig, other));
     }
 
     public void performDownAction(float advance) {
-        moveSelection((PositionAPI orig, PositionAPI other) -> (int) getDeltaY(other, orig),
-                (PositionAPI orig, PositionAPI other) -> (int) getDeltaX(orig, other));
+        moveSelection((NavigationObject orig, NavigationObject other) -> (int) getDeltaY(other, orig),
+                (NavigationObject orig, NavigationObject other) -> (int) getDeltaX(orig, other));
     }
 
-    public Pair<UIComponentAPI, Object> getSelected() {
+    public NavigationObject getSelected() {
         if(curIndex != -1 && curIndex < navigationObjects.size()) {
             return navigationObjects.get(curIndex);
         } else {
@@ -181,9 +174,11 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
 
     public void advance(float amount) {
         if(curIndex != -1 && InputShim.hasMouseControl()) {
+            for(var obj : navigationObjects) {
+                obj.updatePos();
+            }
             var selected = getSelected();
-            var selectedCompPos = selected.one.getPosition();
-            if(selectedCompPos.getX() != selectedItemX || selectedCompPos.getY() != selectedItemY) {
+            if(selected.x1 != selectedItemX || selected.y1 != selectedItemY) {
                 onSelect(selected);
             }
         }
@@ -191,12 +186,59 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
 
     public void render() {
         if(curIndex != -1 && InputShim.hasMouseControl()) {
-            var selected = getSelected();
-            var selectedCompPos = selected.one.getPosition();
-            reticle.render(selectedCompPos);
+            reticle.render(getSelected());
         }
     }
 
+    public static class NavigationObject {
+        public UIComponentAPI component;
+        public float x1,x2,y1,y2;
+        public Object tag;
+        boolean autoPos = true;
+
+        public NavigationObject(UIComponentAPI comp) {
+            this(comp, null);
+        }
+
+        public NavigationObject(UIComponentAPI comp, Object tag) {
+            this.component = comp;
+            this.tag = tag;
+            updatePos();
+        }
+
+        public NavigationObject(UIComponentAPI comp, float x1, float x2, float y1, float y2) {
+            this(comp, x1, x2, y1, y2, null);
+            autoPos = false;
+        }
+
+        public NavigationObject(UIComponentAPI comp, float x1, float x2, float y1, float y2, Object tag) {
+            this.component = comp;
+            this.x1 = x1;
+            this.x2 = x2;
+
+            this.y1 = y1;
+            this.y2 = y2;
+            this.tag = tag;
+            autoPos = false;
+        }
+
+        public void updatePos() {
+            if(autoPos) {
+                x1 = component.getPosition().getX();
+                x2 = component.getPosition().getX() + component.getPosition().getWidth();
+                y1 = component.getPosition().getY();
+                y2 = component.getPosition().getY() + component.getPosition().getHeight();
+            }
+        }
+
+        public float getCenterX() {
+            return (x1 + x2) / 2.f;
+        }
+
+        public float getCenterY() {
+            return (y1 + y2) / 2.f;
+        }
+    }
 
     public static class DirectionalUiReticle {
         SpriteAPI indicTL = Global.getSettings().getSprite("ui","sortIcon");
@@ -220,9 +262,9 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
             indicBR.setColor(indicColor);
         }
 
-        public void render(PositionAPI pos) {
-            float x1 = pos.getX() - indicTL.getWidth(), x2 = pos.getX() + pos.getWidth();
-            float y1 = pos.getY() + pos.getHeight(), y2 = pos.getY() - indicTL.getHeight();
+        public void render(NavigationObject navObj) {
+            float x1 = navObj.x1 - indicTL.getWidth(), x2 = navObj.x2;
+            float y1 = navObj.y2, y2 = navObj.y1 - indicTL.getHeight();
             indicTL.render(x1, y1);
             indicTR.render(x2, y1);
             indicBL.render(x1, y2);

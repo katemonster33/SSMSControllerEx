@@ -52,22 +52,17 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
             if(directionalUINavigator == null) {
                 planetAttributeButtons = new UIPanelReflector(planetTabReflector.getPlanetInfoPanel()).getChildButtons();
                 planetListButtons = new UIPanelReflector(planetTabReflector.getStarSystemDisplay()).getChildButtons();
-                List<UIComponentAPI> buttonList = new ArrayList<>(planetListButtons);
-                //buttonList.addAll(planetAttributeButtons);
-                buttonList.add(mapComponent);
-                List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
-                for(var btn : buttonList) {
-                    directionalObjects.add(new Pair<>(btn, null));
-                }
-                directionalUINavigator = new DirectionalUINavigator(directionalObjects) {
+                List<DirectionalUINavigator.NavigationObject> buttonList = new ArrayList<>(planetListButtons.stream().map(DirectionalUINavigator.NavigationObject::new).toList());
+                buttonList.add(new DirectionalUINavigator.NavigationObject(mapComponent));
+                directionalUINavigator = new DirectionalUINavigator(buttonList) {
                     @Override
-                    public void onSelect(Pair<UIComponentAPI, Object> obj) {
+                    public void onSelect(NavigationObject obj) {
                         super.onSelect(obj);
-                        if (obj.one == mapComponent && currentTabFocus != StarSystemTabFocusMode.Map) {
+                        if (obj.component == mapComponent && currentTabFocus != StarSystemTabFocusMode.Map) {
                             currentTabFocus = StarSystemTabFocusMode.Map;
                             clearHandlers();
                             InputScreenManager.getInstance().refreshIndicators();
-                        } else if (currentTabFocus != StarSystemTabFocusMode.PlanetAttributes && obj.one != mapComponent) {
+                        } else if (currentTabFocus != StarSystemTabFocusMode.PlanetAttributes && obj.component != mapComponent) {
                             currentTabFocus = StarSystemTabFocusMode.PlanetAttributes;
                             clearHandlers();
                             InputScreenManager.getInstance().refreshIndicators();

@@ -3,9 +3,7 @@ package ssms.controller.campaign;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.input.InputEventMouseButton;
-import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
-import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import ssms.controller.*;
@@ -36,21 +34,18 @@ public class CharacterTabUI extends InputScreenBase {
 
         //buttonRows = characterSheetReflector.getButtonRows();
 
-        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
-        for(var btn : characterSheetReflector.getChildButtons(true)) {
-            if (btn.getPosition().getX() >= 0 && btn.getPosition().getX() <= Display.getWidth() &&
-                    btn.getPosition().getY() >= 0 && btn.getPosition().getY() <= Display.getHeight()) {
-                directionalObjects.add(new Pair<>(btn, null));
-            }
-        }
+        List<DirectionalUINavigator.NavigationObject> directionalObjects = characterSheetReflector.getChildButtons(true).stream().
+                filter(btn -> btn.getPosition().getX() >= 0 && btn.getPosition().getX() <= Display.getWidth() &&
+                        btn.getPosition().getY() >= 0 && btn.getPosition().getY() <= Display.getHeight()).
+                map(DirectionalUINavigator.NavigationObject::new).toList();
         indicators = new ArrayList<>();
         directionalUINavigator = new DirectionalUINavigator(directionalObjects);
         addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
         addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> {
             if(directionalUINavigator.getSelected() != null) {
-                var pos = directionalUINavigator.getSelected().one.getPosition();
-                InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
-                InputShim.mouseDownUp((int) pos.getCenterX(), (int) pos.getCenterY(), InputEventMouseButton.LEFT);
+                var sel = directionalUINavigator.getSelected();
+                InputShim.mouseMove((int) sel.getCenterX(), (int) sel.getCenterY());
+                InputShim.mouseDownUp((int) sel.getCenterX(), (int) sel.getCenterY(), InputEventMouseButton.LEFT);
             }
         });
         addButtonPressHandler("Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));

@@ -54,10 +54,10 @@ public class MissionScreenUI extends InputScreenBase {
 
         directionalUINavigator = new DirectionalUINavigator(new ArrayList<>()) {
             @Override
-            public void onSelect(Pair<UIComponentAPI, Object> directionalObject) {
+            public void onSelect(NavigationObject directionalObject) {
                 super.onSelect(directionalObject);
-                if (directionalObject.two instanceof ScrollPanelReflector scrollPanelReflector) {
-                    scrollPanelReflector.ensureVisible(directionalObject.one);
+                if (directionalObject.tag instanceof ScrollPanelReflector scrollPanelReflector) {
+                    scrollPanelReflector.ensureVisible(directionalObject.component);
                 }
             }
         };
@@ -75,8 +75,8 @@ public class MissionScreenUI extends InputScreenBase {
         addAnalogJoystickHandler("Scroll Mission Description", Joystick.Right, scrollerHandler);
         addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> {
             if(directionalUINavigator.getSelected() != null) {
-                var pos = directionalUINavigator.getSelected().one.getPosition();
-                InputShim.mouseDownUp((int) pos.getCenterX(), (int) pos.getCenterY(), InputEventMouseButton.LEFT);
+                var sel = directionalUINavigator.getSelected();
+                InputShim.mouseDownUp((int) sel.getCenterX(), (int) sel.getCenterY(), InputEventMouseButton.LEFT);
             }
         });
         addButtonPressHandler("More Info", LogicalButtons.X, new KeySender(Keyboard.KEY_F1));
@@ -86,23 +86,12 @@ public class MissionScreenUI extends InputScreenBase {
 
     void refreshDirectionalObjects() {
         var missionListScrollPanel = new ScrollPanelReflector((ScrollPanelAPI) missionList.getChildItems().get(0));
-        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
-        for (var item : missions) {
-            directionalObjects.add(new Pair<>(item, missionListScrollPanel));
-        }
-        for (var btn : missionWidgetReflector.getChildButtons()) {
-            directionalObjects.add(new Pair<>(btn, null));
-        }
-        for (var btn : missionDetail.getChildButtons(true)) {
-            directionalObjects.add(new Pair<>(btn, null));
-        }
+        List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>(missions.stream().map(m -> new DirectionalUINavigator.NavigationObject(m, missionListScrollPanel)).toList());
+        directionalObjects.addAll(missionWidgetReflector.getChildButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
+        directionalObjects.addAll(missionDetail.getChildButtons(true).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         textScroller = new ScrollPanelReflector((ScrollPanelAPI) missionDetail.getChildItems().get(2));
-        for(var fleetMember : missionDetail.getChildItems(4, 1, 2, 1, 0)) {
-            directionalObjects.add(new Pair<>((UIComponentAPI) fleetMember, null));
-        }
-        for(var fleetMember : missionDetail.getChildItems(4, 1, 3, 1, 0)) {
-            directionalObjects.add(new Pair<>((UIComponentAPI) fleetMember, null));
-        }
+        directionalObjects.addAll(missionDetail.getChildItems(4, 1, 2, 1, 0).stream().map(item -> new DirectionalUINavigator.NavigationObject((UIComponentAPI) item)).toList());
+        directionalObjects.addAll(missionDetail.getChildItems(4, 1, 3, 1, 0).stream().map(item -> new DirectionalUINavigator.NavigationObject((UIComponentAPI) item)).toList());
         directionalUINavigator.setNavigationObjects(directionalObjects);
     }
 

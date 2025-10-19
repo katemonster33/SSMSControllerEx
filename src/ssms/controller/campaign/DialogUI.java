@@ -20,6 +20,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DialogUI extends InputScreenBase {
     UIPanelReflector optionsPanel;
@@ -51,7 +52,7 @@ public class DialogUI extends InputScreenBase {
     }
 
     public void clickButton() {
-        if(directionalUINavigator.getSelected() != null && directionalUINavigator.getSelected().one instanceof ButtonAPI selectedButton) {
+        if(directionalUINavigator.getSelected() != null && directionalUINavigator.getSelected().component instanceof ButtonAPI selectedButton) {
             try {
                 doButtonClick.invoke(optionsPanel.getPanel(), null, selectedButton);
             } catch(Throwable ex) {
@@ -87,10 +88,7 @@ public class DialogUI extends InputScreenBase {
                 }
             }
         }
-        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
-        for (var btn : optionsPanel.getChildButtons()) {
-            directionalObjects.add(new Pair<>(btn, null));
-        }
+        List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>(optionsPanel.getChildButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         directionalUINavigator.setNavigationObjects(directionalObjects);
     }
 

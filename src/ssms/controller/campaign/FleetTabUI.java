@@ -20,6 +20,7 @@ import ssms.controller.reflection.UIPanelReflector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FleetTabUI extends InputScreenBase {
     public static final String ID = "FleetTab";
@@ -55,15 +56,12 @@ public class FleetTabUI extends InputScreenBase {
 
         mousePos = new Vector2f(0.f, 0.f);
 
-        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
-        for(var btn : fleetTabReflector.getButtons()) {
-            directionalObjects.add(new Pair<>(btn, null));
-        }
+        List<DirectionalUINavigator.NavigationObject> directionalObjects = fleetTabReflector.getButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList();
         directionalUINavigator = new DirectionalUINavigator(directionalObjects){
             @Override
-            public void onSelect(Pair<UIComponentAPI, Object> obj) {
+            public void onSelect(NavigationObject obj) {
                 super.onSelect(obj);
-                mousePos.set(obj.one.getPosition().getCenterX(), obj.one.getPosition().getCenterY());
+                mousePos.set(obj.getCenterX(), obj.getCenterY());
             }
         };
         indicators = null;
@@ -75,9 +73,26 @@ public class FleetTabUI extends InputScreenBase {
             InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
         }
 
-        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
-        for(var btn : fleetTabReflector.getButtons()) {
-            directionalObjects.add(new Pair<>(btn, null));
+        var directionalObjects = fleetTabReflector.getButtons().stream().map(DirectionalUINavigator.NavigationObject::new).collect(Collectors.toList());
+        for(var shipItem : fleetTabReflector.getItems()) {
+            if(shipItem instanceof UIPanelAPI shipPanel) {
+                UIPanelReflector shipPanelReflector = new UIPanelReflector(shipPanel);
+                var children = shipPanelReflector.getChildItems();
+                if(children.get(0) instanceof UIPanelAPI fleetMemberViewPanel) {
+                    UIPanelReflector fleetMemberReflector = new UIPanelReflector(fleetMemberViewPanel);
+                    var fleetMemberComponents = fleetMemberReflector.getChildItems();
+                    for(int i = 2; i < fleetMemberComponents.size(); i++) {
+                        directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI) fleetMemberComponents.get(i)));
+                    }
+                }
+                for(int i = 2; i < children.size(); i++) {
+                    if(children.get(i) instanceof UIPanelAPI uiPanelAPI) {
+                        for(var btn : new UIPanelReflector(uiPanelAPI).getChildButtons(true)) {
+                            directionalObjects.add(new DirectionalUINavigator.NavigationObject(btn));
+                        }
+                    }
+                }
+            }
         }
         directionalUINavigator.setNavigationObjects(directionalObjects);
     }

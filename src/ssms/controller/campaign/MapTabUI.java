@@ -39,10 +39,7 @@ public class MapTabUI extends InputScreenBase {
         indicators = new ArrayList<>();
         mapInputHandler = addMapHandler(mapReflector.getPanel());
 
-        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
-        for(var btn : mapReflector.getButtons()) {
-            directionalObjects.add(new Pair<>(btn, null));
-        }
+        List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>(mapReflector.getButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         addDigitalJoystickHandler("Navigate", Joystick.DPad, new DirectionalUINavigator(directionalObjects));
         var buttons = mapReflector.getChildButtons();
         if(buttons.size() == 4) {

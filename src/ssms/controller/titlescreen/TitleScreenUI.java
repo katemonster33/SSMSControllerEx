@@ -201,9 +201,9 @@ public class TitleScreenUI extends InputScreenBase {
     public void clickButton(float advance)
     {
         if(directionalUINavigator.getSelected() != null) {
-            var btn = directionalUINavigator.getSelected().one;
-            InputShim.mouseMove((int) btn.getPosition().getCenterX(), (int) btn.getPosition().getCenterY());
-            InputShim.mouseDownUp((int) btn.getPosition().getCenterX(), (int) btn.getPosition().getCenterY(), InputEventMouseButton.LEFT);
+            var obj = directionalUINavigator.getSelected();
+            InputShim.mouseMove((int) obj.getCenterX(), (int) obj.getCenterY());
+            InputShim.mouseDownUp((int) obj.getCenterX(), (int) obj.getCenterY(), InputEventMouseButton.LEFT);
         }
     }
 
@@ -218,15 +218,11 @@ public class TitleScreenUI extends InputScreenBase {
 
             List<Pair<UIComponentAPI, Object>> directionalUiElements = new ArrayList<>();
             if (curDialogType == null) {
-                for (var btn : curMainMenuButtons) {
-                    directionalUiElements.add(new Pair<>(btn, null));
-                }
+                directionalUINavigator.setNavigationObjects(curMainMenuButtons.stream().map(DirectionalUINavigator.NavigationObject::new).toList());
             } else {
-                for (var btn : new UIPanelReflector(titleScreenStateReflector.getScreenPanel()).getChildButtons(true)) {
-                    directionalUiElements.add(new Pair<>(btn, null));
-                }
+                var btns = new UIPanelReflector(titleScreenStateReflector.getScreenPanel()).getChildButtons(true);
+                directionalUINavigator.setNavigationObjects(btns.stream().map(DirectionalUINavigator.NavigationObject::new).toList());
             }
-            directionalUINavigator.setNavigationObjects(directionalUiElements);
         } else if(curDialogType != null) {
             if(Objects.equals(curDialogType.toString(), "LOAD_GAME")) {
                 InputScreenManager.getInstance().transitionToScreen(LoadGameUI.ID, titleScreenStateReflector);

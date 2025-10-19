@@ -79,13 +79,13 @@ public class IntelTabUI extends InputScreenBase {
             if(directionalUINavigator == null) {
                 directionalUINavigator = new DirectionalUINavigator(new ArrayList<>()) {
                     @Override
-                    public void onSelect(Pair<UIComponentAPI, Object> objPair) {
-                        super.onSelect(objPair);
-                        if(currentTabFocus != IntelTabFocusMode.Map && objPair.one == mapComponent) {
+                    public void onSelect(NavigationObject navObj) {
+                        super.onSelect(navObj);
+                        if(currentTabFocus != IntelTabFocusMode.Map && navObj.component == mapComponent) {
                             currentTabFocus = IntelTabFocusMode.Map;
                             clearHandlers();
                             InputScreenManager.getInstance().refreshIndicators();
-                        } else if(currentTabFocus == IntelTabFocusMode.Map && objPair.one != mapComponent) {
+                        } else if(currentTabFocus == IntelTabFocusMode.Map && navObj.component != mapComponent) {
                             currentTabFocus = IntelTabFocusMode.Buttons;
                             clearHandlers();
                             InputScreenManager.getInstance().refreshIndicators();
@@ -116,10 +116,7 @@ public class IntelTabUI extends InputScreenBase {
         List<UIComponentAPI> buttons = new ArrayList<>(filterButtons);
         buttons.addAll(intelButtons);
         buttons.add(mapComponent);
-        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
-        for(var btn : buttons) {
-            directionalObjects.add(new Pair<>(btn, null));
-        }
+        List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>(buttons.stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         directionalUINavigator.setNavigationObjects(directionalObjects);
     }
 

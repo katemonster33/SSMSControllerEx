@@ -8,6 +8,7 @@ import com.fs.starfarer.api.ui.UIPanelAPI;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.ArrayList;
 import java.util.List;
 
 public class FleetTabReflector {
@@ -29,14 +30,15 @@ public class FleetTabReflector {
     }
 
     public List<ButtonAPI> getButtons() {
-        var buttons = fleetListObj.getChildButtons(true);
+
+        var buttons = new ArrayList<ButtonAPI>();
         buttons.addAll(sidePanelObj.getChildButtons(true));
         return buttons;
     }
 
     public float getItemHeight() {
         try {
-            return (float) getItemHeight.invoke(fleetGridPanelObj);
+            return (float) getItemHeight.invoke(fleetGridPanelObj.getPanel());
         } catch (Throwable ex) {
             Global.getLogger(getClass()).error("Failed to get height of items!", ex);
             return -1.f;
@@ -45,7 +47,7 @@ public class FleetTabReflector {
 
     public float getItemWidth() {
         try {
-            return (float) getItemWidth.invoke(fleetGridPanelObj);
+            return (float) getItemWidth.invoke(fleetGridPanelObj.getPanel());
         } catch (Throwable ex) {
             Global.getLogger(getClass()).error("Failed to get width of items!", ex);
             return -1.f;
@@ -54,7 +56,7 @@ public class FleetTabReflector {
 
     public List<?> getItems() {
         try {
-            return (List<?>) getItems.invoke(fleetGridPanelObj);
+            return (List<?>) getItems.invoke(fleetGridPanelObj.getPanel());
         } catch (Throwable ex) {
             Global.getLogger(getClass()).error("Failed to get items!", ex);
             return null;
@@ -63,7 +65,7 @@ public class FleetTabReflector {
 
     public int getColumns() {
         try {
-            return (int) getColumns.invoke(fleetGridPanelObj);
+            return (int) getColumns.invoke(fleetGridPanelObj.getPanel());
         } catch (Throwable ex) {
             Global.getLogger(getClass()).error("Failed to get number of rows!", ex);
             return -1;

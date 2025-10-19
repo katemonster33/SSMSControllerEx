@@ -34,11 +34,7 @@ public class BattleDeploymentScreen extends InputScreenBase {
         CombatStateReflector csr = (CombatStateReflector) args[0];
         dui = new DeploymentUiReflector(csr.getDeploymentDialog());
         indicators = new ArrayList<>();
-        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
-        for(var btn : dui.getAllButtons()) {
-            directionalObjects.add(new Pair<>(btn, null));
-        }
-        directionalUINavigator = new DirectionalUINavigator(directionalObjects);
+        directionalUINavigator = new DirectionalUINavigator(dui.getAllButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         widgetPanelReflector = new UIPanelReflector(CombatStateReflector.GetInstance().getWidgetPanel());
         addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
         addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> clickButton());
@@ -46,9 +42,9 @@ public class BattleDeploymentScreen extends InputScreenBase {
 
     public void clickButton() {
         if(directionalUINavigator.getSelected() != null) {
-            var pos = directionalUINavigator.getSelected().one.getPosition();
-            InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
-            InputShim.mouseDownUp((int) pos.getCenterX(), (int) pos.getCenterY(), InputEventMouseButton.LEFT);
+            var sel = directionalUINavigator.getSelected();
+            InputShim.mouseMove((int) sel.getCenterX(), (int) sel.getCenterY());
+            InputShim.mouseDownUp((int) sel.getCenterX(), (int) sel.getCenterY(), InputEventMouseButton.LEFT);
         }
     }
 
@@ -69,10 +65,6 @@ public class BattleDeploymentScreen extends InputScreenBase {
             InputScreenManager.getInstance().transitionToScope(BattleScope.ID, Global.getCombatEngine());
             return;
         }
-        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
-        for(var btn : dui.getAllButtons()) {
-            directionalObjects.add(new Pair<>(btn, null));
-        }
-        directionalUINavigator.setNavigationObjects(directionalObjects);
+        directionalUINavigator.setNavigationObjects(dui.getAllButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
     }
 }

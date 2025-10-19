@@ -42,11 +42,7 @@ public class IntelFactionTabUi extends InputScreenBase {
         intelFactionTabReflector = new IntelFactionTabReflector(intelTabReflector.getFactionIntelPanel());
         intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
         indicators = new ArrayList<>();
-        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
-        for(var btn : intelFactionTabReflector.getFactionButtons()) {
-            directionalObjects.add(new Pair<>(btn, null));
-        }
-        directionalUINavigator = new DirectionalUINavigator(directionalObjects);
+        directionalUINavigator = new DirectionalUINavigator(intelFactionTabReflector.getFactionButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
 
         addButtonPressHandler("Select planet tab", LogicalButtons.LeftTrigger, new KeySender(Keyboard.KEY_2, '2'));
@@ -55,8 +51,8 @@ public class IntelFactionTabUi extends InputScreenBase {
 
         addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> {
             if(directionalUINavigator.getSelected() != null) {
-                var pos = directionalUINavigator.getSelected().one.getPosition();
-                InputShim.mouseDownUp((int) pos.getCenterX(), (int) pos.getCenterY(), InputEventMouseButton.LEFT);
+                var sel = directionalUINavigator.getSelected();
+                InputShim.mouseDownUp((int) sel.getCenterX(), (int) sel.getCenterY(), InputEventMouseButton.LEFT);
             }
         });
         addButtonPressHandler("Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));

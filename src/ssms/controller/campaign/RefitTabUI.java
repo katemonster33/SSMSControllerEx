@@ -4,10 +4,8 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
-import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
@@ -27,7 +25,7 @@ public class RefitTabUI extends InputScreenBase {
     UIPanelReflector refitPanel;
     Vector2f desiredMousePos = null;
     float mouseMoveFactor = 4.f;
-    List<Pair<UIComponentAPI, Object>> directionalObjects;
+    List<DirectionalUINavigator.NavigationObject> directionalObjects;
     DirectionalUINavigator refitNavigator;
     @Override
     public String getId() {
@@ -38,16 +36,13 @@ public class RefitTabUI extends InputScreenBase {
     public List<Pair<Indicators, String>> getIndicators() {
         if(indicators == null) {
             indicators = new ArrayList<>();
-            directionalObjects = new ArrayList<>();
-            for(var pnl : refitPanel.getChildButtons(true)) {
-                directionalObjects.add(new Pair<>(pnl, null));
-            }
+            directionalObjects = new ArrayList<>(refitPanel.getChildButtons(true).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
             refitNavigator = new DirectionalUINavigator(directionalObjects);
             addDigitalJoystickHandler("Navigate", Joystick.DPad, refitNavigator);
             addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> {
                 if(refitNavigator.getSelected() != null) {
-                    var pos = refitNavigator.getSelected().one.getPosition();
-                    InputShim.mouseDownUp((int) pos.getX(), (int) pos.getY(), InputEventMouseButton.LEFT);
+                    var sel = refitNavigator.getSelected();
+                    InputShim.mouseDownUp((int) sel.x1, (int) sel.y1, InputEventMouseButton.LEFT);
                 }
             });
             addButtonPressOrHoldHandler("More Info", "Open Codex", LogicalButtons.Y, new ButtonPressOrHoldHandler() {
@@ -82,10 +77,7 @@ public class RefitTabUI extends InputScreenBase {
             return;
         }
 
-        List<Pair<UIComponentAPI, Object>> directionalObjectsTmp = new ArrayList<>();
-        for(var pnl : refitPanel.getChildButtons(true)) {
-            directionalObjectsTmp.add(new Pair<>(pnl, null));
-        }
+        List<DirectionalUINavigator.NavigationObject> directionalObjectsTmp = new ArrayList<>(refitPanel.getChildButtons(true).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         if(directionalObjectsTmp.size() != directionalObjects.size()) {
             directionalObjects = directionalObjectsTmp;
             refitNavigator.setNavigationObjects(directionalObjects);

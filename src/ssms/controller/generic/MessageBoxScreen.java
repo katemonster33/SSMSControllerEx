@@ -44,11 +44,7 @@ public class MessageBoxScreen extends InputScreenBase {
         dialogOptions = dialogReflector.getDialogButtons();
         if(!dialogOptions.isEmpty()) {
             //dialogOptions.get(0).highlight();
-            List<Pair<UIComponentAPI, Object>> directionalUiElements = new ArrayList<>();
-            for(var btn : dialogOptions) {
-                directionalUiElements.add(new Pair<>(btn, null));
-            }
-            directionalUINavigator = new DirectionalUINavigator(directionalUiElements);
+            directionalUINavigator = new DirectionalUINavigator(dialogOptions.stream().map(DirectionalUINavigator.NavigationObject::new).toList());
             addDigitalJoystickHandler("Navigate items", Joystick.DPad, directionalUINavigator);
             addButtonPressHandler("Select option", LogicalButtons.A, (float advance) -> clickButton());
         }
@@ -60,7 +56,7 @@ public class MessageBoxScreen extends InputScreenBase {
     public void clickButton()
     {
         if(directionalUINavigator != null && directionalUINavigator.getSelected() != null) {
-            var btn = new ButtonReflector((ButtonAPI) directionalUINavigator.getSelected().one);
+            var btn = new ButtonReflector((ButtonAPI) directionalUINavigator.getSelected().component);
 
             if(btn.isCheckbox()) {
                 btn.getButton().setChecked(!btn.getButton().isChecked());

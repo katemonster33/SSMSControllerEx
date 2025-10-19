@@ -88,12 +88,11 @@ public class TradeScreen extends InputScreenBase {
     void clickSelected(boolean takeAllIfStack) {
         var selected = directionalUINavigator.getSelected();
         if(selected != null) {
-            if(selected.one instanceof CargoStackView cargoStackView && selected.two instanceof CargoDataGridViewReflector cargoDataGridViewReflector && !takeAllIfStack) {
+            if(selected.component instanceof CargoStackView cargoStackView && selected.tag instanceof CargoDataGridViewReflector cargoDataGridViewReflector && !takeAllIfStack) {
                 clickStack(cargoDataGridViewReflector, cargoStackView);
             } else {
-                var pos = selected.one.getPosition();
-                InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
-                InputShim.mouseDownUp((int) pos.getCenterX(), (int) pos.getCenterY(), InputEventMouseButton.LEFT);
+                InputShim.mouseMove((int) selected.getCenterX(), (int) selected.getCenterY());
+                InputShim.mouseDownUp((int) selected.getCenterX(), (int) selected.getCenterY(), InputEventMouseButton.LEFT);
             }
         }
     }
@@ -159,7 +158,6 @@ public class TradeScreen extends InputScreenBase {
     }
 
     private void updateDirectionalObjects() {
-        List<Pair<UIComponentAPI, Object>> directionalObjects = new ArrayList<>();
         var tradeUiChildren = tradeUiReflector.getChildItems();
         List<ButtonAPI> buttons = new ArrayList<>();
 //        if(marketInfoWidget != null) {
@@ -192,18 +190,10 @@ public class TradeScreen extends InputScreenBase {
                 }
             }
         }
-        for (var btn : buttons) {
-            if (btn.isEnabled()) {
-                directionalObjects.add(new Pair<>(btn, null));
-            }
-        }
+        List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>(buttons.stream().filter(ButtonAPI::isEnabled).map(DirectionalUINavigator.NavigationObject::new).toList());
         if(colonyInfoWidget == null || !isColonyInfoShown) {
-            for (var stack : playerDataGrid.getStacks()) {
-                directionalObjects.add(new Pair<>(stack, playerDataGrid));
-            }
-            for (var stack : otherDataGrid.getStacks()) {
-                directionalObjects.add(new Pair<>(stack, otherDataGrid));
-            }
+            directionalObjects.addAll(playerDataGrid.getStacks().stream().map(stack -> new DirectionalUINavigator.NavigationObject(stack, playerDataGrid)).toList());
+            directionalObjects.addAll(otherDataGrid.getStacks().stream().map(stack -> new DirectionalUINavigator.NavigationObject(stack, otherDataGrid)).toList());
         }
         directionalUINavigator.setNavigationObjects(directionalObjects);
     }
