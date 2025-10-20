@@ -36,17 +36,10 @@ public class IntelTabUI extends InputScreenBase {
     IntelTabData intelTabData;
     int lastFrameSelectedIndex = -1;
     EventsTabReflector eventsTabReflector;
-    MapInputHandler mapInputHandler;
     List<UIComponentAPI> filterButtons;
     List<UIComponentAPI> intelButtons;
-    UIComponentAPI mapComponent;
     DirectionalUINavigator directionalUINavigator;
 
-    enum IntelTabFocusMode {
-        Buttons,
-        Map
-    };
-    IntelTabFocusMode currentTabFocus = IntelTabFocusMode.Buttons;
     @Override
     public String getId() {
         return ID;
@@ -56,45 +49,24 @@ public class IntelTabUI extends InputScreenBase {
     public List<Pair<Indicators, String>> getIndicators() {
         if(indicators == null) {
             indicators = new ArrayList<>();
-            if(currentTabFocus == IntelTabFocusMode.Map) {
-                mapInputHandler = addMapHandler(eventsTabReflector.getMap());
-            } else {
+            if(directionalUINavigator == null) {
+                directionalUINavigator = new DirectionalUINavigator(new ArrayList<>());
+                directionalUINavigator.setMapComponent(eventsTabReflector.getMap());
+                refreshDirectionalUi();
+            }
+            addDirectionalUINavigator(directionalUINavigator);
+            if(directionalUINavigator.getCurContext() != DirectionalUINavigator.DirectionalUIContext.Map) {
                 addButtonPressHandler("Select planet tab", LogicalButtons.RightTrigger, new KeySender(Keyboard.KEY_2, '2'));
             }
-            if(currentTabFocus == IntelTabFocusMode.Buttons) {
+            if(directionalUINavigator.getCurContext() != DirectionalUINavigator.DirectionalUIContext.Map) {
                 addButtonPressHandler("Show on map", LogicalButtons.Y, new KeySender(Keyboard.KEY_S, 's'));
-            } else if(currentTabFocus == IntelTabFocusMode.Map) {
+            } else {
                 //indicators.add(new Pair<>(Indicators.X, "Toggle sector/system view"));
                 addButtonPressHandler("Show fuel range", LogicalButtons.Y, new KeySender(Keyboard.KEY_W, 'w'));
             }
             addButtonPressHandler("Return to campaign view", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
-            addButtonChangeHandler("Select", LogicalButtons.A, (float advance, boolean state) -> {
-                if(InputShim.getMouseX() != null && InputShim.getMouseY() != null) {
-                    if (state) InputShim.mouseDown(InputShim.getMouseX(), InputShim.getMouseY(), InputEventMouseButton.LEFT);
-                    else InputShim.mouseUp(InputShim.getMouseX(), InputShim.getMouseY(), InputEventMouseButton.LEFT);
-                }
-            });
             addButtonPressHandler("Select map tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_TAB));
             addButtonPressHandler("Select command tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_D, 'd'));
-            if(directionalUINavigator == null) {
-                directionalUINavigator = new DirectionalUINavigator(new ArrayList<>()) {
-                    @Override
-                    public void onSelect(NavigationObject navObj) {
-                        super.onSelect(navObj);
-                        if(currentTabFocus != IntelTabFocusMode.Map && navObj.component == mapComponent) {
-                            currentTabFocus = IntelTabFocusMode.Map;
-                            clearHandlers();
-                            InputScreenManager.getInstance().refreshIndicators();
-                        } else if(currentTabFocus == IntelTabFocusMode.Map && navObj.component != mapComponent) {
-                            currentTabFocus = IntelTabFocusMode.Buttons;
-                            clearHandlers();
-                            InputScreenManager.getInstance().refreshIndicators();
-                        }
-                    }
-                };
-            }
-            addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
-            refreshDirectionalUi();
         }
         return indicators;
     }
@@ -108,14 +80,13 @@ public class IntelTabUI extends InputScreenBase {
         eventsTabReflector = new EventsTabReflector(intelTabReflector.getEventsPanel());
         filterButtons = eventsTabReflector.getIntelFilters();
         intelButtons = eventsTabReflector.getIntelButtons();
-        mapComponent = eventsTabReflector.getMap();
         indicators = null;
     }
 
     void refreshDirectionalUi() {
         List<UIComponentAPI> buttons = new ArrayList<>(filterButtons);
         buttons.addAll(intelButtons);
-        buttons.add(mapComponent);
+        buttons.add(eventsTabReflector.getMap());
         List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>(buttons.stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         directionalUINavigator.setNavigationObjects(directionalObjects);
     }
@@ -126,9 +97,7 @@ public class IntelTabUI extends InputScreenBase {
         else if(intelTabData.getSelectedTabIndex() == 1) InputScreenManager.getInstance().transitionDelayed(IntelPlanetTabUi.ID, intelTabReflector);
         else if(intelTabData.getSelectedTabIndex() == 2) InputScreenManager.getInstance().transitionDelayed(IntelFactionTabUi.ID, intelTabReflector);
         lastFrameSelectedIndex = intelTabData.getSelectedTabIndex();
-        if(mapInputHandler != null && currentTabFocus == IntelTabFocusMode.Map) {
-            mapInputHandler.advance(amount);
-        }
+        directionalUINavigator.advance(amount);
     }
 
     public static class EventsTabReflector extends UIPanelReflector

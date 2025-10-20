@@ -3,12 +3,21 @@ package ssms.controller.inputhelper;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
+import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.PositionAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.util.Pair;
+import com.fs.starfarer.coreui.P;
+import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.ControllerCrosshairRenderer;
+import ssms.controller.CrosshairRenderer;
 import ssms.controller.InputShim;
+import ssms.controller.SSMSControllerModPluginEx;
+import ssms.controller.enums.Joystick;
+import ssms.controller.enums.LogicalButtons;
+import ssms.controller.reflection.MapReflector;
+import ssms.controller.reflection.ScrollPanelReflector;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -23,13 +32,42 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     float selectedItemX, selectedItemY;
     int curIndex = -1;
     DirectionalUiReticle reticle;
+    boolean leftStickActive = false, rightStickActive = false;
+    Vector2f desiredMousePos;
+    final float mouseMoveFactor = 4.f;
+    CrosshairRenderer headingIndicator;
+    UIComponentAPI mapComponent;
+    DirectionalUIContext lastFrameContext, curContext;
+    boolean isMovingMap = false;
+    boolean joystickEnabled = false;
+
     public DirectionalUINavigator(List<NavigationObject> navigationObjects)
     {
         setNavigationObjects(navigationObjects);
         reticle = new DirectionalUiReticle();
+        headingIndicator = new CrosshairRenderer();
+        headingIndicator.setSize(32, 32);
+        curContext = lastFrameContext = DirectionalUIContext.Other;
+    }
+
+    public void setJoystickEnabled(boolean enabled) {
+        this.joystickEnabled = enabled;
+    }
+
+    public void setMapComponent(UIComponentAPI mapReflector) {
+        this.mapComponent = mapReflector;
+    }
+
+    public DirectionalUIContext getCurContext() {
+        return curContext;
+    }
+
+    public boolean isContextChanged() {
+        return lastFrameContext != curContext;
     }
 
     public void onSelect(NavigationObject selectedNav) {
+        desiredMousePos = null;
         selectedItemX = selectedNav.x1;
         selectedItemY = selectedNav.y1;
         InputShim.mouseMove((int) selectedNav.getCenterX(),(int) selectedNav.getCenterY());
@@ -55,7 +93,7 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
                 (b.y2 > a.y1 && b.y2 <= a.y2)) {
             return 0;
         } else if (a.y2 <= b.y1) {
-            return ((b.y1 + b.y2) / 2) - a.getCenterY();
+            return b.getCenterY() - a.getCenterY();
         } else {
             return -1;
         }
@@ -90,14 +128,15 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     }
 
     public void moveSelection(Comparator<NavigationObject> getDeltaA, Comparator<NavigationObject> getDeltaB) {
-        if(curIndex == -1) {
+        if(curIndex == -1 && desiredMousePos == null) {
             if(!navigationObjects.isEmpty()) {
                 curIndex = 0;
                 onSelect(navigationObjects.get(0));
             }
             return;
         }
-        NavigationObject selectedObj = navigationObjects.get(curIndex);
+
+        NavigationObject selectedObj = desiredMousePos != null ? new NavigationObject(null, desiredMousePos.x, desiredMousePos.x, desiredMousePos.y, desiredMousePos.y) : navigationObjects.get(curIndex);
         NavigationObject closestNavObj = null, closestNavObjSecondary = null;
         float distPrime = Float.MAX_VALUE, distSecondary = Float.MAX_VALUE;
         int tmpIndex = -1, newIndexPrime = -1, newIndexSecondary = -1;
@@ -164,6 +203,63 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
                 (NavigationObject orig, NavigationObject other) -> (int) getDeltaX(orig, other));
     }
 
+    public void handleAButton(float advance, boolean buttonVal) {
+        if(InputShim.getMouseX() != null && InputShim.getMouseY() != null) {
+            if (buttonVal) {
+                InputShim.mouseDown(InputShim.getMouseX(), InputShim.getMouseY(), InputEventMouseButton.LEFT);
+            } else {
+                InputShim.mouseUp(InputShim.getMouseX(), InputShim.getMouseY(), InputEventMouseButton.LEFT);
+            }
+        }
+    }
+
+    boolean isStickActive(ReadableVector2f stick) {
+        return stick.getX() != 0 || stick.getY() != 0;
+    }
+
+    public void handleLeftJoystick(float advance, Vector2f joystickVal) {
+        leftStickActive = isStickActive(joystickVal);
+
+        if(leftStickActive) {
+            if(desiredMousePos == null) {
+                if(curIndex != -1 && curIndex < navigationObjects.size()) {
+                    desiredMousePos = new Vector2f(navigationObjects.get(curIndex).getCenterX(), navigationObjects.get(curIndex).getCenterY());
+                } else {
+                    desiredMousePos = new Vector2f();
+                }
+                curIndex = -1;
+            }
+            desiredMousePos.set(desiredMousePos.getX() + (joystickVal.getX() * mouseMoveFactor), desiredMousePos.getY() - (joystickVal.getY() * mouseMoveFactor));
+            InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
+        }
+    }
+
+    public void handleRightJoystick(float advance, Vector2f joystickVal) {
+        rightStickActive = isStickActive(joystickVal);
+
+        if (leftStickActive || curContext != DirectionalUIContext.Map) return;
+
+        if (rightStickActive) {
+            if (!isMovingMap) {
+                centerMousePosOnMap();
+                InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
+                isMovingMap = true;
+            } else {
+                desiredMousePos.set(desiredMousePos.getX() - (joystickVal.getX() * mouseMoveFactor), desiredMousePos.getY() + (joystickVal.getY() * mouseMoveFactor));
+                InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
+            }
+        } else if (isMovingMap) {
+            InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
+            centerMousePosOnMap();
+            isMovingMap = false;
+        }
+    }
+
+    public void centerMousePosOnMap() {
+        desiredMousePos = new Vector2f(mapComponent.getPosition().getCenterX(), mapComponent.getPosition().getCenterY());
+        InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
+    }
+
     public NavigationObject getSelected() {
         if(curIndex != -1 && curIndex < navigationObjects.size()) {
             return navigationObjects.get(curIndex);
@@ -172,7 +268,28 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
         }
     }
 
+
     public void advance(float amount) {
+        lastFrameContext = curContext;
+        if(getSelected() != null) {
+            if(mapComponent != null && getSelected().component == mapComponent) {
+                curContext = DirectionalUIContext.Map;
+            } else {
+                curContext = DirectionalUIContext.Other;
+            }
+        } else if(desiredMousePos != null) {
+            if (mapComponent != null) {
+                var pos = mapComponent.getPosition();
+                if (desiredMousePos.x >= pos.getX() && desiredMousePos.x < pos.getX() + pos.getWidth() &&
+                        desiredMousePos.y >= pos.getY() && desiredMousePos.y < pos.getY() + pos.getHeight()) {
+                    curContext = DirectionalUIContext.Map;
+                } else {
+                    curContext = DirectionalUIContext.Other;
+                }
+            } else {
+                curContext = DirectionalUIContext.Other;
+            }
+        }
         if(curIndex != -1 && InputShim.hasMouseControl()) {
             for(var obj : navigationObjects) {
                 obj.updatePos();
@@ -182,12 +299,35 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
                 onSelect(selected);
             }
         }
+        if(joystickEnabled) {
+            handleLeftJoystick(amount, SSMSControllerModPluginEx.controller.getJoystick(Joystick.Left));
+            handleRightJoystick(amount, SSMSControllerModPluginEx.controller.getJoystick(Joystick.Right));
+            if (curContext == DirectionalUIContext.Map && desiredMousePos != null) {
+                var controller = SSMSControllerModPluginEx.controller;
+                if (controller.getButtonEvent(LogicalButtons.LeftTrigger) == 1) {
+                    InputShim.mouseWheel((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), -5);
+                } else if (controller.getButtonEvent(LogicalButtons.RightTrigger) == 1) {
+                    InputShim.mouseWheel((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), 5);
+                }
+            }
+        }
     }
 
     public void render() {
-        if(curIndex != -1 && InputShim.hasMouseControl()) {
-            reticle.render(getSelected());
+        if(InputShim.hasMouseControl()) {
+            if (curIndex != -1) {
+                reticle.render(getSelected());
+            } else if(desiredMousePos != null) {
+                headingIndicator.setMousePos(desiredMousePos.x, desiredMousePos.y);
+                headingIndicator.render();
+            }
         }
+    }
+
+    public enum DirectionalUIContext {
+        Map,
+        Scroller,
+        Other
     }
 
     public static class NavigationObject {

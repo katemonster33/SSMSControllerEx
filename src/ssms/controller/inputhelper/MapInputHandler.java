@@ -37,6 +37,12 @@ public class MapInputHandler{
         InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
     }
 
+    public boolean isFocused() {
+        return desiredMousePos != null &&
+                desiredMousePos.x >= mapComponent.getPosition().getX() && desiredMousePos.x < mapComponent.getPosition().getX() + mapComponent.getPosition().getWidth() &&
+                desiredMousePos.y >= mapComponent.getPosition().getY() && desiredMousePos.y < mapComponent.getPosition().getY() + mapComponent.getPosition().getHeight();
+    }
+
     public boolean getIsMovingMap() {
         return isMovingMap;
     }
@@ -49,6 +55,9 @@ public class MapInputHandler{
         leftStickActive = isStickActive(joystickVal);
         leftStick = joystickVal;
         if(rightStickActive || isMovingMap) return;
+        if(!isFocused()) {
+            return;
+        }
 
         desiredMousePos.set(desiredMousePos.getX() + (joystickVal.getX() * mouseMoveFactor), desiredMousePos.getY() - (joystickVal.getY() * mouseMoveFactor));
         InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
@@ -59,6 +68,9 @@ public class MapInputHandler{
         rightStickActive = isStickActive(joystickVal);
         rightStick = joystickVal;
         if (leftStickActive) return;
+        if(!isFocused()) {
+            return;
+        }
         if (rightStickActive) {
             if (!isMovingMap) {
                 centerMousePos();

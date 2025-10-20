@@ -30,15 +30,6 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
     IntelPlanetTabUi.PlanetTabReflector planetTabReflector;
     DirectionalUINavigator directionalUINavigator;
     UIComponentAPI mapComponent;
-    List<ButtonAPI> planetAttributeButtons;
-    List<ButtonAPI> planetListButtons;
-
-    enum StarSystemTabFocusMode {
-        PlanetAttributes,
-        Map
-    };
-    StarSystemTabFocusMode currentTabFocus = StarSystemTabFocusMode.PlanetAttributes;
-    MapInputHandler mapInputHandler;
 
     @Override
     public String getId() {
@@ -50,57 +41,31 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
         if(indicators == null) {
             indicators = new ArrayList<>();
             if(directionalUINavigator == null) {
-                planetAttributeButtons = new UIPanelReflector(planetTabReflector.getPlanetInfoPanel()).getChildButtons();
-                planetListButtons = new UIPanelReflector(planetTabReflector.getStarSystemDisplay()).getChildButtons();
+                var planetAttributeButtons = new UIPanelReflector(planetTabReflector.getPlanetInfoPanel()).getChildButtons(true);
+                var planetListButtons = new UIPanelReflector(planetTabReflector.getStarSystemDisplay()).getChildButtons();
                 List<DirectionalUINavigator.NavigationObject> buttonList = new ArrayList<>(planetListButtons.stream().map(DirectionalUINavigator.NavigationObject::new).toList());
+                buttonList.addAll(planetAttributeButtons.stream().map(DirectionalUINavigator.NavigationObject::new).toList());
                 buttonList.add(new DirectionalUINavigator.NavigationObject(mapComponent));
-                directionalUINavigator = new DirectionalUINavigator(buttonList) {
-                    @Override
-                    public void onSelect(NavigationObject obj) {
-                        super.onSelect(obj);
-                        if (obj.component == mapComponent && currentTabFocus != StarSystemTabFocusMode.Map) {
-                            currentTabFocus = StarSystemTabFocusMode.Map;
-                            clearHandlers();
-                            InputScreenManager.getInstance().refreshIndicators();
-                        } else if (currentTabFocus != StarSystemTabFocusMode.PlanetAttributes && obj.component != mapComponent) {
-                            currentTabFocus = StarSystemTabFocusMode.PlanetAttributes;
-                            clearHandlers();
-                            InputScreenManager.getInstance().refreshIndicators();
-                        }
-                    }
-                };
+                directionalUINavigator = new DirectionalUINavigator(buttonList);
+                directionalUINavigator.setMapComponent(mapComponent);
             }
-            addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
+            addDirectionalUINavigator(directionalUINavigator);
             indicators.add(new Pair<>(Indicators.LeftStick, "Navigate"));
-            if(currentTabFocus == StarSystemTabFocusMode.Map) {
-                mapInputHandler = addMapHandler(planetTabReflector.getMap());
-            } else {
+            if(directionalUINavigator.getCurContext() != DirectionalUINavigator.DirectionalUIContext.Map) {
                 addButtonPressHandler("Select intel tab", LogicalButtons.LeftTrigger, new KeySender(Keyboard.KEY_1, '1'));
                 addButtonPressHandler("Select faction tab", LogicalButtons.RightTrigger, new KeySender(Keyboard.KEY_3, '3'));
             }
-            addButtonPressHandler("Show on map", LogicalButtons.X, new KeySender(Keyboard.KEY_S, 's'));
-            addButtonPressHandler("Lay in course", LogicalButtons.Y, new KeySender(Keyboard.KEY_A, 'a'));
-            if(currentTabFocus == StarSystemTabFocusMode.PlanetAttributes) {
-                addButtonPressOrHoldHandler("Select", "Open Codex", LogicalButtons.A, new ButtonPressOrHoldHandler() {
-                    @Override
-                    public void performHoldAction(float advance) {
-                        InputShim.keyDownUp(Keyboard.KEY_F2, '\0');
-                    }
+            addButtonPressOrHoldHandler("More Info", "Open Codex", LogicalButtons.Y, new ButtonPressOrHoldHandler() {
+                @Override
+                public void performHoldAction(float advance) {
+                    InputShim.keyDownUp(Keyboard.KEY_F2, '\0');
+                }
 
-                    @Override
-                    public void performPressAction(float advance) {
-                        if(InputShim.getMouseX() != null && InputShim.getMouseY() != null) {
-                            InputShim.mouseDownUp(InputShim.getMouseX(), InputShim.getMouseY(), InputEventMouseButton.LEFT);
-                        }
-                    }
-                });
-            } else {
-                addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> {
-                    if(InputShim.getMouseX() != null && InputShim.getMouseY() != null) {
-                        InputShim.mouseDownUp(InputShim.getMouseX(), InputShim.getMouseY(), InputEventMouseButton.LEFT);
-                    }
-                });
-            }
+                @Override
+                public void performPressAction(float advance) {
+                    InputShim.keyDownUp(Keyboard.KEY_F1, '\0');
+                }
+            });
             addButtonPressHandler("Return to planets list", LogicalButtons.B, new KeySender(Keyboard.KEY_Q, 'q'));
             addButtonPressHandler("Select map tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_TAB));
             addButtonPressHandler("Select command tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_D, 'd'));
@@ -117,10 +82,7 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
     public void activate(Object ... args) throws Throwable {
         intelTabReflector = (IntelTabReflector) args[0];
         intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
-        currentTabFocus = StarSystemTabFocusMode.PlanetAttributes;
         planetTabReflector = new IntelPlanetTabUi.PlanetTabReflector(intelTabReflector.getPlanetTabData().getPanel());
-        planetListButtons = new ArrayList<>();
-        planetAttributeButtons = new ArrayList<>();
         mapComponent = planetTabReflector.getMap();
         indicators = null;
         directionalUINavigator = null;
@@ -149,14 +111,12 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
                         planetTabReflector = IntelPlanetTabUi.PlanetTabReflector.tryGet(intelTabReflector);
                         refreshIndicators();
                         directionalUINavigator = null;
-                        mapInputHandler = null;
                     }
                 }
             }
         }
-
-        if (mapInputHandler != null) {
-            mapInputHandler.advance(amount);
+        if(directionalUINavigator != null) {
+            directionalUINavigator.advance(amount);
         }
     }
 }

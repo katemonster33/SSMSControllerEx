@@ -64,7 +64,7 @@ public class MissionScreenUI extends InputScreenBase {
         highlightedMission = missionWidgetReflector.getMissionIndexSelected();
         refreshDirectionalObjects();
         indicators = new ArrayList<>();
-        addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
+        addDirectionalUINavigator(directionalUINavigator);
         scrollerHandler = (float advance, Vector2f joystickVal) -> {
             if(textScroller != null) {
                 //textScroller.getScrollPanel().setYOffset(textScroller.getScrollPanel().getYOffset() + (joystickVal.getY() * advance * 100));
@@ -73,12 +73,6 @@ public class MissionScreenUI extends InputScreenBase {
             }
         };
         addAnalogJoystickHandler("Scroll Mission Description", Joystick.Right, scrollerHandler);
-        addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> {
-            if(directionalUINavigator.getSelected() != null) {
-                var sel = directionalUINavigator.getSelected();
-                InputShim.mouseDownUp((int) sel.getCenterX(), (int) sel.getCenterY(), InputEventMouseButton.LEFT);
-            }
-        });
         addButtonPressHandler("More Info", LogicalButtons.X, new KeySender(Keyboard.KEY_F1));
         addButtonPressHandler("Open Codex", LogicalButtons.Y, new KeySender(Keyboard.KEY_F2));
         addButtonPressHandler("Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));

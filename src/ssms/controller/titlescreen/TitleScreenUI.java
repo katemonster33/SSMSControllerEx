@@ -189,22 +189,12 @@ public class TitleScreenUI extends InputScreenBase {
             if(titleScreenStateReflector.getDialogType() != null) {
                 addButtonPressHandler("Cancel", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
             } else {
-                addDigitalJoystickHandler("Navigate Menu", Joystick.DPad, directionalUINavigator);
-                addButtonPressHandler("Confirm", LogicalButtons.A, this::clickButton);
+                addDirectionalUINavigator(directionalUINavigator);
                 addButtonPressHandler("Cancel", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
                 addButtonPressHandler("Reset keybindings", LogicalButtons.Select, (float advance) -> InputScreenManager.getInstance().transitionToScreen(AutoMapperUI.ID));
             }
         }
         return indicators;
-    }
-
-    public void clickButton(float advance)
-    {
-        if(directionalUINavigator.getSelected() != null) {
-            var obj = directionalUINavigator.getSelected();
-            InputShim.mouseMove((int) obj.getCenterX(), (int) obj.getCenterY());
-            InputShim.mouseDownUp((int) obj.getCenterX(), (int) obj.getCenterY(), InputEventMouseButton.LEFT);
-        }
     }
 
     @Override
@@ -247,5 +237,6 @@ public class TitleScreenUI extends InputScreenBase {
         }
         mainMenuButtons = curMainMenuButtons;
         dialogType = curDialogType;
+        directionalUINavigator.advance(advance);
     }
 }

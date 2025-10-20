@@ -146,6 +146,10 @@ public class InputScreenBase {
                 buttonPressOrHoldHandler.advance(advance);
             }
         }
+
+        if(directionalUINavigator != null && directionalUINavigator.isContextChanged()) {
+            refreshIndicators();
+        }
     }
 
     public void postInput(float advance) {
@@ -195,6 +199,27 @@ public class InputScreenBase {
         if(digitalJoystickHandler instanceof DirectionalUINavigator directionalUINavigator1) {
             this.directionalUINavigator = directionalUINavigator1;
         }
+    }
+
+    protected void addDirectionalUINavigator(DirectionalUINavigator directionalUINavigator) {
+        this.directionalUINavigator = directionalUINavigator;
+
+        indicators.add(new Pair<>(Indicators.DPad, "Navigate"));
+        digitalJoystickHandlers.put(Joystick.DPad, directionalUINavigator);
+
+        indicators.add(new Pair<>(Indicators.LeftStick, "Move cursor"));
+
+        switch(directionalUINavigator.getCurContext()) {
+            case Map -> {
+                indicators.add(new Pair<>(Indicators.RightStick, "Move map"));
+                indicators.add(new Pair<>(Indicators.LeftTrigger, "Zoom out"));
+                indicators.add(new Pair<>(Indicators.RightTrigger, "Zoom in"));
+            }
+        }
+
+        addButtonChangeHandler("Select", LogicalButtons.A, directionalUINavigator::handleAButton);
+
+        directionalUINavigator.setJoystickEnabled(true);
     }
 
     protected void addAnalogJoystickHandler(String msg, Joystick joystick, AnalogJoystickHandler analogJoystickHandler) {

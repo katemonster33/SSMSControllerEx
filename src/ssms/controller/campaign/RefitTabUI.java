@@ -38,13 +38,7 @@ public class RefitTabUI extends InputScreenBase {
             indicators = new ArrayList<>();
             directionalObjects = new ArrayList<>(refitPanel.getChildButtons(true).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
             refitNavigator = new DirectionalUINavigator(directionalObjects);
-            addDigitalJoystickHandler("Navigate", Joystick.DPad, refitNavigator);
-            addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> {
-                if(refitNavigator.getSelected() != null) {
-                    var sel = refitNavigator.getSelected();
-                    InputShim.mouseDownUp((int) sel.x1, (int) sel.y1, InputEventMouseButton.LEFT);
-                }
-            });
+            addDirectionalUINavigator(refitNavigator);
             addButtonPressOrHoldHandler("More Info", "Open Codex", LogicalButtons.Y, new ButtonPressOrHoldHandler() {
                 @Override
                 public void performHoldAction(float advance) {
@@ -82,5 +76,6 @@ public class RefitTabUI extends InputScreenBase {
             directionalObjects = directionalObjectsTmp;
             refitNavigator.setNavigationObjects(directionalObjects);
         }
+        refitNavigator.advance(amount);
     }
 }
