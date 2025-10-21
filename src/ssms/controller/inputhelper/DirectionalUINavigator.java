@@ -40,6 +40,8 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     DirectionalUIContext lastFrameContext, curContext;
     boolean isMovingMap = false;
     boolean joystickEnabled = false;
+    float scrollRate = 5.f;
+    float scrollCounter = 0.f;
 
     public DirectionalUINavigator(List<NavigationObject> navigationObjects)
     {
@@ -304,10 +306,20 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
             handleRightJoystick(amount, SSMSControllerModPluginEx.controller.getJoystick(Joystick.Right));
             if (curContext == DirectionalUIContext.Map && desiredMousePos != null) {
                 var controller = SSMSControllerModPluginEx.controller;
-                if (controller.getButtonEvent(LogicalButtons.LeftTrigger) == 1) {
-                    InputShim.mouseWheel((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), -5);
-                } else if (controller.getButtonEvent(LogicalButtons.RightTrigger) == 1) {
-                    InputShim.mouseWheel((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), 5);
+                if (controller.isButtonPressed(LogicalButtons.LeftTrigger)) {
+                    scrollCounter -= scrollRate * amount;
+                    if(scrollCounter < -1.f) {
+                        InputShim.mouseWheel((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), -1);
+                        scrollCounter = 0.f;
+                    }
+                } else if (controller.isButtonPressed(LogicalButtons.RightTrigger)) {
+                    scrollCounter += scrollRate * amount;
+                    if(scrollCounter >= 1.f) {
+                        InputShim.mouseWheel((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), 1);
+                        scrollCounter = 0.f;
+                    }
+                } else {
+                    scrollCounter = 0.f;
                 }
             }
         }
