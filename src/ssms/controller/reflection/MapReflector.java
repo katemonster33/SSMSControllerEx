@@ -12,6 +12,8 @@ import java.util.List;
 public class MapReflector extends UIPanelReflector {
     CoreUIAPI coreUIAPI;
     static Class<?> mapType;
+    static MethodReflector getMap;
+    static MethodReflector getScroller;
 
     private MapReflector(CoreUIAPI coreUi, UIPanelAPI mapObj) {
         super(mapObj);
@@ -21,8 +23,11 @@ public class MapReflector extends UIPanelReflector {
     public static MapReflector TryGet(CoreUIAPI coreUIAPI, BorderedPanelReflector borderedPanelReflector) {
         var mapObj = borderedPanelReflector.getInnerPanel();
         if (mapType == null) {
-            var getMap = new ClassReflector(mapObj.getPanel().getClass()).getDeclaredMethod("getMap");
-            if(getMap != null) {
+            var clsReflector = new ClassReflector(mapObj.getPanel().getClass());
+            getMap = clsReflector.getDeclaredMethod("getMap");
+
+            getScroller = clsReflector.getDeclaredMethod("getScroller");
+            if(getMap != null && getScroller != null) {
                 mapType = mapObj.getClass();
                 return new MapReflector(coreUIAPI, mapObj.getPanel());
             }
@@ -42,5 +47,13 @@ public class MapReflector extends UIPanelReflector {
             Global.getLogger(getClass()).error("Couldn't get buttons from map!");
         }
         return buttons;
+    }
+
+    public UIPanelAPI getMap() {
+        return (UIPanelAPI) getMap.invoke(panel);
+    }
+
+    public UIPanelAPI getScroller() {
+        return (UIPanelAPI) getScroller.invoke(panel);
     }
 }

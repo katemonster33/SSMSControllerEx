@@ -6,6 +6,7 @@ import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
+import com.fs.starfarer.coreui.P;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
@@ -23,7 +24,7 @@ import java.util.List;
 public class MapTabUI extends InputScreenBase {
     public final static String ID = "MapTab";
     ViewportAPI viewportAPI;
-    MapInputHandler mapInputHandler;
+    DirectionalUINavigator directionalUINavigator;
 
     MapReflector mapReflector;
 
@@ -36,21 +37,31 @@ public class MapTabUI extends InputScreenBase {
     public void activate(Object ... args) {
         viewportAPI = Global.getSector().getViewport();
         mapReflector = (MapReflector) args[0];
-        indicators = new ArrayList<>();
-        mapInputHandler = addMapHandler(mapReflector.getPanel());
-
+        indicators = null;
         List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>(mapReflector.getButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
-        addDigitalJoystickHandler("Navigate", Joystick.DPad, new DirectionalUINavigator(directionalObjects));
-        var buttons = mapReflector.getChildButtons();
-        if(buttons.size() == 4) {
-            addButtonPressHandler("Go back", LogicalButtons.B, new KeySender(Keyboard.KEY_S, 's'));
-        } else {
-            addButtonPressHandler("Close dialog", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+        directionalUINavigator = new DirectionalUINavigator(directionalObjects);
+        directionalUINavigator.setMapComponent(mapReflector.getScroller());
+    }
+
+    @Override
+    public List<Pair<Indicators, String>> getIndicators() {
+        if (indicators == null) {
+            indicators = new ArrayList<>();
+            addDirectionalUINavigator(directionalUINavigator);
+            var buttons = mapReflector.getChildButtons();
+            if(buttons.size() == 4) {
+                addButtonPressHandler("Go back", LogicalButtons.B, new KeySender(Keyboard.KEY_S, 's'));
+            } else {
+                addButtonPressHandler("Close dialog", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+            }
+            addButtonPressHandler("Select cargo tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_I, 'i'));
+            addButtonPressHandler("Select intel tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_E, 'e'));
+            if(directionalUINavigator.getCurContext() != DirectionalUINavigator.DirectionalUIContext.Map) {
+                addButtonPressHandler("Select sector view", LogicalButtons.LeftTrigger, new KeySender(Keyboard.KEY_Q, 'q'));
+                addButtonPressHandler("Select system view", LogicalButtons.RightTrigger, new KeySender(Keyboard.KEY_W, 'w'));
+            }
         }
-        addButtonPressHandler("Select cargo tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_I, 'i'));
-        addButtonPressHandler("Select intel tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_E, 'e'));
-        addButtonPressHandler("Select sector view", LogicalButtons.Y, new KeySender(Keyboard.KEY_Q, 'q'));
-        addButtonPressHandler("Select system view", LogicalButtons.X, new KeySender(Keyboard.KEY_W, 'w'));
+        return indicators;
     }
 
     @Override
@@ -59,6 +70,8 @@ public class MapTabUI extends InputScreenBase {
             InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
             return;
         }
-        mapInputHandler.advance(amount);
+        if(directionalUINavigator != null) {
+            directionalUINavigator.advance(amount);
+        }
     }
 }
