@@ -102,16 +102,17 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     }
 
     public void setNavigationObjects(List<NavigationObject> navigationObjects) {
-        this.navigationObjects = new ArrayList<>(navigationObjects);
 
         if (navigationObjects.isEmpty()) {
+            this.navigationObjects = new ArrayList<>(navigationObjects);
             curIndex = -1;
             return;
         }
         NavigationObject curObj = null;
-        if (curIndex != -1 && curIndex < navigationObjects.size()) {
-            curObj = navigationObjects.get(curIndex);
+        if (curIndex != -1 && curIndex < this.navigationObjects.size()) {
+            curObj = this.navigationObjects.get(curIndex);
         }
+        this.navigationObjects = new ArrayList<>(navigationObjects);
         if (curObj != null) {
             for (curIndex = 0; curIndex < navigationObjects.size(); curIndex++) {
                 NavigationObject obj = navigationObjects.get(curIndex);
