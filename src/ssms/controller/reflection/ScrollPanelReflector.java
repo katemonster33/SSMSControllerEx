@@ -48,4 +48,15 @@ public class ScrollPanelReflector extends UIPanelReflector {
         }
         getScrollPanel().setYOffset(yVal);
     }
+
+    public void scrollToX(float xVal) {
+        float var2 = getPanel().getPosition().getWidth();
+        float var3 = getContentContainer().getPosition().getWidth();
+        if (xVal < 0.0F || var2 > var3) {
+            xVal = 0.0F;
+        } else if ((xVal + var2) > var3) {
+            xVal = var3 - var2;
+        }
+        getScrollPanel().setXOffset(xVal);
+    }
 }

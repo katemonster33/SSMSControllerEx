@@ -48,8 +48,13 @@ public class CommandTabUI  extends InputScreenBase {
             addButtonPressHandler("Return to campaign view", LogicalButtons.B, new KeySender(Keyboard.KEY_B, 'b'));
             addButtonPressHandler("Select intel tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_E, 'e'));
             List<DirectionalUINavigator.NavigationObject> tmpNavObjects = new ArrayList<>();
-            getPanelNavigatables(commandPanelReflector, tmpNavObjects);
+            List<ScrollPanelReflector> scrollers = new ArrayList<>();
+            getPanelNavigatables(commandPanelReflector, tmpNavObjects, scrollers);
             directionalUINavigator.setNavigationObjects(tmpNavObjects);
+            directionalUINavigator.clearScrollPanels();
+            for(var scroller : scrollers) {
+                directionalUINavigator.addScrollPanel(scroller);
+            }
         }
         return indicators;
     }
@@ -78,16 +83,17 @@ public class CommandTabUI  extends InputScreenBase {
         };
     }
 
-    void getPanelNavigatables(UIPanelReflector pnl, List<DirectionalUINavigator.NavigationObject> directionalObjects) {
+    void getPanelNavigatables(UIPanelReflector pnl, List<DirectionalUINavigator.NavigationObject> directionalObjects, List<ScrollPanelReflector> scrollers) {
         if( ScrollPanelAPI.class.isAssignableFrom(pnl.getPanel().getClass())) {
             ScrollPanelReflector scroller = new ScrollPanelReflector((ScrollPanelAPI) pnl.getPanel());
+            scrollers.add(scroller);
             UIPanelReflector container = new UIPanelReflector(scroller.getContentContainer());
             if(scroller.getFader().getBrightness() != 1.f) {
                 return;
             }
             for(var item : container.getChildItems()) {
                 if(UIPanelAPI.class.isAssignableFrom(item.getClass()) && TagDisplayAPI.class.isAssignableFrom(item.getClass())) {
-                    getPanelNavigatables(new UIPanelReflector((UIPanelAPI) item), directionalObjects);
+                    getPanelNavigatables(new UIPanelReflector((UIPanelAPI) item), directionalObjects, scrollers);
                 } else if(UIComponentAPI.class.isAssignableFrom(item.getClass())) {
                     directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI) item, scroller));
                 }
@@ -107,7 +113,7 @@ public class CommandTabUI  extends InputScreenBase {
                 } else if (UIPanelAPI.class.isAssignableFrom(item.getClass())) {
                     UIPanelReflector reflectorTmp = new UIPanelReflector((UIPanelAPI) item);
                     if (reflectorTmp.getFader().getBrightness() == 1.f) {
-                        getPanelNavigatables(reflectorTmp, directionalObjects);
+                        getPanelNavigatables(reflectorTmp, directionalObjects, scrollers);
                     }
                 }
             }
@@ -122,7 +128,7 @@ public class CommandTabUI  extends InputScreenBase {
         }
 
         List<DirectionalUINavigator.NavigationObject> tmpNavObjects = new ArrayList<>();
-        getPanelNavigatables(commandPanelReflector, tmpNavObjects);
+        getPanelNavigatables(commandPanelReflector, tmpNavObjects, new ArrayList<>());
         if(tmpNavObjects.size() != tabNavItems.size()) {
             directionalUINavigator.setNavigationObjects(tmpNavObjects);
             tabNavItems = tmpNavObjects;

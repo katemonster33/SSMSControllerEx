@@ -1,22 +1,17 @@
 package ssms.controller.inputhelper;
 
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
-import com.fs.starfarer.api.ui.PositionAPI;
+import com.fs.starfarer.api.ui.ScrollPanelAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
-import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.coreui.P;
 import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
-import ssms.controller.ControllerCrosshairRenderer;
 import ssms.controller.CrosshairRenderer;
 import ssms.controller.InputShim;
 import ssms.controller.SSMSControllerModPluginEx;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
-import ssms.controller.reflection.MapReflector;
 import ssms.controller.reflection.ScrollPanelReflector;
 
 import java.awt.*;
@@ -24,24 +19,25 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import java.util.Collections;
-import java.util.function.Function;
-
 public class DirectionalUINavigator implements DigitalJoystickHandler {
     List<NavigationObject> navigationObjects;
+    NavigationObject lastFrameSelected;
     float selectedItemX, selectedItemY;
     int curIndex = -1;
     DirectionalUiReticle reticle;
     boolean leftStickActive = false, rightStickActive = false;
-    Vector2f desiredMousePos;
+    Vector2f desiredMousePos, lastFrameMousePos;
     final float mouseMoveFactor = 4.f;
     CrosshairRenderer headingIndicator;
     UIComponentAPI mapComponent;
+    List<ScrollPanelReflector> scrollPanels;
+    ScrollPanelReflector activeScroller;
     DirectionalUIContext lastFrameContext, curContext;
     boolean isMovingMap = false;
     boolean joystickEnabled = false;
-    float scrollRate = 5.f;
-    float scrollCounter = 0.f;
+    float mapZoomRate = 5.f;
+    float mapZoomCounter = 0.f;
+    float scrollRate = 100.f;
 
     public DirectionalUINavigator(List<NavigationObject> navigationObjects)
     {
@@ -50,6 +46,8 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
         headingIndicator = new CrosshairRenderer();
         headingIndicator.setSize(32, 32);
         curContext = lastFrameContext = DirectionalUIContext.Other;
+        scrollPanels = new ArrayList<>();
+        lastFrameMousePos = new Vector2f();
     }
 
     public void setJoystickEnabled(boolean enabled) {
@@ -58,6 +56,14 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
 
     public void setMapComponent(UIComponentAPI mapReflector) {
         this.mapComponent = mapReflector;
+    }
+
+    public void addScrollPanel(ScrollPanelReflector scrollPanelAPI) {
+        scrollPanels.add(scrollPanelAPI);
+    }
+
+    public void clearScrollPanels() {
+        scrollPanels.clear();
     }
 
     public DirectionalUIContext getCurContext() {
@@ -124,7 +130,7 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
                 curIndex = 0;
                 onSelect(this.navigationObjects.get(curIndex));
             }
-        } else {
+        } else if(desiredMousePos == null) {
             curIndex = 0;
             onSelect(this.navigationObjects.get(curIndex));
         }
@@ -240,21 +246,30 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     public void handleRightJoystick(float advance, Vector2f joystickVal) {
         rightStickActive = isStickActive(joystickVal);
 
-        if (leftStickActive || curContext != DirectionalUIContext.Map) return;
+        if (leftStickActive) return;
 
-        if (rightStickActive) {
-            if (!isMovingMap) {
+        if(curContext == DirectionalUIContext.Map) {
+            if (rightStickActive) {
+                if (!isMovingMap) {
+                    centerMousePosOnMap();
+                    InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
+                    isMovingMap = true;
+                } else {
+                    desiredMousePos.set(desiredMousePos.getX() - (joystickVal.getX() * mouseMoveFactor), desiredMousePos.getY() + (joystickVal.getY() * mouseMoveFactor));
+                    InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
+                }
+            } else if (isMovingMap) {
+                InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
                 centerMousePosOnMap();
-                InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
-                isMovingMap = true;
-            } else {
-                desiredMousePos.set(desiredMousePos.getX() - (joystickVal.getX() * mouseMoveFactor), desiredMousePos.getY() + (joystickVal.getY() * mouseMoveFactor));
-                InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
+                isMovingMap = false;
             }
-        } else if (isMovingMap) {
-            InputShim.mouseUp((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
-            centerMousePosOnMap();
-            isMovingMap = false;
+        } else if(curContext == DirectionalUIContext.Scroller && activeScroller != null) {
+            if(joystickVal.getY() != 0.f) {
+                activeScroller.scrollToY(activeScroller.getScrollPanel().getYOffset() + (joystickVal.getY() * advance * 100));
+            }
+            if(joystickVal.getX() != 0.f) {
+                activeScroller.scrollToX(activeScroller.getScrollPanel().getXOffset() + (joystickVal.getX() * advance * 100));
+            }
         }
     }
 
@@ -271,34 +286,39 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
         }
     }
 
+    boolean mousePosIntersects(UIComponentAPI comp) {
+        var pos = comp.getPosition();
+        return desiredMousePos.x >= pos.getX() && desiredMousePos.x < pos.getX() + pos.getWidth() &&
+                desiredMousePos.y >= pos.getY() && desiredMousePos.y < pos.getY() + pos.getHeight();
+    }
 
     public void advance(float amount) {
         lastFrameContext = curContext;
-        if(getSelected() != null) {
-            if(mapComponent != null && getSelected().component == mapComponent) {
-                curContext = DirectionalUIContext.Map;
-            } else {
-                curContext = DirectionalUIContext.Other;
-            }
-        } else if(desiredMousePos != null) {
-            if (mapComponent != null) {
-                var pos = mapComponent.getPosition();
-                if (desiredMousePos.x >= pos.getX() && desiredMousePos.x < pos.getX() + pos.getWidth() &&
-                        desiredMousePos.y >= pos.getY() && desiredMousePos.y < pos.getY() + pos.getHeight()) {
+        var selected = getSelected();
+        if(selected != null) {
+            if(selected != lastFrameSelected) {
+                if (mapComponent != null && getSelected().component == mapComponent) {
                     curContext = DirectionalUIContext.Map;
+                } else if ((activeScroller = scrollPanels.stream().filter(pnl -> pnl.getPanel() == selected.component).findFirst().orElse(null)) != null) {
+                    curContext = DirectionalUIContext.Scroller;
                 } else {
                     curContext = DirectionalUIContext.Other;
                 }
+            }
+        } else if(desiredMousePos != null) {
+            if (mapComponent != null && mousePosIntersects(mapComponent)) {
+                curContext = DirectionalUIContext.Map;
+            } else if((activeScroller = scrollPanels.stream().filter(pnl -> mousePosIntersects(pnl.getPanel())).findFirst().orElse(null)) != null) {
+                curContext = DirectionalUIContext.Scroller;
             } else {
                 curContext = DirectionalUIContext.Other;
             }
         }
-        if(curIndex != -1 && InputShim.hasMouseControl()) {
+        if(InputShim.hasMouseControl()) {
             for(var obj : navigationObjects) {
                 obj.updatePos();
             }
-            var selected = getSelected();
-            if(selected.x1 != selectedItemX || selected.y1 != selectedItemY) {
+            if(selected != null && (selected.x1 != selectedItemX || selected.y1 != selectedItemY)) {
                 onSelect(selected);
             }
         }
@@ -308,19 +328,19 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
             if (curContext == DirectionalUIContext.Map && desiredMousePos != null) {
                 var controller = SSMSControllerModPluginEx.controller;
                 if (controller.isButtonPressed(LogicalButtons.LeftTrigger)) {
-                    scrollCounter -= scrollRate * amount;
-                    if(scrollCounter < -1.f) {
+                    mapZoomCounter -= mapZoomRate * amount;
+                    if(mapZoomCounter < -1.f) {
                         InputShim.mouseWheel((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), -1);
-                        scrollCounter = 0.f;
+                        mapZoomCounter = 0.f;
                     }
                 } else if (controller.isButtonPressed(LogicalButtons.RightTrigger)) {
-                    scrollCounter += scrollRate * amount;
-                    if(scrollCounter >= 1.f) {
+                    mapZoomCounter += mapZoomRate * amount;
+                    if(mapZoomCounter >= 1.f) {
                         InputShim.mouseWheel((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), 1);
-                        scrollCounter = 0.f;
+                        mapZoomCounter = 0.f;
                     }
                 } else {
-                    scrollCounter = 0.f;
+                    mapZoomCounter = 0.f;
                 }
             }
         }

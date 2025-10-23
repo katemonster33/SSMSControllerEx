@@ -215,6 +215,7 @@ public class InputScreenBase {
                 indicators.add(new Pair<>(Indicators.LeftTrigger, "Zoom out"));
                 indicators.add(new Pair<>(Indicators.RightTrigger, "Zoom in"));
             }
+            case Scroller -> indicators.add(new Pair<>(Indicators.RightStick, "Scroll"));
         }
 
         addButtonChangeHandler("Select", LogicalButtons.A, directionalUINavigator::handleAButton);

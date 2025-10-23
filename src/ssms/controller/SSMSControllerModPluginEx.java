@@ -71,7 +71,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         ClassReflector.suppressWarnings = true;
         while (resources.hasMoreElements()) {
             var resource = resources.nextElement();
-            if (resource.getProtocol() == "jar") {
+            if (Objects.equals(resource.getProtocol(), "jar")) {
                 var jarConnection = (JarURLConnection) resource.openConnection() ;
                 var jarFile = jarConnection.getJarFile();
                 var entries = jarFile.entries();
@@ -112,17 +112,8 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         } catch(Throwable ex) {
             Global.getLogger(getClass()).fatal("Couldn't install input shim!", ex);
         }
-        // var csvObj = Global.getSettings().loadCSV("data/config/gamecontrollerdb.txt");
-        // for(int i =0; i < csvObj.length(); i++) {
-        //     String guid = csvObj.getJSONObject(i).getString("guid");
-        //     if(!guid.startsWith("#")) {
-        //         Global.getLogger(getClass()).log(Level.INFO, "Found controller!");
-        //     }
-        // }
         defaultIndicators = indicatorsByController.get("xbox360");
-        
-        // if ( controllerMappings == null ) controllerMappings = new ArrayList<>();
-        // controllerMappings.add(xbox360);
+
         reconnectController();
         
         InputScreenManager man = InputScreenManager.getInstance();
