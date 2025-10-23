@@ -3,10 +3,7 @@ package ssms.controller.campaign;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.input.InputEventMouseButton;
-import com.fs.starfarer.api.ui.ButtonAPI;
-import com.fs.starfarer.api.ui.TagDisplayAPI;
-import com.fs.starfarer.api.ui.UIComponentAPI;
-import com.fs.starfarer.api.ui.UIPanelAPI;
+import com.fs.starfarer.api.ui.*;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.campaign.CampaignEngine;
 import com.fs.starfarer.campaign.comms.IntelTabData;
@@ -50,8 +47,17 @@ public class IntelTabUI extends InputScreenBase {
         if(indicators == null) {
             indicators = new ArrayList<>();
             if(directionalUINavigator == null) {
-                directionalUINavigator = new DirectionalUINavigator(new ArrayList<>());
+                directionalUINavigator = new DirectionalUINavigator(new ArrayList<>()) {
+                    @Override
+                    public void onSelect(NavigationObject obj) {
+                        super.onSelect(obj);
+                        if(intelButtons.stream().anyMatch(btn -> btn == obj.component)) {
+                            eventsTabReflector.ensureIntelButtonVisible(obj.component);
+                        }
+                    }
+                };
                 directionalUINavigator.setMapComponent(eventsTabReflector.getMap());
+                directionalUINavigator.addScrollPanel(new ScrollPanelReflector(eventsTabReflector.getIntelListScroller()));
                 refreshDirectionalUi();
             }
             addDirectionalUINavigator(directionalUINavigator);
@@ -61,7 +67,6 @@ public class IntelTabUI extends InputScreenBase {
             if(directionalUINavigator.getCurContext() != DirectionalUINavigator.DirectionalUIContext.Map) {
                 addButtonPressHandler("Show on map", LogicalButtons.Y, new KeySender(Keyboard.KEY_S, 's'));
             } else {
-                //indicators.add(new Pair<>(Indicators.X, "Toggle sector/system view"));
                 addButtonPressHandler("Show fuel range", LogicalButtons.Y, new KeySender(Keyboard.KEY_W, 'w'));
             }
             addButtonPressHandler("Return to campaign view", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
@@ -80,6 +85,7 @@ public class IntelTabUI extends InputScreenBase {
         eventsTabReflector = new EventsTabReflector(intelTabReflector.getEventsPanel());
         filterButtons = eventsTabReflector.getIntelFilters();
         intelButtons = eventsTabReflector.getIntelButtons();
+        directionalUINavigator = null;
         indicators = null;
     }
 
@@ -97,7 +103,14 @@ public class IntelTabUI extends InputScreenBase {
         else if(intelTabData.getSelectedTabIndex() == 1) InputScreenManager.getInstance().transitionDelayed(IntelPlanetTabUi.ID, intelTabReflector);
         else if(intelTabData.getSelectedTabIndex() == 2) InputScreenManager.getInstance().transitionDelayed(IntelFactionTabUi.ID, intelTabReflector);
         lastFrameSelectedIndex = intelTabData.getSelectedTabIndex();
-        directionalUINavigator.advance(amount);
+        if(directionalUINavigator != null) {
+            var btnsTemp = eventsTabReflector.getIntelButtons();
+            if(btnsTemp.size() != intelButtons.size()) {
+                intelButtons = btnsTemp;
+                refreshDirectionalUi();
+            }
+            directionalUINavigator.advance(amount);
+        }
     }
 
     public static class EventsTabReflector extends UIPanelReflector
@@ -107,6 +120,7 @@ public class IntelTabUI extends InputScreenBase {
         static MethodReflector ensureVisible;
         static MethodReflector getMap;
         static MethodHandle getItems;
+        static MethodReflector getScroller;
 
         static MethodHandle getGroups;
         static FieldReflector intelTagGroupList;
@@ -125,6 +139,8 @@ public class IntelTabUI extends InputScreenBase {
                 ensureVisible = new ClassReflector(listType).findDeclaredMethod("ensureVisible");
 
                 getItems = MethodHandles.lookup().findVirtual(listType, "getItems", MethodType.methodType(List.class));
+
+                getScroller = new ClassReflector(listType).getDeclaredMethod("getScroller");
 
                 for (var field : eventsPanelReflector.getDeclaredFields()) {
                     intelTagGroupListCls = field.getType();
@@ -163,6 +179,19 @@ public class IntelTabUI extends InputScreenBase {
                 Global.getLogger(getClass()).error("Couldn't fetch list of intel items from EventsPanel!", ex);
             }
             return intelButtons;
+        }
+
+        public ScrollPanelAPI getIntelListScroller() {
+            try {
+                var listPanel = getList.invoke(eventsPanel);
+
+                var scroller = getScroller.invoke(listPanel);
+
+                return (ScrollPanelAPI) scroller;
+            } catch(Throwable ex) {
+                Global.getLogger(getClass()).error("Couldn't fetch scroller of intel items from EventsPanel!", ex);
+            }
+            return null;
         }
 
         public List<UIComponentAPI> getIntelFilters() {
