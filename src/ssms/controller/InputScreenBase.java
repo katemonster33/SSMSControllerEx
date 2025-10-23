@@ -20,9 +20,7 @@ package ssms.controller;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
-import com.fs.starfarer.api.ui.Alignment;
-import com.fs.starfarer.api.ui.UIComponentAPI;
-import com.fs.starfarer.api.ui.UIPanelAPI;
+import com.fs.starfarer.api.ui.*;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.enums.AxisMapping;
@@ -30,9 +28,7 @@ import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.*;
-import ssms.controller.reflection.CampaignStateReflector;
-import ssms.controller.reflection.CombatStateReflector;
-import ssms.controller.reflection.TitleScreenStateReflector;
+import ssms.controller.reflection.*;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -240,6 +236,48 @@ public class InputScreenBase {
         indicators.add(new Pair<>(Indicators.RightTrigger, "Zoom in"));
         mapInputHandler.centerMousePos();
         return mapInputHandler;
+    }
+
+
+    protected void getPanelNavigatables(UIPanelReflector pnl, List<DirectionalUINavigator.NavigationObject> directionalObjects, List<ScrollPanelReflector> scrollers) {
+        if( ScrollPanelAPI.class.isAssignableFrom(pnl.getPanel().getClass())) {
+            ScrollPanelReflector scroller = new ScrollPanelReflector((ScrollPanelAPI) pnl.getPanel());
+            scrollers.add(scroller);
+            UIPanelReflector container = new UIPanelReflector(scroller.getContentContainer());
+            if(scroller.getFader().getBrightness() != 1.f || scroller.getPanel().getOpacity() != 1.f) {
+                return;
+            }
+            for(var item : container.getChildItems()) {
+                if(UIPanelAPI.class.isAssignableFrom(item.getClass()) && TagDisplayAPI.class.isAssignableFrom(item.getClass())) {
+                    if(((UIPanelAPI) item).getOpacity() == 1.f) {
+                        getPanelNavigatables(new UIPanelReflector((UIPanelAPI) item), directionalObjects, scrollers);
+                    }
+                } else if(UIComponentAPI.class.isAssignableFrom(item.getClass())) {
+                    if(((UIComponentAPI)item).getOpacity() == 1.f) {
+                        directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI) item, scroller));
+                    }
+                }
+            }
+            for(var item : scroller.getChildItems()) {
+                if(UIComponentAPI.class.isAssignableFrom(item.getClass()) && item != container.getPanel()) {
+                    UIComponentReflector comp = new UIComponentReflector((UIComponentAPI) item);
+                    if(((UIComponentAPI)item).getPosition().getWidth() > 0 && comp.getFader().getBrightness() == 1.f && ((UIComponentAPI)item).getOpacity() == 1.f) {
+                        directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI)item));
+                    }
+                }
+            }
+        } else {
+            for (var item : pnl.getChildItems()) {
+                if (ButtonAPI.class.isAssignableFrom(item.getClass())) {
+                    directionalObjects.add(new DirectionalUINavigator.NavigationObject((ButtonAPI) item));
+                } else if (UIPanelAPI.class.isAssignableFrom(item.getClass())) {
+                    UIPanelReflector reflectorTmp = new UIPanelReflector((UIPanelAPI) item);
+                    if (reflectorTmp.getFader().getBrightness() == 1.f && reflectorTmp.getPanel().getOpacity() == 1.f) {
+                        getPanelNavigatables(reflectorTmp, directionalObjects, scrollers);
+                    }
+                }
+            }
+        }
     }
 
     public void refreshIndicators() {

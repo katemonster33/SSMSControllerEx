@@ -83,43 +83,6 @@ public class CommandTabUI  extends InputScreenBase {
         };
     }
 
-    void getPanelNavigatables(UIPanelReflector pnl, List<DirectionalUINavigator.NavigationObject> directionalObjects, List<ScrollPanelReflector> scrollers) {
-        if( ScrollPanelAPI.class.isAssignableFrom(pnl.getPanel().getClass())) {
-            ScrollPanelReflector scroller = new ScrollPanelReflector((ScrollPanelAPI) pnl.getPanel());
-            scrollers.add(scroller);
-            UIPanelReflector container = new UIPanelReflector(scroller.getContentContainer());
-            if(scroller.getFader().getBrightness() != 1.f) {
-                return;
-            }
-            for(var item : container.getChildItems()) {
-                if(UIPanelAPI.class.isAssignableFrom(item.getClass()) && TagDisplayAPI.class.isAssignableFrom(item.getClass())) {
-                    getPanelNavigatables(new UIPanelReflector((UIPanelAPI) item), directionalObjects, scrollers);
-                } else if(UIComponentAPI.class.isAssignableFrom(item.getClass())) {
-                    directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI) item, scroller));
-                }
-            }
-            for(var item : scroller.getChildItems()) {
-                if(UIComponentAPI.class.isAssignableFrom(item.getClass()) && item != container.getPanel()) {
-                    UIComponentReflector comp = new UIComponentReflector((UIComponentAPI) item);
-                    if(((UIComponentAPI)item).getPosition().getWidth() > 0 && comp.getFader().getBrightness() == 1.f) {
-                        directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI)item));
-                    }
-                }
-            }
-        } else {
-            for (var item : pnl.getChildItems()) {
-                if (ButtonAPI.class.isAssignableFrom(item.getClass())) {
-                    directionalObjects.add(new DirectionalUINavigator.NavigationObject((ButtonAPI) item));
-                } else if (UIPanelAPI.class.isAssignableFrom(item.getClass())) {
-                    UIPanelReflector reflectorTmp = new UIPanelReflector((UIPanelAPI) item);
-                    if (reflectorTmp.getFader().getBrightness() == 1.f) {
-                        getPanelNavigatables(reflectorTmp, directionalObjects, scrollers);
-                    }
-                }
-            }
-        }
-    }
-
     @Override
     public void preInput(float amount) {
         if (Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.OUTPOSTS) {
