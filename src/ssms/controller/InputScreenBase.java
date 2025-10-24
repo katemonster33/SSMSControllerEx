@@ -22,6 +22,7 @@ import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.*;
 import com.fs.starfarer.api.util.Pair;
+import com.fs.starfarer.codex2.CodexDialog;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.enums.AxisMapping;
 import ssms.controller.enums.Indicators;
@@ -278,6 +279,19 @@ public class InputScreenBase {
                 }
             }
         }
+    }
+
+    protected CodexDialog tryGetCodexDialog() {
+        switch(Global.getCurrentState()) {
+            case CAMPAIGN -> {
+                for(var child : new UIPanelReflector((UIPanelAPI) CampaignStateReflector.GetInstance().getCoreUI()).getChildPanels()) {
+                    if(child instanceof CodexDialog codexDialog) {
+                        return codexDialog;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public void refreshIndicators() {

@@ -22,6 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import ssms.controller.campaign.*;
 import ssms.controller.combat.*;
 import ssms.controller.enums.*;
+import ssms.controller.generic.CodexUI;
 import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.reflection.*;
 import ssms.controller.titlescreen.*;
@@ -147,6 +148,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         man.registerScreen(new LoadGameUI());
         man.registerScreen(new NewGameUI());
         man.registerScreen(new ControllerSettingsUI());
+        man.registerScreen(new CodexUI());
     }
 
      enum POVMapping

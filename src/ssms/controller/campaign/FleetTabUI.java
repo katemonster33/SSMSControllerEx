@@ -70,6 +70,10 @@ public class FleetTabUI extends InputScreenBase {
         if (Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.FLEET) {
             InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
         }
+        var codex = tryGetCodexDialog();
+        if(codex != null) {
+            InputScreenManager.getInstance().transitionToScreen(CodexUI.ID, getId());
+        }
 
         var directionalObjects = fleetTabReflector.getButtons().stream().map(DirectionalUINavigator.NavigationObject::new).collect(Collectors.toList());
         for(var shipItem : fleetTabReflector.getItems()) {
