@@ -7,17 +7,12 @@ import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.*;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.util.vector.ReadableVector2f;
-import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
-import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.ScrollPanelReflector;
-import ssms.controller.reflection.ScrollbarUiReflector;
-import ssms.controller.reflection.UIComponentReflector;
 import ssms.controller.reflection.UIPanelReflector;
 
 import java.util.ArrayList;
@@ -25,13 +20,7 @@ import java.util.List;
 
 public class CommandTabUI  extends InputScreenBase {
     public static final String ID = "CommandTab";
-    ViewportAPI viewportAPI;
-    Vector2f desiredMousePos = null;
-    float mouseMoveFactor = 4.f;
     UIPanelReflector commandPanelReflector;
-    List<ButtonAPI> tabButtons;
-    List<UIPanelReflector> commandTabs;
-    UIPanelReflector activeTab;
     List<DirectionalUINavigator.NavigationObject> tabNavItems = new ArrayList<>();
     DirectionalUINavigator directionalUINavigator;
 
@@ -61,16 +50,7 @@ public class CommandTabUI  extends InputScreenBase {
 
     @Override
     public void activate(Object... args) {
-        viewportAPI = Global.getSector().getViewport();
         commandPanelReflector = (UIPanelReflector) args[0];
-        tabButtons = commandPanelReflector.getChildButtons();
-        commandTabs = commandPanelReflector.getChildPanels().stream().map(UIPanelReflector::new).toList();
-        for(var pnl : commandTabs) {
-            if(pnl.getFader().getBrightness() == 1.f) {
-                activeTab = pnl;
-                break;
-            }
-        }
         indicators = null;
         directionalUINavigator = new DirectionalUINavigator(new ArrayList<>()) {
             @Override

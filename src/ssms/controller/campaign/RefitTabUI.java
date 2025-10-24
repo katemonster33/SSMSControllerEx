@@ -14,6 +14,7 @@ import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.ButtonPressOrHoldHandler;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
+import ssms.controller.reflection.ScrollPanelReflector;
 import ssms.controller.reflection.UIPanelReflector;
 
 import java.util.ArrayList;
@@ -36,8 +37,14 @@ public class RefitTabUI extends InputScreenBase {
     public List<Pair<Indicators, String>> getIndicators() {
         if(indicators == null) {
             indicators = new ArrayList<>();
-            directionalObjects = new ArrayList<>(refitPanel.getChildButtons(true).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
-            refitNavigator = new DirectionalUINavigator(directionalObjects);
+            List<ScrollPanelReflector> scrollers = new ArrayList<>();
+            directionalObjects = new ArrayList<>();
+            getPanelNavigatables(refitPanel, directionalObjects, scrollers);
+            //directionalObjects = new ArrayList<>(refitPanel.getChildButtons(true).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
+            for(var scroller : scrollers) {
+                refitNavigator.addScrollPanel(scroller);
+            }
+            refitNavigator.setNavigationObjects(directionalObjects);
             addDirectionalUINavigator(refitNavigator);
             addButtonPressOrHoldHandler("More Info", "Open Codex", LogicalButtons.Y, new ButtonPressOrHoldHandler() {
                 @Override
@@ -61,6 +68,15 @@ public class RefitTabUI extends InputScreenBase {
     public void activate(Object ... args) {
         viewportAPI = Global.getSector().getViewport();
         refitPanel = (UIPanelReflector) args[0];
+        refitNavigator = new DirectionalUINavigator(new ArrayList<>()){
+            @Override
+            public void onSelect(NavigationObject selectedObj) {
+                super.onSelect(selectedObj);
+                if(selectedObj.tag instanceof  ScrollPanelReflector scrollPanelReflector) {
+                    scrollPanelReflector.ensureVisible(selectedObj.component);
+                }
+            }
+        };
         indicators = null;
     }
 
@@ -71,7 +87,8 @@ public class RefitTabUI extends InputScreenBase {
             return;
         }
 
-        List<DirectionalUINavigator.NavigationObject> directionalObjectsTmp = new ArrayList<>(refitPanel.getChildButtons(true).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
+        List<DirectionalUINavigator.NavigationObject> directionalObjectsTmp = new ArrayList<>(); //new ArrayList<>(refitPanel.getChildButtons(true).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
+        getPanelNavigatables(refitPanel, directionalObjectsTmp, new ArrayList<>());
         if(directionalObjectsTmp.size() != directionalObjects.size()) {
             directionalObjects = directionalObjectsTmp;
             refitNavigator.setNavigationObjects(directionalObjects);

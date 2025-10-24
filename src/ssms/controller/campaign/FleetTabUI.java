@@ -12,6 +12,7 @@ import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.CodexUI;
 import ssms.controller.inputhelper.ButtonPressOrHoldHandler;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
@@ -37,15 +38,12 @@ public class FleetTabUI extends InputScreenBase {
     public List<Pair<Indicators, String>> getIndicators() {
         if (indicators == null) {
             indicators = new ArrayList<>();
-            addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
-            addButtonPressHandler("Select item", LogicalButtons.A, (float advance) ->
-                    InputShim.mouseDownUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT));
+            addDirectionalUINavigator(directionalUINavigator);
             addButtonPressHandler("Close Dialog", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
             addButtonPressHandler("Open Codex", LogicalButtons.Y, new KeySender(Keyboard.KEY_F2));
             addButtonPressHandler("More Info", LogicalButtons.X, new KeySender(Keyboard.KEY_F1));
             addButtonPressHandler("Select character tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_C, 'c'));
             addButtonPressHandler("Select refit tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_R, 'r'));
-
         }
         return indicators;
     }
@@ -81,8 +79,10 @@ public class FleetTabUI extends InputScreenBase {
                 if(children.get(0) instanceof UIPanelAPI fleetMemberViewPanel) {
                     UIPanelReflector fleetMemberReflector = new UIPanelReflector(fleetMemberViewPanel);
                     var fleetMemberComponents = fleetMemberReflector.getChildItems();
-                    for(int i = 2; i < fleetMemberComponents.size(); i++) {
-                        directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI) fleetMemberComponents.get(i)));
+                    if(fleetMemberComponents.size() > 2) {
+                        var fleetMemberView = (UIComponentAPI) fleetMemberComponents.get(2);
+                        float newX1 = fleetMemberView.getPosition().getCenterX() - 50.f, newY1 = fleetMemberView.getPosition().getCenterY() - 50.f;
+                        directionalObjects.add(new DirectionalUINavigator.NavigationObject(fleetMemberView, newX1, newX1 + 100.f, newY1, newY1 + 100.f));
                     }
                 }
                 for(int i = 2; i < children.size(); i++) {
@@ -95,5 +95,6 @@ public class FleetTabUI extends InputScreenBase {
             }
         }
         directionalUINavigator.setNavigationObjects(directionalObjects);
+        directionalUINavigator.advance(amount);
     }
 }

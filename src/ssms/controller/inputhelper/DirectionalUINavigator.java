@@ -265,10 +265,10 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
             }
         } else if(curContext == DirectionalUIContext.Scroller && activeScroller != null) {
             if(joystickVal.getY() != 0.f) {
-                activeScroller.scrollToY(activeScroller.getScrollPanel().getYOffset() + (joystickVal.getY() * advance * 100));
+                activeScroller.scrollToY(activeScroller.getScrollPanel().getYOffset() + (joystickVal.getY() * advance * 300));
             }
             if(joystickVal.getX() != 0.f) {
-                activeScroller.scrollToX(activeScroller.getScrollPanel().getXOffset() + (joystickVal.getX() * advance * 100));
+                activeScroller.scrollToX(activeScroller.getScrollPanel().getXOffset() + (joystickVal.getX() * advance * 300));
             }
         }
     }
