@@ -27,7 +27,6 @@ public class FleetTabUI extends InputScreenBase {
     public static final String ID = "FleetTab";
     FleetTabReflector fleetTabReflector;
     DirectionalUINavigator directionalUINavigator;
-    Vector2f mousePos;
 
     @Override
     public String getId() {
@@ -52,16 +51,8 @@ public class FleetTabUI extends InputScreenBase {
     public void activate(Object... args) {
         this.fleetTabReflector = (FleetTabReflector) args[0];
 
-        mousePos = new Vector2f(0.f, 0.f);
-
-        List<DirectionalUINavigator.NavigationObject> directionalObjects = fleetTabReflector.getButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList();
-        directionalUINavigator = new DirectionalUINavigator(directionalObjects){
-            @Override
-            public void onSelect(NavigationObject obj) {
-                super.onSelect(obj);
-                mousePos.set(obj.getCenterX(), obj.getCenterY());
-            }
-        };
+        List<DirectionalUINavigator.NavigationObject> directionalObjects = fleetTabReflector.getButtons().stream().filter(this::isComponentVisible).map(DirectionalUINavigator.NavigationObject::new).toList();
+        directionalUINavigator = new DirectionalUINavigator(directionalObjects);
         indicators = null;
     }
 
@@ -75,24 +66,28 @@ public class FleetTabUI extends InputScreenBase {
             InputScreenManager.getInstance().transitionToScreen(CodexUI.ID, getId());
         }
 
-        var directionalObjects = fleetTabReflector.getButtons().stream().map(DirectionalUINavigator.NavigationObject::new).collect(Collectors.toList());
+        var directionalObjects = fleetTabReflector.getButtons().stream().filter(this::isComponentVisible).map(DirectionalUINavigator.NavigationObject::new).collect(Collectors.toList());
         for(var shipItem : fleetTabReflector.getItems()) {
             if(shipItem instanceof UIPanelAPI shipPanel) {
                 UIPanelReflector shipPanelReflector = new UIPanelReflector(shipPanel);
                 var children = shipPanelReflector.getChildItems();
-                if(children.get(0) instanceof UIPanelAPI fleetMemberViewPanel) {
-                    UIPanelReflector fleetMemberReflector = new UIPanelReflector(fleetMemberViewPanel);
-                    var fleetMemberComponents = fleetMemberReflector.getChildItems();
-                    if(fleetMemberComponents.size() > 2) {
-                        var fleetMemberView = (UIComponentAPI) fleetMemberComponents.get(2);
-                        float newX1 = fleetMemberView.getPosition().getCenterX() - 50.f, newY1 = fleetMemberView.getPosition().getCenterY() - 50.f;
-                        directionalObjects.add(new DirectionalUINavigator.NavigationObject(fleetMemberView, newX1, newX1 + 100.f, newY1, newY1 + 100.f));
+                if(children.size() > 2) {
+                    if (children.get(0) instanceof UIPanelAPI fleetMemberViewPanel) {
+                        UIPanelReflector fleetMemberReflector = new UIPanelReflector(fleetMemberViewPanel);
+                        var fleetMemberComponents = fleetMemberReflector.getChildItems();
+                        if (fleetMemberComponents.size() > 2) {
+                            var fleetMemberView = (UIComponentAPI) fleetMemberComponents.get(2);
+                            float newX1 = fleetMemberView.getPosition().getCenterX() - 50.f, newY1 = fleetMemberView.getPosition().getCenterY() - 50.f;
+                            directionalObjects.add(new DirectionalUINavigator.NavigationObject(fleetMemberView, newX1, newX1 + 100.f, newY1, newY1 + 100.f));
+                        }
                     }
-                }
-                for(int i = 2; i < children.size(); i++) {
-                    if(children.get(i) instanceof UIPanelAPI uiPanelAPI) {
-                        for(var btn : new UIPanelReflector(uiPanelAPI).getChildButtons(true)) {
-                            directionalObjects.add(new DirectionalUINavigator.NavigationObject(btn));
+                    for (int i = 2; i < children.size(); i++) {
+                        if (children.get(i) instanceof UIPanelAPI uiPanelAPI) {
+                            for (var btn : new UIPanelReflector(uiPanelAPI).getChildButtons(true)) {
+                                if (isComponentVisible(btn)) {
+                                    directionalObjects.add(new DirectionalUINavigator.NavigationObject(btn));
+                                }
+                            }
                         }
                     }
                 }

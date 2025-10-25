@@ -4,9 +4,11 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.UIPanelAPI;
+import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import ssms.controller.*;
+import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.MessageBoxScreen;
@@ -24,39 +26,35 @@ public class CharacterTabUI extends InputScreenBase {
     CharacterSheetReflector characterSheetReflector;
     DirectionalUINavigator directionalUINavigator;
     int lastFrameNumChildren;
+    List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>();
 
     @Override
     public void activate(Object ...args) {
-        // if no args, means we are returning from message box
+        // if no args, means we are returning from message box or codex
         if(args.length > 0) {
             characterSheetReflector = (CharacterSheetReflector) args[0];
         }
+        indicators = null;
 
-        //buttonRows = characterSheetReflector.getButtonRows();
-
-        List<DirectionalUINavigator.NavigationObject> directionalObjects = characterSheetReflector.getChildButtons(true).stream().
-                filter(btn -> btn.getPosition().getX() >= 0 && btn.getPosition().getX() <= Display.getWidth() &&
-                        btn.getPosition().getY() >= 0 && btn.getPosition().getY() <= Display.getHeight()).
-                map(DirectionalUINavigator.NavigationObject::new).toList();
-        indicators = new ArrayList<>();
-        directionalUINavigator = new DirectionalUINavigator(directionalObjects);
-        addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
-        addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> {
-            if(directionalUINavigator.getSelected() != null) {
-                var sel = directionalUINavigator.getSelected();
-                InputShim.mouseMove((int) sel.getCenterX(), (int) sel.getCenterY());
-                InputShim.mouseDownUp((int) sel.getCenterX(), (int) sel.getCenterY(), InputEventMouseButton.LEFT);
-            }
-        });
-        addButtonPressHandler("Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
-        //indicators.add(new Pair<>(Indicators.Start, "Confirm"));
-        addButtonPressHandler("Reset", LogicalButtons.Y, new KeySender(Keyboard.KEY_G, 'G'));
-        addButtonPressHandler("Open Codex", LogicalButtons.Y, new KeySender(Keyboard.KEY_F2));
-        //indicators.add(new Pair<>(Indicators.Select, "Re-assign skills"));
-        addButtonPressHandler("Select fleet tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_F, 'f'));
         lastFrameNumChildren = new UIPanelReflector((UIPanelAPI) characterSheetReflector.getCoreUIAPI()).getChildItems().size();
+        getPanelNavigatables(characterSheetReflector, directionalObjects, new ArrayList<>());
+        directionalUINavigator = new DirectionalUINavigator(directionalObjects);
     }
 
+    @Override
+    public List<Pair<Indicators, String>> getIndicators() {
+        if(indicators == null) {
+            indicators = new ArrayList<>();
+            addDirectionalUINavigator(directionalUINavigator);
+            addButtonPressHandler("Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+            //indicators.add(new Pair<>(Indicators.Start, "Confirm"));
+            addButtonPressHandler("Reset", LogicalButtons.X, new KeySender(Keyboard.KEY_T, 't'));
+            addButtonPressHandler("Open Codex", LogicalButtons.Y, new KeySender(Keyboard.KEY_F2));
+            //indicators.add(new Pair<>(Indicators.Select, "Re-assign skills"));
+            addButtonPressHandler("Select fleet tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_F, 'f'));
+        }
+        return indicators;
+    }
     @Override
     public void deactivate() {
         clearHandlers();
@@ -67,21 +65,26 @@ public class CharacterTabUI extends InputScreenBase {
     public void preInput(float advance) {
         if(Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.CHARACTER) {
             InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
-            return;
         } else {
-            var coreUiChildren = new UIPanelReflector((UIPanelAPI) characterSheetReflector.getCoreUIAPI()).getChildItems();
-            if(coreUiChildren.size() > lastFrameNumChildren) {
-                for(int index = lastFrameNumChildren; index < coreUiChildren.size(); index++) {
-                    if(coreUiChildren.get(index) instanceof  UIPanelAPI childPanel) {
-                        if(MessageBoxReflector.isMsgBox(childPanel)) {
-                            InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, new MessageBoxReflector(childPanel), getId());
-                            return;
-                        }
+            var coreUiChildren = new UIPanelReflector((UIPanelAPI) characterSheetReflector.getCoreUIAPI()).getChildPanels();
+            if(coreUiChildren.size() != lastFrameNumChildren) {
+                for (UIPanelAPI childPanel : coreUiChildren) {
+                    if (MessageBoxReflector.isMsgBox(childPanel)) {
+                        InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, new MessageBoxReflector(childPanel), getId());
+                        return;
                     }
                 }
             }
             lastFrameNumChildren = coreUiChildren.size();
         }
+
+        List<DirectionalUINavigator.NavigationObject> directionalObjectsTmp = new ArrayList<>();
+        getPanelNavigatables(characterSheetReflector, directionalObjectsTmp, new ArrayList<>());
+        if(directionalObjectsTmp.size() != directionalObjects.size()) {
+            directionalObjects = directionalObjectsTmp;
+            directionalUINavigator.setNavigationObjects(directionalObjects);
+        }
+        directionalUINavigator.advance(advance);
     }
 
     @Override

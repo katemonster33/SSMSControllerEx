@@ -23,6 +23,8 @@ import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.*;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.codex2.CodexDialog;
+import com.fs.starfarer.coreui.AptitudeRow;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.enums.AxisMapping;
 import ssms.controller.enums.Indicators;
@@ -239,22 +241,27 @@ public class InputScreenBase {
         return mapInputHandler;
     }
 
+    protected boolean isComponentVisible(UIComponentAPI comp) {
+        var pos = comp.getPosition();
+        return comp.getOpacity() == 1.f && pos.getX() >= 0 && pos.getX() <= Display.getWidth() &&
+                pos.getY() >= 0 && pos.getY() <= Display.getHeight();
+    }
 
     protected void getPanelNavigatables(UIPanelReflector pnl, List<DirectionalUINavigator.NavigationObject> directionalObjects, List<ScrollPanelReflector> scrollers) {
         if( ScrollPanelAPI.class.isAssignableFrom(pnl.getPanel().getClass())) {
             ScrollPanelReflector scroller = new ScrollPanelReflector((ScrollPanelAPI) pnl.getPanel());
             scrollers.add(scroller);
             UIPanelReflector container = new UIPanelReflector(scroller.getContentContainer());
-            if(scroller.getFader().getBrightness() != 1.f || scroller.getPanel().getOpacity() != 1.f) {
+            if(scroller.getFader().getBrightness() != 1.f || !isComponentVisible(scroller.getPanel())) {
                 return;
             }
             for(var item : container.getChildItems()) {
-                if(UIPanelAPI.class.isAssignableFrom(item.getClass()) && TagDisplayAPI.class.isAssignableFrom(item.getClass())) {
-                    if(((UIPanelAPI) item).getOpacity() == 1.f) {
+                if(UIPanelAPI.class.isAssignableFrom(item.getClass()) && (TagDisplayAPI.class.isAssignableFrom(item.getClass()) || AptitudeRow.class.isAssignableFrom(item.getClass()))) {
+                    if(isComponentVisible((UIComponentAPI) item)) {
                         getPanelNavigatables(new UIPanelReflector((UIPanelAPI) item), directionalObjects, scrollers);
                     }
                 } else if(UIComponentAPI.class.isAssignableFrom(item.getClass())) {
-                    if(((UIComponentAPI)item).getOpacity() == 1.f) {
+                    if(isComponentVisible((UIComponentAPI)item)) {
                         directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI) item, scroller));
                     }
                 }
@@ -262,18 +269,18 @@ public class InputScreenBase {
             for(var item : scroller.getChildItems()) {
                 if(UIComponentAPI.class.isAssignableFrom(item.getClass()) && item != container.getPanel()) {
                     UIComponentReflector comp = new UIComponentReflector((UIComponentAPI) item);
-                    if(((UIComponentAPI)item).getPosition().getWidth() > 0 && comp.getFader().getBrightness() == 1.f && ((UIComponentAPI)item).getOpacity() == 1.f) {
+                    if(((UIComponentAPI)item).getPosition().getWidth() > 0 && comp.getFader().getBrightness() == 1.f && isComponentVisible((UIComponentAPI)item)) {
                         directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI)item));
                     }
                 }
             }
         } else {
             for (var item : pnl.getChildItems()) {
-                if (ButtonAPI.class.isAssignableFrom(item.getClass())) {
+                if (ButtonAPI.class.isAssignableFrom(item.getClass()) && isComponentVisible((ButtonAPI)item)) {
                     directionalObjects.add(new DirectionalUINavigator.NavigationObject((ButtonAPI) item));
                 } else if (UIPanelAPI.class.isAssignableFrom(item.getClass())) {
                     UIPanelReflector reflectorTmp = new UIPanelReflector((UIPanelAPI) item);
-                    if (reflectorTmp.getFader().getBrightness() == 1.f && reflectorTmp.getPanel().getOpacity() == 1.f) {
+                    if (reflectorTmp.getFader().getBrightness() == 1.f && isComponentVisible(reflectorTmp.getPanel())) {
                         getPanelNavigatables(reflectorTmp, directionalObjects, scrollers);
                     }
                 }
