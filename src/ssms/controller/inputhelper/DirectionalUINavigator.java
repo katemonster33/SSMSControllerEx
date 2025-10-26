@@ -249,6 +249,9 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
         if (leftStickActive) return;
 
         if(curContext == DirectionalUIContext.Map) {
+            if(desiredMousePos == null) {
+                desiredMousePos = new Vector2f(mapComponent.getPosition().getCenterX(), mapComponent.getPosition().getCenterY());
+            }
             if (rightStickActive) {
                 if (!isMovingMap) {
                     centerMousePosOnMap();
