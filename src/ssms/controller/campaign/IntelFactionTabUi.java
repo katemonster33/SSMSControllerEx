@@ -43,18 +43,11 @@ public class IntelFactionTabUi extends InputScreenBase {
         intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
         indicators = new ArrayList<>();
         directionalUINavigator = new DirectionalUINavigator(intelFactionTabReflector.getFactionButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
-        addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
+        addDirectionalUINavigator(directionalUINavigator);
 
         addButtonPressHandler("Select planet tab", LogicalButtons.LeftTrigger, new KeySender(Keyboard.KEY_2, '2'));
         addButtonPressHandler("Select map tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_TAB));
         addButtonPressHandler("Select command tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_D, 'd'));
-
-        addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> {
-            if(directionalUINavigator.getSelected() != null) {
-                var sel = directionalUINavigator.getSelected();
-                InputShim.mouseDownUp((int) sel.getCenterX(), (int) sel.getCenterY(), InputEventMouseButton.LEFT);
-            }
-        });
         addButtonPressHandler("Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
     }
 
@@ -63,6 +56,10 @@ public class IntelFactionTabUi extends InputScreenBase {
         if(Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.INTEL) InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
         else if(intelTabData.getSelectedTabIndex() == 0) InputScreenManager.getInstance().transitionDelayed(IntelTabUI.ID, intelTabReflector);
         else if(intelTabData.getSelectedTabIndex() == 1) InputScreenManager.getInstance().transitionDelayed(IntelPlanetTabUi.ID, intelTabReflector);
+
+        if(directionalUINavigator != null) {
+            directionalUINavigator.advance(amount);
+        }
     }
 
     public static class IntelFactionTabReflector
