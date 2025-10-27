@@ -122,7 +122,7 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
         if (curObj != null) {
             for (curIndex = 0; curIndex < navigationObjects.size(); curIndex++) {
                 NavigationObject obj = navigationObjects.get(curIndex);
-                if (obj.getCenterX() == curObj.getCenterX() && obj.getCenterY() == curObj.getCenterY()) {
+                if (obj.component == curObj.component || (obj.getCenterX() == curObj.getCenterX() && obj.getCenterY() == curObj.getCenterY())) {
                     break;
                 }
             }
