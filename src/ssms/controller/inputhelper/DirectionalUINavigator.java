@@ -27,7 +27,8 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     DirectionalUiReticle reticle;
     boolean leftStickActive = false, rightStickActive = false;
     Vector2f desiredMousePos, lastFrameMousePos;
-    final float mouseMoveFactor = 4.f;
+    final float mouseMoveFactor = 400.f;
+    final float scrollRate = 300.f;
     CrosshairRenderer headingIndicator;
     UIComponentAPI mapComponent;
     List<ScrollPanelReflector> scrollPanels;
@@ -37,7 +38,6 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     boolean joystickEnabled = false;
     float mapZoomRate = 5.f;
     float mapZoomCounter = 0.f;
-    float scrollRate = 100.f;
 
     public DirectionalUINavigator(List<NavigationObject> navigationObjects)
     {
@@ -238,7 +238,7 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
                 }
                 curIndex = -1;
             }
-            desiredMousePos.set(desiredMousePos.getX() + (joystickVal.getX() * mouseMoveFactor), desiredMousePos.getY() - (joystickVal.getY() * mouseMoveFactor));
+            desiredMousePos.set(desiredMousePos.getX() + (joystickVal.getX() * mouseMoveFactor * advance), desiredMousePos.getY() - (joystickVal.getY() * mouseMoveFactor * advance));
             InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
         }
     }
@@ -258,7 +258,7 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
                     InputShim.mouseDown((int) desiredMousePos.getX(), (int) desiredMousePos.getY(), InputEventMouseButton.RIGHT);
                     isMovingMap = true;
                 } else {
-                    desiredMousePos.set(desiredMousePos.getX() - (joystickVal.getX() * mouseMoveFactor), desiredMousePos.getY() + (joystickVal.getY() * mouseMoveFactor));
+                    desiredMousePos.set(desiredMousePos.getX() - (joystickVal.getX() * mouseMoveFactor * advance), desiredMousePos.getY() + (joystickVal.getY() * mouseMoveFactor * advance));
                     InputShim.mouseMove((int) desiredMousePos.getX(), (int) desiredMousePos.getY());
                 }
             } else if (isMovingMap) {
@@ -268,10 +268,10 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
             }
         } else if(curContext == DirectionalUIContext.Scroller && activeScroller != null) {
             if(joystickVal.getY() != 0.f) {
-                activeScroller.scrollToY(activeScroller.getScrollPanel().getYOffset() + (joystickVal.getY() * advance * 300));
+                activeScroller.scrollToY(activeScroller.getScrollPanel().getYOffset() + (joystickVal.getY() * advance * scrollRate));
             }
             if(joystickVal.getX() != 0.f) {
-                activeScroller.scrollToX(activeScroller.getScrollPanel().getXOffset() + (joystickVal.getX() * advance * 300));
+                activeScroller.scrollToX(activeScroller.getScrollPanel().getXOffset() + (joystickVal.getX() * advance * scrollRate));
             }
         }
     }
