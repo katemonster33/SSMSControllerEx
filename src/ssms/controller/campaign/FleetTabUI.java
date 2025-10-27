@@ -49,7 +49,9 @@ public class FleetTabUI extends InputScreenBase {
 
     @Override
     public void activate(Object... args) {
-        this.fleetTabReflector = (FleetTabReflector) args[0];
+        if(args.length > 0) {
+            this.fleetTabReflector = (FleetTabReflector) args[0];
+        }
 
         List<DirectionalUINavigator.NavigationObject> directionalObjects = fleetTabReflector.getButtons().stream().filter(this::isComponentVisible).map(DirectionalUINavigator.NavigationObject::new).toList();
         directionalUINavigator = new DirectionalUINavigator(directionalObjects);
@@ -61,9 +63,8 @@ public class FleetTabUI extends InputScreenBase {
         if (Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.FLEET) {
             InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
         }
-        var codex = tryGetCodexDialog();
-        if(codex != null) {
-            InputScreenManager.getInstance().transitionToScreen(CodexUI.ID, getId());
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
         }
 
         var directionalObjects = fleetTabReflector.getButtons().stream().filter(this::isComponentVisible).map(DirectionalUINavigator.NavigationObject::new).collect(Collectors.toList());

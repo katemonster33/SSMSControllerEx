@@ -1,6 +1,7 @@
 package ssms.controller.generic;
 
 import com.fs.starfarer.api.input.InputEventMouseButton;
+import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.codex2.CodexDialog;
 import org.lwjgl.input.Keyboard;
@@ -12,6 +13,9 @@ import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
+import ssms.controller.reflection.ClassReflector;
+import ssms.controller.reflection.ScrollPanelReflector;
+import ssms.controller.reflection.UIPanelReflector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,9 +23,11 @@ import java.util.List;
 public class CodexUI extends InputScreenBase {
     public static final String ID = "Codex";
     CodexDialog activeCode = null;
+    UIPanelReflector codexInnerPanel = null;
     String screenToReturnTo = InputScreenBase.ID;
     List<DirectionalUINavigator.NavigationObject> tabNavItems = new ArrayList<>();
     DirectionalUINavigator directionalUINavigator;
+
     @Override
     public String getId() {
         return ID;
@@ -31,13 +37,14 @@ public class CodexUI extends InputScreenBase {
     public List<Pair<Indicators, String>> getIndicators() {
         if(indicators == null) {
             indicators = new ArrayList<>();
+            List<ScrollPanelReflector> scrollers = new ArrayList<>();
+            getPanelNavigatables(codexInnerPanel, tabNavItems, scrollers);
+            directionalUINavigator.clearScrollPanels();
+            for(var scroller : scrollers) {
+                directionalUINavigator.addScrollPanel(scroller);
+            }
+            directionalUINavigator.setNavigationObjects(tabNavItems);
             addDirectionalUINavigator(directionalUINavigator);
-            addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> {
-                if(directionalUINavigator.getSelected() != null) {
-                    var sel = directionalUINavigator.getSelected();
-                    InputShim.mouseDownUp((int) sel.getCenterX(), (int) sel.getCenterY(), InputEventMouseButton.LEFT);
-                }
-            });
             addButtonPressHandler("Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
         }
         return indicators;
@@ -45,9 +52,19 @@ public class CodexUI extends InputScreenBase {
 
     @Override
     public void activate(Object... args) {
-        activeCode = (CodexDialog) args[0];
-        screenToReturnTo = (String)args[1];
-        directionalUINavigator = new DirectionalUINavigator(new ArrayList<>());
+        activeCode = tryGetCodexDialog();
+        var getInnerPanel = new ClassReflector(activeCode.getClass()).findDeclaredMethod("getInnerPanel");
+        codexInnerPanel = new UIPanelReflector((UIPanelAPI) getInnerPanel.invoke(activeCode));
+        screenToReturnTo = (String)args[0];
+        directionalUINavigator = new DirectionalUINavigator(new ArrayList<>()) {
+            @Override
+            public void onSelect(NavigationObject navigationObject) {
+                super.onSelect(navigationObject);
+                if(navigationObject.tag instanceof ScrollPanelReflector scrollPanelReflector) {
+                    scrollPanelReflector.ensureVisible(navigationObject.component);
+                }
+            }
+        };
         indicators = null;
     }
 
@@ -55,6 +72,12 @@ public class CodexUI extends InputScreenBase {
     public void preInput(float advance) {
         if(!isCodexOpen()) {
             InputScreenManager.getInstance().transitionToScreen(screenToReturnTo);
+        }
+        List<DirectionalUINavigator.NavigationObject> tmpItems = new ArrayList<>();
+        getPanelNavigatables(codexInnerPanel, tmpItems, new ArrayList<>());
+        if(tmpItems.size() != tabNavItems.size()) {
+            tabNavItems = tmpItems;
+            directionalUINavigator.setNavigationObjects(tabNavItems);
         }
         if(directionalUINavigator != null) {
             directionalUINavigator.advance(advance);
