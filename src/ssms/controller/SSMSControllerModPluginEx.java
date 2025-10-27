@@ -214,9 +214,9 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
     }
 
     @NotNull
-    private static ControllerMapping createMappingFromLegacyJson(JSONObject deviceMappings) throws JSONException {
+    private static ControllerMapping createMappingFromLegacyJson(String devName, JSONObject deviceMappings) throws JSONException {
         ControllerMapping newMapping = new ControllerMapping();
-        newMapping.deviceName = deviceMappings.getString("deviceName");
+        newMapping.deviceName = devName;
         if(deviceMappings.has("indicatorProfile")) newMapping.indicatorProfile = deviceMappings.getString("indicatorProfile");
         JSONArray deviceButtons = deviceMappings.getJSONArray("buttons");
 
@@ -359,7 +359,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                     //String conName = con.getName(); //new StringBuilder(con.getName()).append("(").append(con.getAxisCount()).append(",").append(con.getButtonCount()).append(")").toString();
                     if(oldMappingsJson.has(con.getName())) {
                         var obj = oldMappingsJson.getJSONObject(con.getName());
-                        conMap = createMappingFromLegacyJson(obj);
+                        conMap = createMappingFromLegacyJson(con.getName(), obj);
                         conMap.indicators = indicatorsByController.get(conMap.indicatorProfile);
                         Global.getLogger(SSMSControllerModPluginEx.class).log(Level.INFO, "Successfully matched controller name in legacy config [" + con.getName() + "]");
                     }

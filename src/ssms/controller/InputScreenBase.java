@@ -17,7 +17,9 @@
  */
 package ssms.controller;
 
+import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.*;
@@ -286,6 +288,20 @@ public class InputScreenBase {
                 }
             }
         }
+    }
+
+    protected boolean isCodexOpen() {
+        if (Global.getSettings().isShowingCodex()) return true;
+
+        if (Global.getCurrentState() == GameState.CAMPAIGN && Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.FLEET) {
+            var coreUI = CampaignStateReflector.GetInstance().getCoreUI();
+            for(var coreUiChild : new UIPanelReflector((UIPanelAPI) coreUI).getChildPanels()) {
+                if (coreUiChild instanceof CodexDialog) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     protected CodexDialog tryGetCodexDialog() {
