@@ -128,7 +128,8 @@ public class BattleSteeringScreen extends InputScreenBase {
             InputScreenManager.getInstance().transitionDelayed(BattleMenuScreen.ID);
         }
         if(isCodexOpen()) {
-            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
+            InputScreenManager.getInstance().transitionToScreen(CodexUI.ID, getId());
+            return;
         }
         ShipAPI ps = psCache.ps;
         if ( processShipInputs(ps) ) {

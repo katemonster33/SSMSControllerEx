@@ -70,6 +70,9 @@ public class WarroomScreen extends InputScreenBase {
         } else if(Global.getCombatEngine().getCombatUI().isShowingDeploymentDialog()) {
             InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, BattleDeploymentScreen.ID, new Object[]{ csr });
         }
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionToScreen(CodexUI.ID, getId());
+        }
 
         directionalUINavigator.setNavigationObjects(warroomReflector.getChildButtons(true).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         mapInputHandler.advance(advance);

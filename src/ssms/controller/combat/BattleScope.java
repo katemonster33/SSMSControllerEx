@@ -104,9 +104,13 @@ public class BattleScope extends InputScopeBase {
     
     @Override
     public void activate(Object ...args) {
-        engine = (CombatEngineAPI) args[0];
+        if(args.length > 0) {
+            engine = (CombatEngineAPI) args[0];
+            psCache = new PlayerShipCache();
+        } else {
+            engine = Global.getCombatEngine();
+        }
         csr = CombatStateReflector.GetInstance();
-        psCache = new PlayerShipCache();
     }
 
     @Override

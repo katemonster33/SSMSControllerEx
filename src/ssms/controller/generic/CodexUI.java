@@ -1,14 +1,17 @@
 package ssms.controller.generic;
 
+import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.codex2.CodexDialog;
 import org.lwjgl.input.Keyboard;
+import ssms.controller.InputScopeBase;
 import ssms.controller.InputScreenBase;
 import ssms.controller.InputScreenManager;
 import ssms.controller.InputShim;
+import ssms.controller.combat.BattleScope;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
@@ -79,7 +82,11 @@ public class CodexUI extends InputScreenBase {
     @Override
     public void preInput(float advance) {
         if(!isCodexOpen()) {
-            InputScreenManager.getInstance().transitionToScreen(screenToReturnTo);
+            if(Global.getCurrentState() == GameState.COMBAT && InputScreenManager.getInstance().getScreen(screenToReturnTo).getScopes()[0] == BattleScope.ID) {
+                InputScreenManager.getInstance().transitionToScope(BattleScope.ID, Global.getCombatEngine());
+            } else {
+                InputScreenManager.getInstance().transitionToScreen(screenToReturnTo);
+            }
         }
         List<DirectionalUINavigator.NavigationObject> tmpItems = new ArrayList<>();
         getPanelNavigatables(codexInnerPanel, tmpItems, new ArrayList<>());

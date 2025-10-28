@@ -131,7 +131,8 @@ public class BattleTargetingScreen extends InputScreenBase {
             InputScreenManager.getInstance().transitionDelayed(WarroomScreen.ID);
         }
         if(isCodexOpen()) {
-            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
+            InputScreenManager.getInstance().transitionToScreen(CodexUI.ID, getId());
+            return;
         }
         if ( !targeting.hasTargets() ) {
             closeTargeting();
