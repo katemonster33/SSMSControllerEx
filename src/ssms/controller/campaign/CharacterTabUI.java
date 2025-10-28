@@ -11,6 +11,7 @@ import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.CodexUI;
 import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
@@ -76,6 +77,9 @@ public class CharacterTabUI extends InputScreenBase {
                 }
             }
             lastFrameNumChildren = coreUiChildren.size();
+        }
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
         }
 
         List<DirectionalUINavigator.NavigationObject> directionalObjectsTmp = new ArrayList<>();

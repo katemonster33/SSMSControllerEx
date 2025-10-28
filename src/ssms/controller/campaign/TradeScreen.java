@@ -15,6 +15,7 @@ import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.CodexUI;
 import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.inputhelper.ButtonPressOrHoldHandler;
 import ssms.controller.inputhelper.DirectionalUINavigator;
@@ -145,6 +146,9 @@ public class TradeScreen extends InputScreenBase {
                 }
                 lastFrameChildCount = numChildren;
             }
+        }
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
         }
 
         if(colonyInfoWidget != null) {

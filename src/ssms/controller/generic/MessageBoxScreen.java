@@ -34,8 +34,10 @@ public class MessageBoxScreen extends InputScreenBase {
     @Override
     public void activate(Object ...args) {
         controller = SSMSControllerModPluginEx.controller;
-        dialogReflector = (MessageBoxReflector) args[0];
-        uiToReturnTo = (String) args[1];
+        if(args.length > 0) {
+            dialogReflector = (MessageBoxReflector) args[0];
+            uiToReturnTo = (String) args[1];
+        }
     }
 
     @Override
@@ -79,6 +81,9 @@ public class MessageBoxScreen extends InputScreenBase {
             } else {
                 InputScreenManager.getInstance().transitionToScreen(uiToReturnTo);
             }
+        }
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
         }
         for(var child : dialogReflector.getChildPanels()) {
             if(MessageBoxReflector.isMsgBox(child)) {

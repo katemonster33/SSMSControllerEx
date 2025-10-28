@@ -12,6 +12,7 @@ import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.CodexUI;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.inputhelper.MapInputHandler;
@@ -69,6 +70,7 @@ public class WarroomScreen extends InputScreenBase {
         } else if(Global.getCombatEngine().getCombatUI().isShowingDeploymentDialog()) {
             InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, BattleDeploymentScreen.ID, new Object[]{ csr });
         }
+
         directionalUINavigator.setNavigationObjects(warroomReflector.getChildButtons(true).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         mapInputHandler.advance(advance);
     }

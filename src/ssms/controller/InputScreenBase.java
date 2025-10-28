@@ -26,6 +26,7 @@ import com.fs.starfarer.api.ui.*;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.codex2.CodexDialog;
 import com.fs.starfarer.coreui.AptitudeRow;
+import com.fs.state.AppDriver;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.enums.AxisMapping;
@@ -305,9 +306,44 @@ public class InputScreenBase {
     }
 
     protected CodexDialog tryGetCodexDialog() {
+        if (Global.getSettings().isShowingCodex()) { //isShowingCodex does not work in all cases as of 0.98
+            var state = AppDriver.getInstance().getCurrentState();
+            var stateReflector = new ClassReflector(state.getClass());
+            if (Global.getCurrentState() == GameState.COMBAT) {
+                //Combat F2 with ship selected, simulator ship F2.
+                var getRibbon = stateReflector.getDeclaredMethod("getRibbon");
+                if (getRibbon != null) {
+                    var ribbon = new UIPanelReflector((UIPanelAPI) getRibbon.invoke(state));
+                    var temp = new UIPanelReflector(ribbon.getParent());
+                    for(var child : temp.getChildPanels()) {
+                        if(child instanceof CodexDialog codexDialog) {
+                            return codexDialog;
+                        }
+                    }
+                }
+                //Note that the codex that opens from clicking the combat "More Info" question mark button appears in the below and not the above
+            }
+
+            //F2 press, and in some other places
+            var getOverlayPanelForCodex = stateReflector.getDeclaredMethod("getOverlayPanelForCodex");
+            var codexOverlayPanel = new UIPanelReflector((UIPanelAPI) getOverlayPanelForCodex.invoke(state));
+
+            for(var child : codexOverlayPanel.getChildPanels()) {
+                if(child instanceof CodexDialog codexDialog) {
+                    return codexDialog;
+                }
+            }
+        }
         switch(Global.getCurrentState()) {
             case CAMPAIGN -> {
-                for(var child : new UIPanelReflector((UIPanelAPI) CampaignStateReflector.GetInstance().getCoreUI()).getChildPanels()) {
+                for (var child : new UIPanelReflector((UIPanelAPI) CampaignStateReflector.GetInstance().getCoreUI()).getChildPanels()) {
+                    if (child instanceof CodexDialog codexDialog) {
+                        return codexDialog;
+                    }
+                }
+            }
+            case TITLE -> {
+                for(var child : new UIPanelReflector(new TitleScreenStateReflector().getScreenPanel()).getChildPanels()) {
                     if(child instanceof CodexDialog codexDialog) {
                         return codexDialog;
                     }

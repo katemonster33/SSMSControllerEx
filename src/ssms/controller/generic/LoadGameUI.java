@@ -94,6 +94,9 @@ public class LoadGameUI extends InputScreenBase {
                 InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
             }
         }
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
+        }
         //directionalUINavigator.
     }
 }

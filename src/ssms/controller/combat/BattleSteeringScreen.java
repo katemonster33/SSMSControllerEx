@@ -37,6 +37,7 @@ import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.CodexUI;
 import ssms.controller.reflection.CombatStateReflector;
 import ssms.controller.reflection.WeaponReflection;
 import ssms.controller.steering.SteeringController;
@@ -125,6 +126,9 @@ public class BattleSteeringScreen extends InputScreenBase {
         }
         if ( controller.getButtonEvent(LogicalButtons.Start) == 1 ) {
             InputScreenManager.getInstance().transitionDelayed(BattleMenuScreen.ID);
+        }
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
         }
         ShipAPI ps = psCache.ps;
         if ( processShipInputs(ps) ) {

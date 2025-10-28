@@ -11,6 +11,7 @@ import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.CodexUI;
 import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.reflection.*;
@@ -87,6 +88,9 @@ public class DialogUI extends InputScreenBase {
                     }
                 }
             }
+        }
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
         }
         List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>(optionsPanel.getChildButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         directionalUINavigator.setNavigationObjects(directionalObjects);

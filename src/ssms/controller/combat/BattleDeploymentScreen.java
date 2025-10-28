@@ -8,6 +8,7 @@ import com.fs.starfarer.api.util.Pair;
 import ssms.controller.*;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.CodexUI;
 import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.reflection.*;
@@ -31,11 +32,13 @@ public class BattleDeploymentScreen extends InputScreenBase {
 
     @Override
     public void activate(Object ...args) {
-        CombatStateReflector csr = (CombatStateReflector) args[0];
-        dui = new DeploymentUiReflector(csr.getDeploymentDialog());
+        if(args.length > 0) {
+            CombatStateReflector csr = (CombatStateReflector) args[0];
+            dui = new DeploymentUiReflector(csr.getDeploymentDialog());
+            widgetPanelReflector = new UIPanelReflector(CombatStateReflector.GetInstance().getWidgetPanel());
+        }
         indicators = new ArrayList<>();
         directionalUINavigator = new DirectionalUINavigator(dui.getAllButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
-        widgetPanelReflector = new UIPanelReflector(CombatStateReflector.GetInstance().getWidgetPanel());
         addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
         addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> clickButton());
     }
@@ -64,6 +67,9 @@ public class BattleDeploymentScreen extends InputScreenBase {
         } else {
             InputScreenManager.getInstance().transitionToScope(BattleScope.ID, Global.getCombatEngine());
             return;
+        }
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionToScreen(CodexUI.ID, getId());
         }
         directionalUINavigator.setNavigationObjects(dui.getAllButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
     }

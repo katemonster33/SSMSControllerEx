@@ -31,6 +31,7 @@ import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.CodexUI;
 import ssms.controller.reflection.CombatStateReflector;
 
 /**
@@ -128,6 +129,9 @@ public class BattleTargetingScreen extends InputScreenBase {
     public void preInput(float advance) {
         if(Global.getCombatEngine().getCombatUI().isShowingCommandUI()) {
             InputScreenManager.getInstance().transitionDelayed(WarroomScreen.ID);
+        }
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
         }
         if ( !targeting.hasTargets() ) {
             closeTargeting();

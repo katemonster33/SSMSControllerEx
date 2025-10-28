@@ -19,6 +19,7 @@ import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.CodexUI;
 import ssms.controller.inputhelper.DigitalJoystickHandler;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.*;
@@ -49,10 +50,12 @@ public class IntelPlanetTabUi extends InputScreenBase {
 
     @Override
     public void activate(Object ... args) {
-        intelTabReflector = (IntelTabReflector) args[0];
+        if(args.length > 0) {
+            intelTabReflector = (IntelTabReflector) args[0];
 
-        planetTabReflector = PlanetTabReflector.tryGet(intelTabReflector);
-        intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
+            planetTabReflector = PlanetTabReflector.tryGet(intelTabReflector);
+            intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
+        }
 
         filterButtonRows = new ArrayList<>();
         for (UIPanelAPI buttonGroup : planetTabReflector.getChildPanels(1, 5, 0)) {
@@ -167,6 +170,10 @@ public class IntelPlanetTabUi extends InputScreenBase {
         else if(intelTabData.getSelectedTabIndex() == 0) InputScreenManager.getInstance().transitionDelayed(IntelTabUI.ID, intelTabReflector);
         else if(intelTabData.getSelectedTabIndex() == 1 && planetTabReflector.getStarSystem() != null) InputScreenManager.getInstance().transitionDelayed(IntelPlanetStarSystemUI.ID, intelTabReflector);
         else if(intelTabData.getSelectedTabIndex() == 2) InputScreenManager.getInstance().transitionDelayed(IntelFactionTabUi.ID, intelTabReflector);
+
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
+        }
 
         if(selectedPlanet != null) {
             int selPlanetCurX = (int) selectedPlanet.getPosition().getX(), selPlanetCurY = (int) selectedPlanet.getPosition().getY();

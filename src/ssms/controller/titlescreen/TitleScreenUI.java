@@ -40,6 +40,7 @@ import java.util.Objects;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.CodexUI;
 import ssms.controller.generic.LoadGameUI;
 import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.inputhelper.DirectionalUINavigator;
@@ -225,12 +226,17 @@ public class TitleScreenUI extends InputScreenBase {
                         return;
                     }
                 }
+            } else if(Objects.equals(curDialogType.toString(), "CODEX")) {
+                InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
             }
         } else {
             var missionWidget = new UIPanelReflector(titleScreenStateReflector.getMissionWidget());
             if (missionWidget.getFader().isFadedIn()) {
                 InputScreenManager.getInstance().transitionToScreen(MissionScreenUI.ID);
             }
+        }
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
         }
         if(curDialogType != dialogType) {
             refreshIndicators();

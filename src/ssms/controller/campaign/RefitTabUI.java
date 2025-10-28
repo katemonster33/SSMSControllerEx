@@ -11,6 +11,7 @@ import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.CodexUI;
 import ssms.controller.inputhelper.ButtonPressOrHoldHandler;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
@@ -22,10 +23,7 @@ import java.util.List;
 
 public class RefitTabUI extends InputScreenBase {
     public static final String ID = "RefitTab";
-    ViewportAPI viewportAPI;
     UIPanelReflector refitPanel;
-    Vector2f desiredMousePos = null;
-    float mouseMoveFactor = 4.f;
     List<DirectionalUINavigator.NavigationObject> directionalObjects;
     DirectionalUINavigator refitNavigator;
     @Override
@@ -66,8 +64,9 @@ public class RefitTabUI extends InputScreenBase {
 
     @Override
     public void activate(Object ... args) {
-        viewportAPI = Global.getSector().getViewport();
-        refitPanel = (UIPanelReflector) args[0];
+        if(args.length > 0) {
+            refitPanel = (UIPanelReflector) args[0];
+        }
         refitNavigator = new DirectionalUINavigator(new ArrayList<>()){
             @Override
             public void onSelect(NavigationObject selectedObj) {
@@ -85,6 +84,9 @@ public class RefitTabUI extends InputScreenBase {
         if(Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.REFIT) {
             InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
             return;
+        }
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
         }
 
         List<DirectionalUINavigator.NavigationObject> directionalObjectsTmp = new ArrayList<>(); //new ArrayList<>(refitPanel.getChildButtons(true).stream().map(DirectionalUINavigator.NavigationObject::new).toList());

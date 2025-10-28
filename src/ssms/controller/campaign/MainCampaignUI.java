@@ -22,6 +22,7 @@ import ssms.controller.enums.Indicators;
 import ssms.controller.combat.BattleScope;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.CodexUI;
 import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.inputhelper.ButtonPressOrHoldHandler;
 import ssms.controller.inputhelper.DigitalJoystickHandler;
@@ -225,6 +226,9 @@ public class MainCampaignUI extends InputScreenBase {
             }
         }
         if (isMessageBoxShown()) return;
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
+        }
         if(Global.getSector().isPaused() != gameCurrentlyPaused) {
             refreshIndicators();
             return;

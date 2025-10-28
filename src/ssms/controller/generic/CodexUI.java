@@ -1,5 +1,6 @@
 package ssms.controller.generic;
 
+import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
@@ -13,9 +14,7 @@ import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
-import ssms.controller.reflection.ClassReflector;
-import ssms.controller.reflection.ScrollPanelReflector;
-import ssms.controller.reflection.UIPanelReflector;
+import ssms.controller.reflection.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +65,15 @@ public class CodexUI extends InputScreenBase {
             }
         };
         indicators = null;
+    }
+
+    @Override
+    public UIPanelAPI getPanelForIndicators() {
+        if(activeCode != null) {
+            return new UIPanelReflector((UIPanelAPI) activeCode).getParent();
+        } else {
+            return super.getPanelForIndicators();
+        }
     }
 
     @Override

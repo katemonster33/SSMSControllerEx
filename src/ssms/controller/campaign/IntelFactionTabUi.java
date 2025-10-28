@@ -13,6 +13,7 @@ import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.CodexUI;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.ClassReflector;
@@ -38,9 +39,11 @@ public class IntelFactionTabUi extends InputScreenBase {
 
     @Override
     public void activate(Object ... args) throws Throwable {
-        intelTabReflector = (IntelTabReflector) args[0];
-        intelFactionTabReflector = new IntelFactionTabReflector(intelTabReflector.getFactionIntelPanel());
-        intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
+        if(args.length > 0) {
+            intelTabReflector = (IntelTabReflector) args[0];
+            intelFactionTabReflector = new IntelFactionTabReflector(intelTabReflector.getFactionIntelPanel());
+            intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
+        }
         indicators = new ArrayList<>();
         directionalUINavigator = new DirectionalUINavigator(intelFactionTabReflector.getFactionButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         addDirectionalUINavigator(directionalUINavigator);
@@ -56,6 +59,10 @@ public class IntelFactionTabUi extends InputScreenBase {
         if(Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.INTEL) InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
         else if(intelTabData.getSelectedTabIndex() == 0) InputScreenManager.getInstance().transitionDelayed(IntelTabUI.ID, intelTabReflector);
         else if(intelTabData.getSelectedTabIndex() == 1) InputScreenManager.getInstance().transitionDelayed(IntelPlanetTabUi.ID, intelTabReflector);
+
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
+        }
 
         if(directionalUINavigator != null) {
             directionalUINavigator.advance(amount);

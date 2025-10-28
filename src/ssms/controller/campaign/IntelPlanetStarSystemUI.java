@@ -14,6 +14,7 @@ import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.CodexUI;
 import ssms.controller.inputhelper.ButtonPressOrHoldHandler;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
@@ -80,10 +81,12 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
 
     @Override
     public void activate(Object ... args) throws Throwable {
-        intelTabReflector = (IntelTabReflector) args[0];
-        intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
-        planetTabReflector = new IntelPlanetTabUi.PlanetTabReflector(intelTabReflector.getPlanetTabData().getPanel());
-        mapComponent = planetTabReflector.getMap();
+        if(args.length > 0) {
+            intelTabReflector = (IntelTabReflector) args[0];
+            intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
+            planetTabReflector = new IntelPlanetTabUi.PlanetTabReflector(intelTabReflector.getPlanetTabData().getPanel());
+            mapComponent = planetTabReflector.getMap();
+        }
         indicators = null;
         directionalUINavigator = null;
     }
@@ -98,6 +101,9 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
             InputScreenManager.getInstance().transitionDelayed(IntelPlanetTabUi.ID, intelTabReflector);
         } else if (intelTabData.getSelectedTabIndex() == 2) {
             InputScreenManager.getInstance().transitionDelayed(IntelFactionTabUi.ID, intelTabReflector);
+        }
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
         }
 
         // intel tab was recreated due to user clicking the map, this is dumb and I hate it

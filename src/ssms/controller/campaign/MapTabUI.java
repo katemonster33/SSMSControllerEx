@@ -12,6 +12,7 @@ import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.CodexUI;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.inputhelper.MapInputHandler;
@@ -23,7 +24,6 @@ import java.util.List;
 
 public class MapTabUI extends InputScreenBase {
     public final static String ID = "MapTab";
-    ViewportAPI viewportAPI;
     DirectionalUINavigator directionalUINavigator;
 
     MapReflector mapReflector;
@@ -35,8 +35,9 @@ public class MapTabUI extends InputScreenBase {
 
     @Override
     public void activate(Object ... args) {
-        viewportAPI = Global.getSector().getViewport();
-        mapReflector = (MapReflector) args[0];
+        if(args.length > 0) {
+            mapReflector = (MapReflector) args[0];
+        }
         indicators = null;
         List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>(mapReflector.getButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         directionalUINavigator = new DirectionalUINavigator(directionalObjects);
@@ -69,6 +70,9 @@ public class MapTabUI extends InputScreenBase {
         if (Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.MAP) {
             InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
             return;
+        }
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
         }
         if(directionalUINavigator != null) {
             directionalUINavigator.advance(amount);

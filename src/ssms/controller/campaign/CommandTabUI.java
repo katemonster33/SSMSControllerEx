@@ -10,6 +10,7 @@ import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.CodexUI;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.ScrollPanelReflector;
@@ -50,7 +51,9 @@ public class CommandTabUI  extends InputScreenBase {
 
     @Override
     public void activate(Object... args) {
-        commandPanelReflector = (UIPanelReflector) args[0];
+        if(args.length > 0) {
+            commandPanelReflector = (UIPanelReflector) args[0];
+        }
         indicators = null;
         directionalUINavigator = new DirectionalUINavigator(new ArrayList<>()) {
             @Override
@@ -68,6 +71,9 @@ public class CommandTabUI  extends InputScreenBase {
         if (Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.OUTPOSTS) {
             InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
             return;
+        }
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
         }
 
         List<DirectionalUINavigator.NavigationObject> tmpNavObjects = new ArrayList<>();

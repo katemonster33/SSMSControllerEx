@@ -15,6 +15,7 @@ import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.CodexUI;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.inputhelper.MapInputHandler;
@@ -78,13 +79,15 @@ public class IntelTabUI extends InputScreenBase {
 
     @Override
     public void activate(Object ... args) throws Throwable {
-        intelTabReflector = (IntelTabReflector) args[0];
-        intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
-        lastFrameSelectedIndex = intelTabData.getSelectedTabIndex();
-        // this can throw an exception, we will just pass the exception upstream so that the screen doesn't get activated
-        eventsTabReflector = new EventsTabReflector(intelTabReflector.getEventsPanel());
-        filterButtons = eventsTabReflector.getIntelFilters();
-        intelButtons = eventsTabReflector.getIntelButtons();
+        if(args.length > 0) {
+            intelTabReflector = (IntelTabReflector) args[0];
+            intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
+            lastFrameSelectedIndex = intelTabData.getSelectedTabIndex();
+            // this can throw an exception, we will just pass the exception upstream so that the screen doesn't get activated
+            eventsTabReflector = new EventsTabReflector(intelTabReflector.getEventsPanel());
+            filterButtons = eventsTabReflector.getIntelFilters();
+            intelButtons = eventsTabReflector.getIntelButtons();
+        }
         directionalUINavigator = null;
         indicators = null;
     }
@@ -102,6 +105,10 @@ public class IntelTabUI extends InputScreenBase {
         if(Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.INTEL) InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
         else if(intelTabData.getSelectedTabIndex() == 1) InputScreenManager.getInstance().transitionDelayed(IntelPlanetTabUi.ID, intelTabReflector);
         else if(intelTabData.getSelectedTabIndex() == 2) InputScreenManager.getInstance().transitionDelayed(IntelFactionTabUi.ID, intelTabReflector);
+        if(isCodexOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
+        }
+
         lastFrameSelectedIndex = intelTabData.getSelectedTabIndex();
         if(directionalUINavigator != null) {
             var btnsTemp = eventsTabReflector.getIntelButtons();
