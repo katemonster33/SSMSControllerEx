@@ -68,19 +68,20 @@ public class DialogUI extends InputScreenBase {
             InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
         } else {
             var interactionCoreUi = interactReflector.getCoreUI(interactionDialogAPI);
-            if (interactionCoreUi != null && interactionCoreUi.getTradeMode() != null) {
-                var dialogChildren = interactReflector.getChildItems();
-                if (dialogChildren.contains(interactionCoreUi)) {
-                    for (var coreUiChild : new UIPanelReflector((UIPanelAPI) interactionCoreUi).getChildPanels()) {
-                        BorderedPanelReflector borderPanel = BorderedPanelReflector.TryGet(interactionCoreUi, coreUiChild);
-                        if (borderPanel != null) {
-                            var tradeUi = TradeUiReflector.TryGet(interactionCoreUi, borderPanel);
-                            if (tradeUi != null && tradeUi.getPanel().getOpacity() != 0.f) {
-                                InputScreenManager.getInstance().transitionToScreen(TradeScreen.ID, tradeUi);
-                            }
-                        }
-                    }
-                }
+            if (interactionCoreUi != null && openCoreUiTab(interactionCoreUi)) {
+                return;
+//                var dialogChildren = interactReflector.getChildItems();
+//                if (dialogChildren.contains(interactionCoreUi)) {
+//                    for (var coreUiChild : new UIPanelReflector((UIPanelAPI) interactionCoreUi).getChildPanels()) {
+//                        BorderedPanelReflector borderPanel = BorderedPanelReflector.TryGet(interactionCoreUi, coreUiChild);
+//                        if (borderPanel != null) {
+//                            var tradeUi = TradeUiReflector.TryGet(interactionCoreUi, borderPanel);
+//                            if (tradeUi != null && tradeUi.getPanel().getOpacity() != 0.f) {
+//                                InputScreenManager.getInstance().transitionToScreen(TradeScreen.ID, tradeUi);
+//                            }
+//                        }
+//                    }
+//                }
             } else {
                 for (var child : interactReflector.getChildPanels()) {
                     if (MessageBoxReflector.isMsgBox(child)) {

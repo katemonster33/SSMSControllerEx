@@ -19,6 +19,7 @@ package ssms.controller;
 
 import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.CoreUIAPI;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
@@ -29,6 +30,7 @@ import com.fs.starfarer.coreui.AptitudeRow;
 import com.fs.state.AppDriver;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
+import ssms.controller.campaign.*;
 import ssms.controller.enums.AxisMapping;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
@@ -248,6 +250,44 @@ public class InputScreenBase {
         var pos = comp.getPosition();
         return comp.getOpacity() == 1.f && pos.getX() >= 0 && pos.getX() <= Display.getWidth() &&
                 pos.getY() >= 0 && pos.getY() <= Display.getHeight();
+    }
+
+
+    boolean tryOpenScreen(Object screenUi, String screenId) {
+        if (screenUi != null) {
+            return InputScreenManager.getInstance().transitionToScreen(screenId, screenUi);
+        }
+        return false;
+    }
+
+    protected boolean openCoreUiTab(CoreUIAPI coreUI) {
+        BorderedPanelReflector borderedPanelReflector = null;
+        for(var coreuiChild : new UIPanelReflector((UIPanelAPI) coreUI).getChildPanels()) {
+            var borderedPanel = BorderedPanelReflector.TryGet(coreUI, coreuiChild);
+            if (borderedPanel != null) {
+                if(borderedPanelReflector == null) {
+                    borderedPanelReflector = borderedPanel;
+                } else {
+                    return false; // more than 1 bordered panel, skip it
+                }
+            }
+        }
+        if(borderedPanelReflector != null) {
+
+            boolean output = switch (Global.getSector().getCampaignUI().getCurrentCoreTab()) {
+                case CARGO -> tryOpenScreen(TradeUiReflector.TryGet(coreUI, borderedPanelReflector), TradeScreen.ID);
+                case CHARACTER ->
+                        tryOpenScreen(CharacterSheetReflector.TryGet(coreUI, borderedPanelReflector), CharacterTabUI.ID);
+                case FLEET -> tryOpenScreen(FleetTabReflector.TryGet(coreUI, borderedPanelReflector), FleetTabUI.ID) ||
+                            tryOpenScreen(TradeUiReflector.TryGet(coreUI, borderedPanelReflector), FleetTabUI.ID);
+                case INTEL -> tryOpenScreen(IntelTabReflector.TryGet(coreUI, borderedPanelReflector), IntelTabUI.ID);
+                case MAP -> tryOpenScreen(MapReflector.TryGet(coreUI, borderedPanelReflector), MapTabUI.ID);
+                case REFIT -> tryOpenScreen(borderedPanelReflector.getInnerPanel(), RefitTabUI.ID);
+                case OUTPOSTS -> tryOpenScreen(borderedPanelReflector.getInnerPanel(), CommandTabUI.ID);
+            };
+            return output;
+        }
+        return false;
     }
 
     protected void getPanelNavigatables(UIPanelReflector pnl, List<DirectionalUINavigator.NavigationObject> directionalObjects, List<ScrollPanelReflector> scrollers) {

@@ -49,7 +49,7 @@ public class TradeUiReflector extends UIPanelReflector {
 
                         getTransferHandler = tradeObjCls.findDeclaredMethod("getTransferHandler");
 
-                        tradeParentCls = parentPanel.getClass();
+                        tradeParentCls = parentPanel.getPanel().getClass();
                         tradePanelCls = tradePanel.getClass();
                         return new TradeUiReflector(tradePanel, coreUIAPI);
                     }
@@ -57,7 +57,7 @@ public class TradeUiReflector extends UIPanelReflector {
             } catch (Throwable ex) {
                 Global.getLogger(TradeUiReflector.class).warn("Couldn't reflect trade UI type!", ex);
             }
-        } else if (tradeParentCls.isAssignableFrom(parentPanel.getClass())) {
+        } else if (tradeParentCls.isAssignableFrom(parentPanel.getPanel().getClass())) {
             var childItems = parentPanel.getChildItems();
             if (!childItems.isEmpty() && tradePanelCls.isAssignableFrom(childItems.get(0).getClass())) {
                 return new TradeUiReflector((UIPanelAPI) childItems.get(0), coreUIAPI);

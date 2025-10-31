@@ -264,41 +264,10 @@ public class MainCampaignUI extends InputScreenBase {
         return false;
     }
 
-    boolean tryOpenScreen(Object screenUi, String screenId) {
-        if (screenUi != null) {
-            return InputScreenManager.getInstance().transitionToScreen(screenId, screenUi);
-        }
-        return false;
-    }
-
     boolean openScreenForCoreTab() {
         var coreUI = CampaignStateReflector.GetInstance().getCoreUI();
         if (coreUI != null) {
-            BorderedPanelReflector borderedPanelReflector = null;
-            for(var coreuiChild : new UIPanelReflector((UIPanelAPI) coreUI).getChildPanels()) {
-                var borderedPanel = BorderedPanelReflector.TryGet(coreUI, coreuiChild);
-                if (borderedPanel != null) {
-                    if(borderedPanelReflector == null) {
-                        borderedPanelReflector = borderedPanel;
-                    } else {
-                        return false; // more than 1 bordered panel, skip it
-                    }
-                }
-            }
-            if(borderedPanelReflector != null) {
-
-                boolean output = switch (Global.getSector().getCampaignUI().getCurrentCoreTab()) {
-                    case CARGO -> tryOpenScreen(TradeUiReflector.TryGet(coreUI, borderedPanelReflector), TradeScreen.ID);
-                    case CHARACTER ->
-                            tryOpenScreen(CharacterSheetReflector.TryGet(coreUI, borderedPanelReflector), CharacterTabUI.ID);
-                    case FLEET -> tryOpenScreen(FleetTabReflector.TryGet(coreUI, borderedPanelReflector), FleetTabUI.ID);
-                    case INTEL -> tryOpenScreen(IntelTabReflector.TryGet(coreUI, borderedPanelReflector), IntelTabUI.ID);
-                    case MAP -> tryOpenScreen(MapReflector.TryGet(coreUI, borderedPanelReflector), MapTabUI.ID);
-                    case REFIT -> tryOpenScreen(borderedPanelReflector.getInnerPanel(), RefitTabUI.ID);
-                    case OUTPOSTS -> tryOpenScreen(borderedPanelReflector.getInnerPanel(), CommandTabUI.ID);
-                };
-                if (output) return true;
-            }
+            return openCoreUiTab(coreUI);
         }
         return false;
     }

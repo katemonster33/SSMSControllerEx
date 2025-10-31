@@ -10,9 +10,11 @@ import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.campaign.ui.trade.CargoStackView;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
+import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.CodexUI;
@@ -24,6 +26,7 @@ import ssms.controller.reflection.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class TradeScreen extends InputScreenBase {
     public static final String ID = "Trade";
@@ -41,34 +44,76 @@ public class TradeScreen extends InputScreenBase {
     boolean isColonyInfoShown;
 
     @Override
+    public List<Pair<Indicators, String>> getIndicators() {
+        if(indicators == null) {
+            indicators = new ArrayList<>();
+            if(isCargoTab) {
+                addButtonPressHandler("Select refit tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_R, 'r'));
+                addButtonPressHandler("Select map tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_TAB));
+            }
+            addDirectionalUINavigator(directionalUINavigator);
+
+            addButtonPressHandler("Take partial stack", LogicalButtons.X, advance -> {
+                var selectedStack = getSelectedCargoStack();
+                if(selectedStack == null) {
+                    return;
+                }
+                var stackPos = ((UIComponentAPI)selectedStack).getPosition();
+                var mousePos = new Vector2f(stackPos.getCenterX(), stackPos.getCenterY());
+                if(selectedStack.getStack().getSize() >= 4.f) {
+                    InputShim.keyDown(Keyboard.KEY_LSHIFT, '\0');
+                }
+                InputShim.mouseDown((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
+                if(selectedStack.getStack().getSize() < 4.f) {
+                    InputShim.mouseUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
+                } else if(selectedStack.getStack().getSize() >= 4.f) {
+                    InputShim.keyUp(Keyboard.KEY_LSHIFT, '\0');
+                }
+            });
+            addButtonPressHandler("Cancel / Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+        }
+        return indicators;
+    }
+
+    boolean mouseOverStack(CargoStackView cargoStackView) {
+        return InputShim.getMouseX() >= cargoStackView.getX() && InputShim.getMouseX() < cargoStackView.getX() + cargoStackView.getWidth() &&
+                InputShim.getMouseY() >= cargoStackView.getY() && InputShim.getMouseY() < cargoStackView.getY() + cargoStackView.getHeight();
+    }
+
+    @Override
     public void activate(Object ... args) {
         if(args.length > 0) {
             tradeUiReflector = (TradeUiReflector) args[0];
             coreUiPanelReflector = new UIPanelReflector((UIPanelAPI) tradeUiReflector.getCoreUIAPI());
         }
-        indicators = new ArrayList<>();
         isCargoTab = Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.CARGO;
-        if(isCargoTab) {
-            addButtonPressHandler("Select refit tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_R, 'r'));
-            addButtonPressHandler("Select map tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_TAB));
-        }
-        directionalUINavigator = new DirectionalUINavigator(new ArrayList<>());
-        addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
-
-        addButtonPressOrHoldHandler("Press button / take partial stack", "Take whole stack", LogicalButtons.A, new ButtonPressOrHoldHandler() {
+        directionalUINavigator = new DirectionalUINavigator(new ArrayList<>())
+        {
             @Override
-            public void performHoldAction(float advance) {
-                clickSelected(true);
+            public void onSelect(NavigationObject navigationObject) {
+                super.onSelect(navigationObject);
+                if(navigationObject.tag instanceof  ScrollPanelReflector scrollPanelReflector) {
+                    scrollPanelReflector.ensureVisible(navigationObject.component);
+                }
             }
 
             @Override
-            public void performPressAction(float advance) {
-                clickSelected(false);
+            public void handleAButton(float advance, boolean btnVal) {
+                var selectedStack = getSelectedCargoStack();
+                if(selectedStack != null) {
+                    if(!btnVal) {
+                        InputShim.mouseMove((int) selectedStack.getCenterX(), (int) selectedStack.getCenterY());
+                        InputShim.mouseDownUp((int) selectedStack.getCenterX(), (int) selectedStack.getCenterY(), InputEventMouseButton.LEFT);
+                    }
+                } else {
+                    super.handleAButton(advance, btnVal);
+                }
             }
-        });
-        addButtonPressHandler("Cancel / Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+        };
         playerDataGrid = tradeUiReflector.getPlayerCargoView();
+        directionalUINavigator.addScrollPanel(new ScrollPanelReflector(playerDataGrid.getScroller()));
         otherDataGrid = tradeUiReflector.getOtherCargoView();
+        directionalUINavigator.addScrollPanel(new ScrollPanelReflector(otherDataGrid.getScroller()));
         cargoTransferHandler = tradeUiReflector.getCargoTransferHandler();
         interactionDialogAPI = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
         if(interactionDialogAPI != null) {
@@ -83,33 +128,29 @@ public class TradeScreen extends InputScreenBase {
         } else {
             colonyInfoWidget = null;
         }
+        indicators = null;
         updateDirectionalObjects();
     }
 
-    void clickSelected(boolean takeAllIfStack) {
-        var selected = directionalUINavigator.getSelected();
-        if(selected != null) {
-            if(selected.component instanceof CargoStackView cargoStackView && selected.tag instanceof CargoDataGridViewReflector cargoDataGridViewReflector && !takeAllIfStack) {
-                clickStack(cargoDataGridViewReflector, cargoStackView);
-            } else {
-                InputShim.mouseMove((int) selected.getCenterX(), (int) selected.getCenterY());
-                InputShim.mouseDownUp((int) selected.getCenterX(), (int) selected.getCenterY(), InputEventMouseButton.LEFT);
+
+    @Nullable
+    private CargoStackView getSelectedCargoStack() {
+        CargoStackView selectedStack = null;
+        if(directionalUINavigator.getSelected() != null) {
+            if(directionalUINavigator.getSelected().component instanceof CargoStackView stack) {
+                selectedStack = stack;
+            }
+        } else if(InputShim.getMouseX() != null && InputShim.getMouseY() != null) {
+            List<CargoStackView> allStacks = new ArrayList<>(otherDataGrid.getStacks());
+            allStacks.addAll(playerDataGrid.getStacks());
+            for(var stack : allStacks) {
+                if(mouseOverStack(stack)) {
+                    selectedStack = stack;
+                    break;
+                }
             }
         }
-    }
-
-    void clickStack(CargoDataGridViewReflector gridView, CargoStackView stackView) {
-        var stackPos = ((UIComponentAPI)stackView).getPosition();
-        var mousePos = new Vector2f(stackPos.getCenterX(), stackPos.getCenterY());
-        if(stackView.getStack().getSize() >= 4.f) {
-            InputShim.keyDown(Keyboard.KEY_LSHIFT, '\0');
-        }
-        InputShim.mouseDown((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
-        if(stackView.getStack().getSize() < 4.f) {
-            InputShim.mouseUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
-        } else if(stackView.getStack().getSize() >= 4.f) {
-            InputShim.keyUp(Keyboard.KEY_LSHIFT, '\0');
-        }
+        return selectedStack;
     }
 
     @Override
@@ -159,6 +200,9 @@ public class TradeScreen extends InputScreenBase {
             isColonyInfoShown = isMarketInfoShownTmp;
         }
         updateDirectionalObjects();
+        if(directionalUINavigator != null) {
+            directionalUINavigator.advance(advance);
+        }
     }
 
     private void updateDirectionalObjects() {
@@ -196,8 +240,10 @@ public class TradeScreen extends InputScreenBase {
         }
         List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>(buttons.stream().filter(ButtonAPI::isEnabled).map(DirectionalUINavigator.NavigationObject::new).toList());
         if(colonyInfoWidget == null || !isColonyInfoShown) {
-            directionalObjects.addAll(playerDataGrid.getStacks().stream().map(stack -> new DirectionalUINavigator.NavigationObject(stack, playerDataGrid)).toList());
-            directionalObjects.addAll(otherDataGrid.getStacks().stream().map(stack -> new DirectionalUINavigator.NavigationObject(stack, otherDataGrid)).toList());
+            var playerGridScroller = new ScrollPanelReflector(playerDataGrid.getScroller());
+            directionalObjects.addAll(playerDataGrid.getStacks().stream().map(stack -> new DirectionalUINavigator.NavigationObject(stack, playerGridScroller)).toList());
+            var otherGridScroller = new ScrollPanelReflector(otherDataGrid.getScroller());
+            directionalObjects.addAll(otherDataGrid.getStacks().stream().map(stack -> new DirectionalUINavigator.NavigationObject(stack, otherGridScroller)).toList());
         }
         directionalUINavigator.setNavigationObjects(directionalObjects);
     }

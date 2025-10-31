@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.ui.PositionAPI;
+import com.fs.starfarer.api.ui.ScrollPanelAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.campaign.ui.trade.CargoDataGridView;
 import com.fs.starfarer.campaign.ui.trade.CargoStackView;
@@ -16,10 +17,18 @@ public class CargoDataGridViewReflector {
     CargoDataGridView cargoDataGridView;
     UIPanelAPI dataGridParent;
     FieldReflector stackViewField;
+    FieldReflector scroller;
+
     public CargoDataGridViewReflector(CargoDataGridView cargoGridView, UIPanelAPI parent) {
         this.cargoDataGridView = cargoGridView;
         this.dataGridParent = parent;
-        stackViewField = new ClassReflector(cargoGridView.getClass()).getDeclaredField("stackView");
+        var cargoGridClassReflector = new ClassReflector(cargoGridView.getClass());
+        stackViewField = cargoGridClassReflector.getDeclaredField("stackView");
+        scroller = cargoGridClassReflector.getDeclaredField("scroller");
+    }
+
+    public ScrollPanelAPI getScroller() {
+        return (ScrollPanelAPI) scroller.get(cargoDataGridView);
     }
 
     public PositionAPI getPosition() {
