@@ -3,10 +3,7 @@ package ssms.controller.campaign;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.input.InputEventMouseButton;
-import com.fs.starfarer.api.ui.ButtonAPI;
-import com.fs.starfarer.api.ui.SectorMapAPI;
-import com.fs.starfarer.api.ui.UIComponentAPI;
-import com.fs.starfarer.api.ui.UIPanelAPI;
+import com.fs.starfarer.api.ui.*;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.campaign.CampaignEngine;
 import com.fs.starfarer.campaign.StarSystem;
@@ -14,6 +11,7 @@ import com.fs.starfarer.campaign.comms.IntelTabData;
 import com.fs.starfarer.campaign.ui.UITable;
 import com.fs.starfarer.campaign.ui.intel.PlanetListV2;
 import com.fs.starfarer.campaign.ui.intel.StarSystemDisplay;
+import com.fs.starfarer.coreui.AptitudeRow;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
@@ -21,6 +19,7 @@ import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.CodexUI;
 import ssms.controller.inputhelper.DigitalJoystickHandler;
+import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.*;
 
@@ -32,21 +31,55 @@ import java.util.List;
 
 public class IntelPlanetTabUi extends InputScreenBase {
     public static final String ID = "IntelPlanetTab";
-    List<List<ButtonAPI>> filterButtonRows = null;
     PlanetTabReflector planetTabReflector;
     IntelTabData intelTabData;
     IntelTabReflector intelTabReflector;
-    int selectedRowIndex = -1;
-    int selectedColumn = -1;
-    List<UIComponentAPI> selectedRowColumns;
-    UIPanelAPI selectedPlanet;
-    int selectedPlanetX, selectedPlanetY;
     InteractionDialogReflector interactionDialogReflector;
-    boolean selectingPlanetFilters = false;
+    DirectionalUINavigator directionalUINavigator;
+    List<DirectionalUINavigator.NavigationObject> directionalObjects;
 
     @Override
     public String getId() {
         return ID;
+    }
+
+    public List<Pair<Indicators, String>> getIndicators() {
+        if(indicators == null) {
+            indicators = new ArrayList<>();
+
+            addDirectionalUINavigator(directionalUINavigator);
+            addButtonPressHandler("Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+
+            addButtonPressHandler("Open Codex", LogicalButtons.Y, new KeySender(Keyboard.KEY_F2));
+            addButtonPressHandler("Select map tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_TAB));
+            addButtonPressHandler("Select command tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_D, 'd'));
+            addButtonPressHandler("Select intel tab", LogicalButtons.LeftTrigger, new KeySender(Keyboard.KEY_1, '1'));
+            addButtonPressHandler("Select planet tab", LogicalButtons.RightTrigger, new KeySender(Keyboard.KEY_3, '3'));
+        }
+        return indicators;
+    }
+    @Override
+    protected void getScrollerNavigatables(ScrollPanelReflector scroller, List<DirectionalUINavigator.NavigationObject> directionalObjects, List<ScrollPanelReflector> scrollers) {
+        scrollers.add(scroller);
+        UIPanelReflector container = new UIPanelReflector(scroller.getContentContainer());
+        if(scroller.getFader().getBrightness() != 1.f || !isComponentVisible(scroller.getPanel())) {
+            return;
+        }
+        for(var item : container.getChildItems()) {
+            if(UIPanelAPI.class.isAssignableFrom(item.getClass()) && isComponentVisible((UIComponentAPI) item)) {
+                getPanelNavigatables(new UIPanelReflector((UIPanelAPI) item), directionalObjects, scrollers);
+            } else if(ButtonAPI.class.isAssignableFrom(item.getClass()) && isComponentVisible((UIComponentAPI) item)) {
+                directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI)item, scroller));
+            }
+        }
+        for(var item : scroller.getChildItems()) {
+            if(UIComponentAPI.class.isAssignableFrom(item.getClass()) && item != container.getPanel()) {
+                UIComponentReflector comp = new UIComponentReflector((UIComponentAPI) item);
+                if(((UIComponentAPI)item).getPosition().getWidth() > 0 && comp.getFader().getBrightness() == 1.f && isComponentVisible((UIComponentAPI)item)) {
+                    directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI)item));
+                }
+            }
+        }
     }
 
     @Override
@@ -58,112 +91,23 @@ public class IntelPlanetTabUi extends InputScreenBase {
             intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
         }
 
-        filterButtonRows = new ArrayList<>();
-        for (UIPanelAPI buttonGroup : planetTabReflector.getChildPanels(1, 5, 0)) {
-            for (UIPanelAPI buttonRow : new UIPanelReflector(buttonGroup).getChildPanels()) {
-                for(UIPanelAPI buttonInnerPanel : new UIPanelReflector(buttonRow).getChildPanels()) {
-                    var btnList = new UIPanelReflector(buttonInnerPanel).getChildButtons();
-                    if (!btnList.isEmpty()) filterButtonRows.add(btnList);
-                }
-            }
-        }
-        indicators = new ArrayList<>();
+        indicators = null;
         interactionDialogReflector = InteractionDialogReflector.getCurrentInstance();
-
-        addDigitalJoystickHandler("Navigate", Joystick.DPad, new DigitalJoystickHandler() {
+        directionalObjects = new ArrayList<>();
+        List<ScrollPanelReflector> scrollers = new ArrayList<>();
+        getPanelNavigatables(planetTabReflector, directionalObjects, scrollers);
+        directionalUINavigator = new DirectionalUINavigator(directionalObjects) {
             @Override
-            public void performUpAction(float advance) {
-                selectedRowIndex--;
-                selectedColumn = 0;
-                hoverSelectedItem();
+            public void onSelect(NavigationObject navigationObject) {
+                if(navigationObject.tag instanceof ScrollPanelReflector scrollPanelReflector) {
+                    scrollPanelReflector.ensureVisible(navigationObject.component);
+                }
+                super.onSelect(navigationObject);
             }
-
-            @Override
-            public void performDownAction(float advance) {
-                selectedRowIndex++;
-                selectedColumn = 0;
-                hoverSelectedItem();
-            }
-
-            @Override
-            public void performLeftAction(float advance) {
-                selectedColumn--;
-                hoverSelectedItem();
-            }
-
-            @Override
-            public void performRightAction(float advance) {
-                selectedColumn++;
-                hoverSelectedItem();
-            }
-        });
-        addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> performActionOnHoveredItem());
-        addButtonPressHandler("Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
-        addButtonPressHandler("Select map tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_TAB));
-        addButtonPressHandler("Select command tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_D, 'd'));
-        addButtonPressHandler("Select intel tab", LogicalButtons.LeftTrigger, new KeySender(Keyboard.KEY_1, '1'));
-        addButtonPressHandler("Select planet tab", LogicalButtons.RightTrigger, new KeySender(Keyboard.KEY_3, '3'));
-        selectedPlanetX = selectedPlanetY = -1;
-    }
-
-    void updateSelectedRowColumns() {
-        List<?> rows = selectingPlanetFilters ? filterButtonRows : planetTabReflector.getPlanetsTableRows();
-
-        if(rows.isEmpty()) {
-            selectedRowColumns = null;
-            return;
+        };
+        for(var scroller : scrollers) {
+            directionalUINavigator.addScrollPanel(scroller);
         }
-
-        if(selectedRowIndex < 0) selectedRowIndex = 0;
-        else if(selectedRowIndex >= rows.size()) selectedRowIndex = rows.size() - 1;
-
-        if(selectingPlanetFilters) {
-            selectedPlanet = null;
-            selectedRowColumns = new ArrayList<>(filterButtonRows.get(selectedRowIndex));
-        } else {
-            selectedPlanet = (UIPanelAPI) rows.get(selectedRowIndex);
-            selectedRowColumns = planetTabReflector.getPlanetSubItems((UIPanelAPI) rows.get(selectedRowIndex));
-        }
-    }
-
-    void performActionOnHoveredItem() {
-        updateSelectedRowColumns();
-
-        if(selectedRowColumns == null || selectedRowColumns.isEmpty() || selectedColumn < 0 || selectedColumn >= selectedRowColumns.size()) return;
-
-        if(!selectingPlanetFilters && selectedColumn > 0 && selectedColumn < (selectedRowColumns.size() - 1)) {
-            InputShim.keyDownUp(Keyboard.KEY_F2, '\0');
-        } else {
-            var selectedCell = selectedRowColumns.get(selectedColumn);
-            var pos = selectedCell.getPosition();
-            InputShim.mouseDownUp((int) pos.getCenterX(), (int) pos.getCenterY(), InputEventMouseButton.LEFT);
-        }
-    }
-
-    void hoverSelectedItem() {
-        updateSelectedRowColumns();
-        if(selectingPlanetFilters && selectedRowColumns == null) return;
-        if(selectedRowColumns == null || (selectingPlanetFilters && selectedColumn < 0) || (!selectingPlanetFilters && selectedColumn >= selectedRowColumns.size())) {
-            selectedRowIndex = selectedColumn = 0;
-            selectingPlanetFilters = !selectingPlanetFilters;
-            hoverSelectedItem();
-            return;
-        }
-
-        if (selectedRowColumns.isEmpty()) return;
-        else if(selectedColumn < 0) selectedColumn = 0;
-        else if (selectedColumn >= selectedRowColumns.size()) selectedColumn = selectedRowColumns.size() - 1;
-
-        var selectedCell = selectedRowColumns.get(selectedColumn);
-        var pos = selectedCell.getPosition();
-        if(!selectingPlanetFilters && selectedPlanet != null) {
-            planetTabReflector.ensurePlanetVisible(selectedPlanet);
-            selectedPlanetX = (int) pos.getX();
-            selectedPlanetY = (int) pos.getY();
-        } else {
-            selectedPlanetX = selectedPlanetY = -1;
-        }
-        InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
     }
 
     @Override
@@ -181,11 +125,16 @@ public class IntelPlanetTabUi extends InputScreenBase {
             InputScreenManager.getInstance().transitionDelayed(DialogUI.ID);
         }
 
-        if(selectedPlanet != null) {
-            int selPlanetCurX = (int) selectedPlanet.getPosition().getX(), selPlanetCurY = (int) selectedPlanet.getPosition().getY();
-            if(selPlanetCurX != selectedPlanetX || selPlanetCurY != selectedPlanetY) {
-                hoverSelectedItem();
+        if(directionalUINavigator != null) {
+            List<DirectionalUINavigator.NavigationObject> directionalObjectsTmp = new ArrayList<>();
+            List<ScrollPanelReflector> scrollers = new ArrayList<>();
+            getPanelNavigatables(planetTabReflector, directionalObjectsTmp, scrollers);
+            directionalObjects = directionalObjectsTmp;
+            directionalUINavigator.setNavigationObjects(directionalObjects);
+            for(var scroller : scrollers) {
+                directionalUINavigator.addScrollPanel(scroller);
             }
+            directionalUINavigator.advance(amount);
         }
     }
 

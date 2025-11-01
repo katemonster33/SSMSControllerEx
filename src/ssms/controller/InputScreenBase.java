@@ -290,31 +290,7 @@ public class InputScreenBase {
 
     protected void getPanelNavigatables(UIPanelReflector pnl, List<DirectionalUINavigator.NavigationObject> directionalObjects, List<ScrollPanelReflector> scrollers) {
         if( ScrollPanelAPI.class.isAssignableFrom(pnl.getPanel().getClass())) {
-            ScrollPanelReflector scroller = new ScrollPanelReflector((ScrollPanelAPI) pnl.getPanel());
-            scrollers.add(scroller);
-            UIPanelReflector container = new UIPanelReflector(scroller.getContentContainer());
-            if(scroller.getFader().getBrightness() != 1.f || !isComponentVisible(scroller.getPanel())) {
-                return;
-            }
-            for(var item : container.getChildItems()) {
-                if(UIPanelAPI.class.isAssignableFrom(item.getClass()) && (TagDisplayAPI.class.isAssignableFrom(item.getClass()) || AptitudeRow.class.isAssignableFrom(item.getClass()))) {
-                    if(isComponentVisible((UIComponentAPI) item)) {
-                        getPanelNavigatables(new UIPanelReflector((UIPanelAPI) item), directionalObjects, scrollers);
-                    }
-                } else if(UIComponentAPI.class.isAssignableFrom(item.getClass())) {
-                    if(isComponentVisible((UIComponentAPI)item)) {
-                        directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI) item, scroller));
-                    }
-                }
-            }
-            for(var item : scroller.getChildItems()) {
-                if(UIComponentAPI.class.isAssignableFrom(item.getClass()) && item != container.getPanel()) {
-                    UIComponentReflector comp = new UIComponentReflector((UIComponentAPI) item);
-                    if(((UIComponentAPI)item).getPosition().getWidth() > 0 && comp.getFader().getBrightness() == 1.f && isComponentVisible((UIComponentAPI)item)) {
-                        directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI)item));
-                    }
-                }
-            }
+            getScrollerNavigatables(new ScrollPanelReflector((ScrollPanelAPI) pnl.getPanel()), directionalObjects, scrollers);
         } else {
             for (var item : pnl.getChildItems()) {
                 if (ButtonAPI.class.isAssignableFrom(item.getClass()) && isComponentVisible((ButtonAPI)item)) {
@@ -324,6 +300,33 @@ public class InputScreenBase {
                     if (reflectorTmp.getFader().getBrightness() == 1.f && isComponentVisible(reflectorTmp.getPanel())) {
                         getPanelNavigatables(reflectorTmp, directionalObjects, scrollers);
                     }
+                }
+            }
+        }
+    }
+
+    protected void getScrollerNavigatables(ScrollPanelReflector scroller, List<DirectionalUINavigator.NavigationObject> directionalObjects, List<ScrollPanelReflector> scrollers) {
+        scrollers.add(scroller);
+        UIPanelReflector container = new UIPanelReflector(scroller.getContentContainer());
+        if(scroller.getFader().getBrightness() != 1.f || !isComponentVisible(scroller.getPanel())) {
+            return;
+        }
+        for(var item : container.getChildItems()) {
+            if(UIPanelAPI.class.isAssignableFrom(item.getClass()) && (TagDisplayAPI.class.isAssignableFrom(item.getClass()) || AptitudeRow.class.isAssignableFrom(item.getClass()))) {
+                if(isComponentVisible((UIComponentAPI) item)) {
+                    getPanelNavigatables(new UIPanelReflector((UIPanelAPI) item), directionalObjects, scrollers);
+                }
+            } else if(UIComponentAPI.class.isAssignableFrom(item.getClass())) {
+                if(isComponentVisible((UIComponentAPI)item)) {
+                    directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI) item, scroller));
+                }
+            }
+        }
+        for(var item : scroller.getChildItems()) {
+            if(UIComponentAPI.class.isAssignableFrom(item.getClass()) && item != container.getPanel()) {
+                UIComponentReflector comp = new UIComponentReflector((UIComponentAPI) item);
+                if(((UIComponentAPI)item).getPosition().getWidth() > 0 && comp.getFader().getBrightness() == 1.f && isComponentVisible((UIComponentAPI)item)) {
+                    directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI)item));
                 }
             }
         }
