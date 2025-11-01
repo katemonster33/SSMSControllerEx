@@ -41,6 +41,7 @@ public class IntelPlanetTabUi extends InputScreenBase {
     List<UIComponentAPI> selectedRowColumns;
     UIPanelAPI selectedPlanet;
     int selectedPlanetX, selectedPlanetY;
+    InteractionDialogReflector interactionDialogReflector;
     boolean selectingPlanetFilters = false;
 
     @Override
@@ -67,6 +68,7 @@ public class IntelPlanetTabUi extends InputScreenBase {
             }
         }
         indicators = new ArrayList<>();
+        interactionDialogReflector = InteractionDialogReflector.getCurrentInstance();
 
         addDigitalJoystickHandler("Navigate", Joystick.DPad, new DigitalJoystickHandler() {
             @Override
@@ -173,6 +175,10 @@ public class IntelPlanetTabUi extends InputScreenBase {
 
         if(isCodexOpen()) {
             InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
+        }
+
+        if(interactionDialogReflector != null && !interactionDialogReflector.isCoreUiOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(DialogUI.ID);
         }
 
         if(selectedPlanet != null) {

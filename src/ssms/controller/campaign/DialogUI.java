@@ -68,7 +68,8 @@ public class DialogUI extends InputScreenBase {
             InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
         } else {
             var interactionCoreUi = interactReflector.getCoreUI(interactionDialogAPI);
-            if (interactionCoreUi != null && openCoreUiTab(interactionCoreUi)) {
+            var coreUiReflector = new UIPanelReflector((UIPanelAPI) interactionCoreUi);
+            if (interactionCoreUi != null && interactionCoreUi.getTradeMode() != null && coreUiReflector.getParent() != null && openCoreUiTab(interactionCoreUi)) {
                 return;
 //                var dialogChildren = interactReflector.getChildItems();
 //                if (dialogChildren.contains(interactionCoreUi)) {

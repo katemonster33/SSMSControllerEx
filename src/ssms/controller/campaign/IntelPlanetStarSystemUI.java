@@ -31,6 +31,7 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
     IntelPlanetTabUi.PlanetTabReflector planetTabReflector;
     DirectionalUINavigator directionalUINavigator;
     UIComponentAPI mapComponent;
+    InteractionDialogReflector interactionDialogReflector;
 
     @Override
     public String getId() {
@@ -87,6 +88,7 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
             planetTabReflector = new IntelPlanetTabUi.PlanetTabReflector(intelTabReflector.getPlanetTabData().getPanel());
             mapComponent = planetTabReflector.getMap();
         }
+        interactionDialogReflector = InteractionDialogReflector.getCurrentInstance();
         indicators = null;
         directionalUINavigator = null;
     }
@@ -104,6 +106,9 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
         }
         if(isCodexOpen()) {
             InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
+        }
+        if(interactionDialogReflector != null && !interactionDialogReflector.isCoreUiOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(DialogUI.ID);
         }
 
         // intel tab was recreated due to user clicking the map, this is dumb and I hate it

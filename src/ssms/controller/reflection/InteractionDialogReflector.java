@@ -21,4 +21,18 @@ public class InteractionDialogReflector extends UIPanelReflector {
     public CoreUIAPI getCoreUI(InteractionDialogAPI interactionDialogAPI) {
         return (CoreUIAPI) getCoreUI.invoke(interactionDialogAPI);
     }
+
+    public static InteractionDialogReflector getCurrentInstance() {
+        var interactDialog = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
+        if(interactDialog != null) {
+            return new InteractionDialogReflector(interactDialog);
+        } else {
+            return null;
+        }
+    }
+
+    public boolean isCoreUiOpen() {
+        var coreUi = new UIPanelReflector((UIPanelAPI) getCoreUI.invoke(panel));
+        return coreUi.getParent() != null;
+    }
 }

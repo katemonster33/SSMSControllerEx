@@ -15,6 +15,7 @@ import ssms.controller.generic.CodexUI;
 import ssms.controller.inputhelper.ButtonPressOrHoldHandler;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
+import ssms.controller.reflection.InteractionDialogReflector;
 import ssms.controller.reflection.ScrollPanelReflector;
 import ssms.controller.reflection.UIPanelReflector;
 
@@ -26,6 +27,7 @@ public class RefitTabUI extends InputScreenBase {
     UIPanelReflector refitPanel;
     List<DirectionalUINavigator.NavigationObject> directionalObjects;
     DirectionalUINavigator refitNavigator;
+    InteractionDialogReflector interactionDialogReflector;
     @Override
     public String getId() {
         return ID;
@@ -76,6 +78,7 @@ public class RefitTabUI extends InputScreenBase {
                 }
             }
         };
+        interactionDialogReflector = InteractionDialogReflector.getCurrentInstance();
         indicators = null;
     }
 
@@ -88,7 +91,9 @@ public class RefitTabUI extends InputScreenBase {
         if(isCodexOpen()) {
             InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
         }
-
+        if(interactionDialogReflector != null && !interactionDialogReflector.isCoreUiOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(DialogUI.ID);
+        }
         List<DirectionalUINavigator.NavigationObject> directionalObjectsTmp = new ArrayList<>(); //new ArrayList<>(refitPanel.getChildButtons(true).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         getPanelNavigatables(refitPanel, directionalObjectsTmp, new ArrayList<>());
         if(directionalObjectsTmp.size() != directionalObjects.size()) {

@@ -273,13 +273,11 @@ public class InputScreenBase {
             }
         }
         if(borderedPanelReflector != null) {
-
             boolean output = switch (Global.getSector().getCampaignUI().getCurrentCoreTab()) {
                 case CARGO -> tryOpenScreen(TradeUiReflector.TryGet(coreUI, borderedPanelReflector), TradeScreen.ID);
-                case CHARACTER ->
-                        tryOpenScreen(CharacterSheetReflector.TryGet(coreUI, borderedPanelReflector), CharacterTabUI.ID);
+                case CHARACTER -> tryOpenScreen(CharacterSheetReflector.TryGet(coreUI, borderedPanelReflector), CharacterTabUI.ID);
                 case FLEET -> tryOpenScreen(FleetTabReflector.TryGet(coreUI, borderedPanelReflector), FleetTabUI.ID) ||
-                            tryOpenScreen(TradeUiReflector.TryGet(coreUI, borderedPanelReflector), FleetTabUI.ID);
+                            tryOpenScreen(FleetMarketTabUI.FleetMarketTabReflector.TryGet(coreUI, borderedPanelReflector), FleetMarketTabUI.ID);
                 case INTEL -> tryOpenScreen(IntelTabReflector.TryGet(coreUI, borderedPanelReflector), IntelTabUI.ID);
                 case MAP -> tryOpenScreen(MapReflector.TryGet(coreUI, borderedPanelReflector), MapTabUI.ID);
                 case REFIT -> tryOpenScreen(borderedPanelReflector.getInnerPanel(), RefitTabUI.ID);
@@ -341,6 +339,15 @@ public class InputScreenBase {
                     return true;
                 }
             }
+            var interactDialog = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
+            if(interactDialog != null) {
+                var dialogCoreUi = new InteractionDialogReflector(interactDialog).getCoreUI(interactDialog);
+                for(var coreUiChild : new UIPanelReflector((UIPanelAPI) dialogCoreUi).getChildPanels()) {
+                    if (coreUiChild instanceof CodexDialog) {
+                        return true;
+                    }
+                }
+            }
         }
         return false;
     }
@@ -379,6 +386,15 @@ public class InputScreenBase {
                 for (var child : new UIPanelReflector((UIPanelAPI) CampaignStateReflector.GetInstance().getCoreUI()).getChildPanels()) {
                     if (child instanceof CodexDialog codexDialog) {
                         return codexDialog;
+                    }
+                }
+                var interactDialog = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
+                if(interactDialog != null) {
+                    var dialogCoreUi = new InteractionDialogReflector(interactDialog).getCoreUI(interactDialog);
+                    for(var coreUiChild : new UIPanelReflector((UIPanelAPI) dialogCoreUi).getChildPanels()) {
+                        if (coreUiChild instanceof CodexDialog codexDialog) {
+                            return codexDialog;
+                        }
                     }
                 }
             }

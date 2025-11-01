@@ -149,6 +149,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         man.registerScreen(new NewGameUI());
         man.registerScreen(new ControllerSettingsUI());
         man.registerScreen(new CodexUI());
+        man.registerScreen(new FleetMarketTabUI());
     }
 
      enum POVMapping

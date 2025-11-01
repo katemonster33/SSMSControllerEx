@@ -13,6 +13,7 @@ import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.CodexUI;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
+import ssms.controller.reflection.InteractionDialogReflector;
 import ssms.controller.reflection.ScrollPanelReflector;
 import ssms.controller.reflection.UIPanelReflector;
 
@@ -24,6 +25,7 @@ public class CommandTabUI  extends InputScreenBase {
     UIPanelReflector commandPanelReflector;
     List<DirectionalUINavigator.NavigationObject> tabNavItems = new ArrayList<>();
     DirectionalUINavigator directionalUINavigator;
+    InteractionDialogReflector interactionDialogReflector;
 
     @Override
     public String getId() {
@@ -55,6 +57,7 @@ public class CommandTabUI  extends InputScreenBase {
             commandPanelReflector = (UIPanelReflector) args[0];
         }
         indicators = null;
+        interactionDialogReflector = InteractionDialogReflector.getCurrentInstance();
         directionalUINavigator = new DirectionalUINavigator(new ArrayList<>()) {
             @Override
             public void onSelect(NavigationObject directionalObject) {
@@ -74,6 +77,10 @@ public class CommandTabUI  extends InputScreenBase {
         }
         if(isCodexOpen()) {
             InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
+        }
+
+        if(interactionDialogReflector != null && !interactionDialogReflector.isCoreUiOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(DialogUI.ID);
         }
 
         List<DirectionalUINavigator.NavigationObject> tmpNavObjects = new ArrayList<>();

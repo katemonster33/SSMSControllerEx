@@ -42,6 +42,7 @@ public class TradeScreen extends InputScreenBase {
     boolean isCargoTab = false;
     UIPanelReflector colonyInfoWidget;
     boolean isColonyInfoShown;
+    InteractionDialogReflector interactDialog;
 
     @Override
     public List<Pair<Indicators, String>> getIndicators() {
@@ -86,6 +87,7 @@ public class TradeScreen extends InputScreenBase {
             tradeUiReflector = (TradeUiReflector) args[0];
             coreUiPanelReflector = new UIPanelReflector((UIPanelAPI) tradeUiReflector.getCoreUIAPI());
         }
+        interactDialog = InteractionDialogReflector.getCurrentInstance();
         isCargoTab = Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.CARGO;
         directionalUINavigator = new DirectionalUINavigator(new ArrayList<>())
         {
@@ -163,11 +165,8 @@ public class TradeScreen extends InputScreenBase {
         if(!Global.getSector().getCampaignUI().isShowingDialog() || (isCargoTab && Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.CARGO)) {
             InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
         } else if(tradeUiReflector.getCoreUIAPI().getTradeMode() != null){
-            if(interactionDialogAPI != null) {
-                var tradePanelChildren = interactionDialogReflector.getChildItems();
-                if (!tradePanelChildren.contains(tradeUiReflector.getCoreUIAPI())) {
-                    InputScreenManager.getInstance().transitionToScreen(DialogUI.ID);
-                }
+            if(interactDialog != null && !interactDialog.isCoreUiOpen()) {
+                InputScreenManager.getInstance().transitionDelayed(DialogUI.ID);
             }
             List<?> coreUiChildren = null;
             if(interactionDialogAPI != null && Global.getCurrentState() == GameState.COMBAT) coreUiChildren = coreUiPanelReflector.getChildItems();

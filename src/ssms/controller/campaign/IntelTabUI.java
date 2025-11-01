@@ -37,6 +37,7 @@ public class IntelTabUI extends InputScreenBase {
     List<UIComponentAPI> filterButtons;
     List<UIComponentAPI> intelButtons;
     DirectionalUINavigator directionalUINavigator;
+    InteractionDialogReflector interactionDialogReflector;
 
     @Override
     public String getId() {
@@ -89,6 +90,7 @@ public class IntelTabUI extends InputScreenBase {
             intelButtons = eventsTabReflector.getIntelButtons();
         }
         directionalUINavigator = null;
+        interactionDialogReflector = InteractionDialogReflector.getCurrentInstance();
         indicators = null;
     }
 
@@ -107,6 +109,10 @@ public class IntelTabUI extends InputScreenBase {
         else if(intelTabData.getSelectedTabIndex() == 2) InputScreenManager.getInstance().transitionDelayed(IntelFactionTabUi.ID, intelTabReflector);
         if(isCodexOpen()) {
             InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
+        }
+
+        if(interactionDialogReflector != null && !interactionDialogReflector.isCoreUiOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(DialogUI.ID);
         }
 
         lastFrameSelectedIndex = intelTabData.getSelectedTabIndex();

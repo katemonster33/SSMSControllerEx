@@ -18,6 +18,7 @@ import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.ClassReflector;
 import ssms.controller.reflection.IntelTabReflector;
+import ssms.controller.reflection.InteractionDialogReflector;
 import ssms.controller.reflection.MethodReflector;
 
 import java.lang.invoke.MethodHandle;
@@ -32,6 +33,8 @@ public class IntelFactionTabUi extends InputScreenBase {
     IntelFactionTabReflector intelFactionTabReflector;
     IntelTabData intelTabData;
     DirectionalUINavigator directionalUINavigator;
+    InteractionDialogReflector interactionDialogReflector;
+
     @Override
     public String getId() {
         return ID;
@@ -44,6 +47,7 @@ public class IntelFactionTabUi extends InputScreenBase {
             intelFactionTabReflector = new IntelFactionTabReflector(intelTabReflector.getFactionIntelPanel());
             intelTabData = CampaignEngine.getInstance().getUIData().getIntelData();
         }
+        interactionDialogReflector = InteractionDialogReflector.getCurrentInstance();
         indicators = new ArrayList<>();
         directionalUINavigator = new DirectionalUINavigator(intelFactionTabReflector.getFactionButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         addDirectionalUINavigator(directionalUINavigator);
@@ -62,6 +66,10 @@ public class IntelFactionTabUi extends InputScreenBase {
 
         if(isCodexOpen()) {
             InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
+        }
+
+        if(interactionDialogReflector != null && !interactionDialogReflector.isCoreUiOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(DialogUI.ID);
         }
 
         if(directionalUINavigator != null) {

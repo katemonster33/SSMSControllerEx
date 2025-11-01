@@ -16,6 +16,7 @@ import ssms.controller.generic.CodexUI;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.inputhelper.MapInputHandler;
+import ssms.controller.reflection.InteractionDialogReflector;
 import ssms.controller.reflection.MapReflector;
 import ssms.controller.reflection.UIPanelReflector;
 
@@ -25,6 +26,7 @@ import java.util.List;
 public class MapTabUI extends InputScreenBase {
     public final static String ID = "MapTab";
     DirectionalUINavigator directionalUINavigator;
+    InteractionDialogReflector interactionDialogReflector;
 
     MapReflector mapReflector;
 
@@ -42,6 +44,7 @@ public class MapTabUI extends InputScreenBase {
         List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>(mapReflector.getButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         directionalUINavigator = new DirectionalUINavigator(directionalObjects);
         directionalUINavigator.setMapComponent(mapReflector.getScroller());
+        interactionDialogReflector = InteractionDialogReflector.getCurrentInstance();
     }
 
     @Override
@@ -73,6 +76,10 @@ public class MapTabUI extends InputScreenBase {
         }
         if(isCodexOpen()) {
             InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
+        }
+
+        if(interactionDialogReflector != null && !interactionDialogReflector.isCoreUiOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(DialogUI.ID);
         }
         if(directionalUINavigator != null) {
             directionalUINavigator.advance(amount);

@@ -16,6 +16,7 @@ import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.CharacterSheetReflector;
+import ssms.controller.reflection.InteractionDialogReflector;
 import ssms.controller.reflection.MessageBoxReflector;
 import ssms.controller.reflection.UIPanelReflector;
 
@@ -28,6 +29,7 @@ public class CharacterTabUI extends InputScreenBase {
     DirectionalUINavigator directionalUINavigator;
     int lastFrameNumChildren;
     List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>();
+    InteractionDialogReflector interactionDialogReflector;
 
     @Override
     public void activate(Object ...args) {
@@ -80,6 +82,10 @@ public class CharacterTabUI extends InputScreenBase {
         }
         if(isCodexOpen()) {
             InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
+        }
+
+        if(interactionDialogReflector != null && !interactionDialogReflector.isCoreUiOpen()) {
+            InputScreenManager.getInstance().transitionDelayed(DialogUI.ID);
         }
 
         List<DirectionalUINavigator.NavigationObject> directionalObjectsTmp = new ArrayList<>();
