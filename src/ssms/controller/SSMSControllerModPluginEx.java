@@ -17,6 +17,8 @@
  */
 package ssms.controller;
 
+import com.fs.starfarer.api.campaign.listeners.CampaignInputListener;
+import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import ssms.controller.campaign.*;
@@ -210,6 +212,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
 
     @Override
     public void onGameLoad(boolean newGame) {
+        InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
         Global.getSector().addTransientScript(new CampaignControllerListener());
         Global.getSector().getListenerManager().addListener(new CampaignRenderer());
     }

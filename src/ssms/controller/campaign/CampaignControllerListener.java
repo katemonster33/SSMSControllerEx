@@ -12,7 +12,6 @@ import ssms.controller.reflection.InteractionDialogReflector;
 import java.util.Objects;
 
 public class CampaignControllerListener implements EveryFrameScript {
-    public static boolean pluginActive = false;
 
     @Override
     public boolean isDone() {
@@ -27,15 +26,10 @@ public class CampaignControllerListener implements EveryFrameScript {
     @Override
     public void advance(float amount) {
         InputShim.advance(amount);
-        if (!pluginActive && Global.getCurrentState() == GameState.CAMPAIGN) {
-            pluginActive = true;
-            InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
-        }
-        if(pluginActive) {
-            SSMSControllerModPluginEx.controller.poll();
-            InputScreenManager.getInstance().startFrame();
-            InputScreenManager.getInstance().preInput(amount);
-            InputScreenManager.getInstance().processControllerEvents(amount, SSMSControllerModPluginEx.controller.getButtonEvents(), SSMSControllerModPluginEx.controller.getAxisEvents());
-        }
+
+        SSMSControllerModPluginEx.controller.poll();
+        InputScreenManager.getInstance().startFrame();
+        InputScreenManager.getInstance().preInput(amount);
+        InputScreenManager.getInstance().processControllerEvents(amount, SSMSControllerModPluginEx.controller.getButtonEvents(), SSMSControllerModPluginEx.controller.getAxisEvents());
     }
 }
