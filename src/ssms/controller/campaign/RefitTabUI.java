@@ -4,6 +4,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
+import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector2f;
@@ -12,12 +13,11 @@ import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.CodexUI;
+import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.inputhelper.ButtonPressOrHoldHandler;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
-import ssms.controller.reflection.InteractionDialogReflector;
-import ssms.controller.reflection.ScrollPanelReflector;
-import ssms.controller.reflection.UIPanelReflector;
+import ssms.controller.reflection.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,6 +82,16 @@ public class RefitTabUI extends InputScreenBase {
         indicators = null;
     }
 
+    private boolean isMessageBoxShown() {
+        for(var pnl : refitPanel.getPanelsOnTopOfMe()) {
+            if(MessageBoxReflector.isMsgBox(pnl)) {
+                InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, new MessageBoxReflector(pnl), getId());
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public void preInput(float amount) {
         if(Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.REFIT) {
@@ -94,6 +104,7 @@ public class RefitTabUI extends InputScreenBase {
         if(interactionDialogReflector != null && !interactionDialogReflector.isCoreUiOpen()) {
             InputScreenManager.getInstance().transitionDelayed(DialogUI.ID);
         }
+        if(isMessageBoxShown()) return;
         List<DirectionalUINavigator.NavigationObject> directionalObjectsTmp = new ArrayList<>(); //new ArrayList<>(refitPanel.getChildButtons(true).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         getPanelNavigatables(refitPanel, directionalObjectsTmp, new ArrayList<>());
         if(directionalObjectsTmp.size() != directionalObjects.size()) {

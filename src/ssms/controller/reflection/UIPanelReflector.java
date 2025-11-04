@@ -76,6 +76,27 @@ public class UIPanelReflector extends UIComponentReflector {
         return output;
     }
 
+    List<UIPanelAPI> getPanelsOnTopOf(UIPanelReflector pnl) {
+        var parent = pnl.getParent();
+        List<UIPanelAPI> panelsOnTop = new ArrayList<>();
+        if(parent != null) {
+            var parentReflector = new UIPanelReflector(parent);
+            var parentItems = parentReflector.getChildPanels();
+            int pnlIndex = parentItems.indexOf(pnl.getPanel());
+            if(pnlIndex != -1) {
+                for(pnlIndex++;pnlIndex < parentItems.size(); pnlIndex++) {
+                    panelsOnTop.add(parentItems.get(pnlIndex));
+                }
+            }
+            panelsOnTop.addAll(getPanelsOnTopOf(parentReflector));
+        }
+        return panelsOnTop;
+    }
+
+    public List<UIPanelAPI> getPanelsOnTopOfMe() {
+        return getPanelsOnTopOf(this);
+    }
+
     public List<ButtonAPI> getChildButtons()  {
         return getChildButtons(false);
     }
