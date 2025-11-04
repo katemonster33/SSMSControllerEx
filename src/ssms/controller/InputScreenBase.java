@@ -98,7 +98,10 @@ public class InputScreenBase {
     public void preInput(float advance) {
     }
 
-    public void processInputEvents(float advance, List<InputEventAPI> events) {
+    public void processInputEvents(List<InputEventAPI> events) {
+    }
+
+    public void processInputEvents(List<InputEventAPI> normalEvents, List<Pair<LogicalButtons, Boolean>> buttonEvents, List<Pair<AxisMapping, Float>> axisEvents) {
     }
 
     public final void processControllerEvents(float advance, List<Pair<LogicalButtons, Boolean>> buttonEvents, List<Pair<AxisMapping, Float>> axisEvents) {

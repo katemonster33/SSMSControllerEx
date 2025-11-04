@@ -266,8 +266,8 @@ public class InputScreenManager {
         currentScreen.preInput(advance);
     }
 
-    public void processInputEvents(float advance, List<InputEventAPI> events) {
-        currentScreen.processInputEvents(advance, events);
+    public void processInputEvents(List<InputEventAPI> events) {
+        currentScreen.processInputEvents(events);
     }
 
     public void processControllerEvents(float advance, List<Pair<LogicalButtons, Boolean>> buttonEvents, List<Pair<AxisMapping, Float>> axisEvents) {

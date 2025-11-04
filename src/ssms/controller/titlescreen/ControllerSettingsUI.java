@@ -229,7 +229,7 @@ public class ControllerSettingsUI extends InputScreenBase {
     }
 
     @Override
-    public void processInputEvents(float advance, List<InputEventAPI> events) {
+    public void processInputEvents(List<InputEventAPI> events) {
         for(InputEventAPI evt : events) {
             if(evt.isKeyDownEvent() && evt.getEventValue() == Keyboard.KEY_ESCAPE) {
                 evt.consume();
