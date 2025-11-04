@@ -55,7 +55,6 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
     public void init(CombatEngineAPI engine) {
         //Global.getLogger(SSMSControllerModPlugin.class).log(Level.ERROR, "initialized every frame");
         this.engine = engine;
-        CampaignControllerListener.pluginActive = false;
         nextLog = 0;
         skipFrame = true;
         if(Global.getCurrentState() == GameState.TITLE) {
