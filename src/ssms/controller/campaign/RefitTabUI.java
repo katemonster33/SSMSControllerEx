@@ -82,16 +82,6 @@ public class RefitTabUI extends InputScreenBase {
         indicators = null;
     }
 
-    private boolean isMessageBoxShown() {
-        for(var pnl : refitPanel.getPanelsOnTopOfMe()) {
-            if(MessageBoxReflector.isMsgBox(pnl)) {
-                InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, new MessageBoxReflector(pnl), getId());
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Override
     public void preInput(float amount) {
         if(Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.REFIT) {
@@ -104,7 +94,7 @@ public class RefitTabUI extends InputScreenBase {
         if(interactionDialogReflector != null && !interactionDialogReflector.isCoreUiOpen()) {
             InputScreenManager.getInstance().transitionDelayed(DialogUI.ID);
         }
-        if(isMessageBoxShown()) return;
+        if(isMessageBoxShown(refitPanel)) return;
         List<DirectionalUINavigator.NavigationObject> directionalObjectsTmp = new ArrayList<>(); //new ArrayList<>(refitPanel.getChildButtons(true).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
         getPanelNavigatables(refitPanel, directionalObjectsTmp, new ArrayList<>());
         if(directionalObjectsTmp.size() != directionalObjects.size()) {

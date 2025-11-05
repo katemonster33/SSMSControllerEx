@@ -35,6 +35,7 @@ import ssms.controller.enums.AxisMapping;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.inputhelper.*;
 import ssms.controller.reflection.*;
 
@@ -93,6 +94,16 @@ public class InputScreenBase {
         if(mapInputHandler != null) {
             mapInputHandler.render();
         }
+    }
+
+    protected boolean isMessageBoxShown(UIPanelReflector panel) {
+        for(var pnl : panel.getPanelsOnTopOfMe()) {
+            if(MessageBoxReflector.isMsgBox(pnl)) {
+                InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, new MessageBoxReflector(pnl), getId());
+                return true;
+            }
+        }
+        return false;
     }
 
     public void preInput(float advance) {
@@ -297,7 +308,13 @@ public class InputScreenBase {
         } else {
             for (var item : pnl.getChildItems()) {
                 if (ButtonAPI.class.isAssignableFrom(item.getClass()) && isComponentVisible((ButtonAPI)item)) {
-                    directionalObjects.add(new DirectionalUINavigator.NavigationObject((ButtonAPI) item));
+                    ButtonReflector btnReflector = new ButtonReflector((ButtonAPI) item);
+                    var btnPanel = btnReflector.getRendererPanel();
+                    if(btnPanel != null) {
+                        getPanelNavigatables(new UIPanelReflector(btnPanel), directionalObjects, scrollers);
+                    } else {
+                        directionalObjects.add(new DirectionalUINavigator.NavigationObject((ButtonAPI) item));
+                    }
                 } else if (UIPanelAPI.class.isAssignableFrom(item.getClass())) {
                     UIPanelReflector reflectorTmp = new UIPanelReflector((UIPanelAPI) item);
                     if (reflectorTmp.getFader().getBrightness() == 1.f && isComponentVisible(reflectorTmp.getPanel())) {
@@ -315,14 +332,25 @@ public class InputScreenBase {
             return;
         }
         for(var item : container.getChildItems()) {
-            if(UIPanelAPI.class.isAssignableFrom(item.getClass()) && (TagDisplayAPI.class.isAssignableFrom(item.getClass()) || AptitudeRow.class.isAssignableFrom(item.getClass()))) {
+            if(UIPanelAPI.class.isAssignableFrom(item.getClass()) && (TagDisplayAPI.class.isAssignableFrom(item.getClass()) || AptitudeRow.class.isAssignableFrom(item.getClass()) || WeaponGroupRowReflector.isWeaponGroupRow((UIPanelAPI) item))) {
                 if(isComponentVisible((UIComponentAPI) item)) {
                     getPanelNavigatables(new UIPanelReflector((UIPanelAPI) item), directionalObjects, scrollers);
                 }
             } else if(UIComponentAPI.class.isAssignableFrom(item.getClass())) {
                 if(isComponentVisible((UIComponentAPI)item)) {
-                    directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI) item, scroller));
+                    if(ButtonAPI.class.isAssignableFrom(item.getClass())) {
+                        var btn = new ButtonReflector((ButtonAPI) item);
+                        var btnRenderer = btn.getRendererPanel();
+                        if (btnRenderer != null && WeaponGroupRowReflector.isWeaponGroupRow(btnRenderer)) {
+                            int objectCount = directionalObjects.size();
+                            getPanelNavigatables(new UIPanelReflector(btnRenderer), directionalObjects, scrollers);
+                            if(directionalObjects.size() > objectCount) {
+                                continue;
+                            }
+                        }
+                    }
                 }
+                directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI) item, scroller));
             }
         }
         for(var item : scroller.getChildItems()) {

@@ -15,6 +15,7 @@ import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.ButtonReflector;
 import ssms.controller.reflection.MessageBoxReflector;
+import ssms.controller.reflection.ScrollPanelReflector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,44 +38,36 @@ public class MessageBoxScreen extends InputScreenBase {
         if(args.length > 0) {
             dialogReflector = (MessageBoxReflector) args[0];
             uiToReturnTo = (String) args[1];
+            directionalUINavigator = new DirectionalUINavigator(new ArrayList<>());
         }
+        indicators = null;
     }
 
     @Override
     public List<Pair<Indicators, String>> getIndicators() {
-        indicators = new ArrayList<>();
-        dialogOptions = dialogReflector.getDialogButtons();
-        if(!dialogOptions.isEmpty()) {
-            //dialogOptions.get(0).highlight();
-            directionalUINavigator = new DirectionalUINavigator(dialogOptions.stream().map(DirectionalUINavigator.NavigationObject::new).toList());
-            addDigitalJoystickHandler("Navigate items", Joystick.DPad, directionalUINavigator);
-            addButtonPressHandler("Select option", LogicalButtons.A, (float advance) -> clickButton());
-        }
-        addButtonPressHandler("Confirm", LogicalButtons.Y, new KeySender(Keyboard.KEY_RETURN));
-        addButtonPressHandler("Dismiss", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
-        return indicators;
-    }
-
-    public void clickButton()
-    {
-        if(directionalUINavigator != null && directionalUINavigator.getSelected() != null) {
-            var btn = new ButtonReflector((ButtonAPI) directionalUINavigator.getSelected().component);
-
-            if(btn.isCheckbox()) {
-                btn.getButton().setChecked(!btn.getButton().isChecked());
-            } else {
-                dialogReflector.doActionPerformed(null, btn.getButton());
+        if(indicators == null) {
+            indicators = new ArrayList<>();
+            List<DirectionalUINavigator.NavigationObject> navigationObjects = new ArrayList<>();
+            List<ScrollPanelReflector> scrollPanelReflectors = new ArrayList<>();
+            getPanelNavigatables(dialogReflector.getInnerPanel(), navigationObjects, scrollPanelReflectors);
+            if (!navigationObjects.isEmpty()) {
+                //dialogOptions.get(0).highlight();
+                directionalUINavigator.setNavigationObjects(navigationObjects);
+                addDirectionalUINavigator(directionalUINavigator);
             }
+            addButtonPressHandler("Confirm", LogicalButtons.Y, new KeySender(Keyboard.KEY_RETURN));
+            addButtonPressHandler("Dismiss", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
         }
+        return indicators;
     }
 
     @Override
     public void preInput(float advance) {
-        if(dialogReflector.isBeingDismissed()) {
+        if (dialogReflector.isBeingDismissed()) {
             dialogOptions = null;
-            if(Global.getCurrentState() == GameState.COMBAT) {
+            if (Global.getCurrentState() == GameState.COMBAT) {
                 InputScreenManager.getInstance().transitionToScope(BattleScope.ID, Global.getCombatEngine());
-            } else if(dialogToReturnTo != null) {
+            } else if (dialogToReturnTo != null) {
                 dialogReflector = dialogToReturnTo;
                 dialogToReturnTo = null;
                 refreshIndicators();
@@ -82,16 +75,19 @@ public class MessageBoxScreen extends InputScreenBase {
                 InputScreenManager.getInstance().transitionToScreen(uiToReturnTo);
             }
         }
-        if(isCodexOpen()) {
+        if (isCodexOpen()) {
             InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
         }
-        for(var child : dialogReflector.getChildPanels()) {
-            if(MessageBoxReflector.isMsgBox(child)) {
+        for (var child : dialogReflector.getChildPanels()) {
+            if (MessageBoxReflector.isMsgBox(child)) {
                 dialogToReturnTo = dialogReflector;
                 dialogReflector = new MessageBoxReflector(child);
                 refreshIndicators();
                 return;
             }
+        }
+        if (directionalUINavigator != null) {
+            directionalUINavigator.advance(advance);
         }
     }
 
