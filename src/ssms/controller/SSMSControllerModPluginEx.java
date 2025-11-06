@@ -17,8 +17,6 @@
  */
 package ssms.controller;
 
-import com.fs.starfarer.api.campaign.listeners.CampaignInputListener;
-import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import ssms.controller.campaign.*;
@@ -103,12 +101,9 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         oldMappingsJson = obj.getJSONObject("controllerMappings");
         indicatorsByController = configureSettingsApplicationController(obj.getJSONObject("graphics"));
         var testPnl = Global.getSettings().createCustom(1.f, 1.f, null);
-        UIPanelReflector.initialize(testPnl.getClass().getSuperclass());
-        UIComponentReflector.initialize(testPnl.getClass().getSuperclass().getSuperclass());
         var testElem = testPnl.createUIElement(1.f, 1.f, false);
         var testBtn = testElem.addButton("TEST", null, 1.f, 1.f, 0.f);
         ButtonReflector.init(testBtn.getClass());
-        MessageBoxReflector.initialize();
 
         try {
             InputShim.install();
@@ -152,6 +147,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         man.registerScreen(new ControllerSettingsUI());
         man.registerScreen(new CodexUI());
         man.registerScreen(new FleetMarketTabUI());
+        man.registerScreen(new CampaignTransitionUI());
     }
 
      enum POVMapping
@@ -212,7 +208,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
 
     @Override
     public void onGameLoad(boolean newGame) {
-        InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
+        InputScreenManager.getInstance().transitionToScreen(CampaignTransitionUI.ID);
         Global.getSector().addTransientScript(new CampaignControllerListener());
         Global.getSector().getListenerManager().addListener(new CampaignRenderer());
     }

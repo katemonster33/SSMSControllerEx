@@ -14,17 +14,20 @@ public class UITableReflector {
     static Class<?> listType;
     static MethodReflector ensureVisible;
     static MethodReflector getItems;
-    public UITableReflector(UITable uiTable) {
-        this.uiTable = uiTable;
+    static {
         ClassReflector uiTableReflector = new ClassReflector(UITable.class);
         getList = uiTableReflector.getDeclaredMethod("getList");
 
         listType = getList.getReturnType();
-        uiTableList = (UIPanelAPI) getList.invoke(uiTable);
 
-        ClassReflector listReflector = new ClassReflector(uiTableList.getClass());
+        ClassReflector listReflector = new ClassReflector(listType);
         ensureVisible = listReflector.findDeclaredMethod("ensureVisible");
         getItems = listReflector.getDeclaredMethod("getItems");
+    }
+    public UITableReflector(UITable uiTable) {
+        this.uiTable = uiTable;
+
+        uiTableList = (UIPanelAPI) getList.invoke(uiTable);
     }
 
     public void ensureVisible(UIComponentAPI componentAPI) {

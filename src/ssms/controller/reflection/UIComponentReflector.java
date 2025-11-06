@@ -4,6 +4,7 @@ import com.fs.graphics.util.Fader;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
+import com.fs.starfarer.campaign.save.LoadGameDialog;
 
 public class UIComponentReflector {
     UIComponentAPI uiComponentAPI;
@@ -14,12 +15,12 @@ public class UIComponentReflector {
         this.uiComponentAPI = uiComponentAPI;
     }
 
-    public static void initialize(Class<?> uiCompCls) {
-        var uiCompReflector = new ClassReflector(uiCompCls);
+    static {
+        uiComponentCls = LoadGameDialog.class.getSuperclass().getSuperclass().getSuperclass().getSuperclass();
+        var uiCompReflector = new ClassReflector(uiComponentCls);
 
         getFaderMethod = uiCompReflector.getDeclaredMethod("getFader");
         getParentHandle = uiCompReflector.getDeclaredMethod("getParent");
-        uiComponentCls = uiCompCls;
     }
 
     public static Class<?> getUIComponentClass() {

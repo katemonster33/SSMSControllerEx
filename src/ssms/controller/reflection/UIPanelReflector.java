@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fs.starfarer.api.ui.UIComponentAPI;
+import com.fs.starfarer.campaign.save.LoadGameDialog;
 import org.apache.log4j.Level;
 
 import com.fs.starfarer.api.Global;
@@ -15,16 +16,17 @@ public class UIPanelReflector extends UIComponentReflector {
     static Class<?> panelType;
     static MethodReflector getChildItemsHandle;
     UIPanelAPI panel;
-    public static void initialize(Class<?> testPnlCls)
+    static
     {
-        if(!UIPanelAPI.class.isAssignableFrom(testPnlCls)) {
+        var panelClass = LoadGameDialog.class.getSuperclass().getSuperclass().getSuperclass();
+        if(!UIPanelAPI.class.isAssignableFrom(panelClass)) {
             throw new RuntimeException("Panel class given did not match requirements!");
         }
-        var reflector = new ClassReflector(testPnlCls);
+        var reflector = new ClassReflector(panelClass);
         var meth = reflector.getDeclaredMethod("getChildrenCopy");
         if (meth != null) {
             getChildItemsHandle = meth;
-            UIPanelReflector.panelType = testPnlCls;
+            UIPanelReflector.panelType = panelClass;
         }
     }
 

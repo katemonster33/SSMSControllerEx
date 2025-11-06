@@ -66,8 +66,6 @@ public class TitleScreenUI extends InputScreenBase {
     @Override
     public void activate(Object ...args) {
         titleScreenStateReflector = new TitleScreenStateReflector();
-        UIPanelAPI panel = titleScreenStateReflector.getScreenPanel();
-        UIPanelReflector.initialize(panel.getClass());
         mainMenuButtons = null;
         directionalUINavigator = new DirectionalUINavigator(new ArrayList<>());
         indicators = null;

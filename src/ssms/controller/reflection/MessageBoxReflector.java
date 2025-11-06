@@ -12,16 +12,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class MessageBoxReflector extends UIPanelReflector {
+public class MessageBoxReflector extends DialogBaseReflector {
     // The class representing the highest-order message dialog type
     static Class<?> messageBoxClass;
 
-    static MethodReflector isBeingDismissed;
     static MethodHandle actionPerformed;
     static MethodReflector getOptionMap;
     static MethodReflector getInnerPanel;
 
-    public static void initialize() {
+    static {
         try {
             Class<?> clsTmp = LoadGameDialog.class.getSuperclass();
             ClassReflector msgBoxReflector = new ClassReflector(clsTmp);
@@ -31,11 +30,9 @@ public class MessageBoxReflector extends UIPanelReflector {
 
             actionPerformed = MethodHandles.lookup().findVirtual(clsTmp, "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
 
-            isBeingDismissed = new ClassReflector(clsTmp.getSuperclass()).getDeclaredMethod("isBeingDismissed");
-
             messageBoxClass = clsTmp;
         } catch (Throwable ex) {
-            Global.getLogger(MessageBoxReflector.class).fatal("Given object is not a dialog object!", ex);
+            throw new RuntimeException("Could not get a !", ex);
         }
     }
 
@@ -47,12 +44,6 @@ public class MessageBoxReflector extends UIPanelReflector {
     public MessageBoxReflector(UIPanelAPI dialogObject) {
         super(dialogObject);
         this.dialogObject = dialogObject;
-    }
-
-    public boolean isBeingDismissed(){
-        isBeingDismissed.setAccessible(true);
-
-        return (boolean) isBeingDismissed.invoke(dialogObject);
     }
 
     public List<ButtonAPI> getDialogButtons() {
