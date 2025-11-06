@@ -40,9 +40,9 @@ public class MainCampaignUI extends InputScreenBase {
     CrosshairRenderer headingIndicator;
     ViewportAPI sectorViewport;
     UIPanelReflector campaignPanelReflector;
+    UIPanelReflector coreUiPanelReflector;
     ControllerCrosshairRenderer hotbarIndicatorRenderer;
     int currentHotkeyGroup = 0, currentHotkey = 0;
-    int lastFrameNumChildren = -1;
 
     int selectedHotkey, selectedHotkeyGroup;
     int selectedTab;
@@ -135,12 +135,12 @@ public class MainCampaignUI extends InputScreenBase {
         selectedHotkey = selectedHotkeyGroup = selectedTab = -1;
         currentHotkeyGroup = currentHotkey = 0;
         hotbarIndicatorRenderer = new ControllerCrosshairRenderer(58);
-        lastFrameNumChildren = new UIPanelReflector(getPanelForIndicators()).getChildItems().size();
         headingIndicator = new CrosshairRenderer();
         headingIndicator.setSize(32, 32);
         sectorViewport = Global.getSector().getViewport();
         indicators = null;
         campaignPanelReflector = new UIPanelReflector(getPanelForIndicators());
+        coreUiPanelReflector = new UIPanelReflector((UIPanelAPI) CampaignStateReflector.GetInstance().getCoreUI());
     }
 
     @Override
@@ -225,7 +225,7 @@ public class MainCampaignUI extends InputScreenBase {
                 }
             }
         }
-        if (isMessageBoxShown()) return;
+        if (isMessageBoxShown(coreUiPanelReflector)) return;
         if(isCodexOpen()) {
             InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
         }
@@ -244,24 +244,6 @@ public class MainCampaignUI extends InputScreenBase {
         InputShim.keyDown(Keyboard.KEY_1 + currentHotkeyGroup, (char)('1' + currentHotkeyGroup));
         InputShim.keyUp(Keyboard.KEY_LCONTROL, '\0');
         InputShim.keyUp(Keyboard.KEY_1 + currentHotkeyGroup, (char)('1' + currentHotkeyGroup));
-    }
-
-    private boolean isMessageBoxShown() {
-        var children = campaignPanelReflector.getChildItems();
-        int numChildren = children.size();
-        if(numChildren > lastFrameNumChildren) {
-            for(int i = lastFrameNumChildren; i < numChildren; i++ ) {
-                var child = children.get(i);
-                if(child instanceof UIPanelAPI uiPanelAPI && InputScreenManager.getInstance().getDisplayPanel() != null && child != InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
-                    if(MessageBoxReflector.isMsgBox(uiPanelAPI)) {
-                        InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, new MessageBoxReflector(uiPanelAPI), MainCampaignUI.ID);
-                        return true;
-                    }
-                }
-            }
-        }
-        lastFrameNumChildren = numChildren;
-        return false;
     }
 
     boolean openScreenForCoreTab() {

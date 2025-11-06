@@ -38,6 +38,10 @@ public class CampaignStateReflector {
         return instance;
     }
 
+    public void refreshInstance() {
+        cs = AppDriver.getInstance().getState(CampaignState.STATE_ID);
+    }
+
     public float getZoomFactor() {
         try {
             return (float)getZoomFactor.invoke(cs);
