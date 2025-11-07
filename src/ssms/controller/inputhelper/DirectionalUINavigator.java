@@ -82,29 +82,31 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     }
 
     public float getDeltaX(NavigationObject a, NavigationObject b) {
-        if ((a.x1 >= b.x1 && a.x1 < b.x2) ||
-                (a.x2 > b.x1 && a.x2 <= b.x2) ||
-                (b.x1 >= a.x1 && b.x1 < a.x2) ||
-                (b.x2 > a.x1 && b.x2 <= a.x2)) {
-            return 0;
-        } else if (a.x2 <= b.x1) {
-            return b.getCenterX() - a.getCenterX();
-        } else {
-            return -1;
+        if((b.getCenterX() - a.getCenterX()) >= 0) {
+            if ((a.x1 >= b.x1 && a.x1 < b.x2) ||
+                    (a.x2 > b.x1 && a.x2 <= b.x2) ||
+                    (b.x1 >= a.x1 && b.x1 < a.x2) ||
+                    (b.x2 > a.x1 && b.x2 <= a.x2)) {
+                return 0;
+            } else if (a.x2 <= b.x1) {
+                return b.getCenterX() - a.getCenterX();
+            }
         }
+        return -1;
     }
 
     public float getDeltaY(NavigationObject a, NavigationObject b) {
-        if ((a.y1 >= b.y1 && a.y1 < b.y2) ||
-                (a.y2 > b.y1 && a.y2 <= b.y2) ||
-                (b.y1 >= a.y2 && b.y1 < a.y2) ||
-                (b.y2 > a.y1 && b.y2 <= a.y2)) {
-            return 0;
-        } else if (a.y2 <= b.y1) {
-            return b.getCenterY() - a.getCenterY();
-        } else {
-            return -1;
+        if((b.getCenterY() - a.getCenterY()) >= 0) {
+            if ((a.y1 >= b.y1 && a.y1 < b.y2) ||
+                    (a.y2 > b.y1 && a.y2 <= b.y2) ||
+                    (b.y1 >= a.y2 && b.y1 < a.y2) ||
+                    (b.y2 > a.y1 && b.y2 <= a.y2)) {
+                return 0;
+            } else if (a.y2 <= b.y1) {
+                return b.getCenterY() - a.getCenterY();
+            }
         }
+        return -1;
     }
 
     public void setNavigationObjects(List<NavigationObject> navigationObjects) {
@@ -152,6 +154,8 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
         for (var other : navigationObjects) {
             ++tmpIndex;
             if (other == selectedObj) {
+                continue;
+            } else if(other.x1 == selectedObj.x1 && other.x2 == selectedObj.x2 && other.y1 == selectedObj.y1 && other.y2 == selectedObj.y2) {
                 continue;
             }
             float deltaA = getDeltaA.compare(selectedObj, other);
