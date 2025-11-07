@@ -1,5 +1,6 @@
 package ssms.controller.campaign;
 
+import com.fs.graphics.util.Fader;
 import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
@@ -62,22 +63,16 @@ public class MainCampaignUI extends InputScreenBase {
         });
         if(gameCurrentlyPaused) {
             List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>();
-            UIPanelReflector panelReflector = null;
-            for(var child : campaignPanelReflector.getChildItems()) {
-                if(child instanceof CoreUIAPI) {
-                    panelReflector = new UIPanelReflector((UIPanelAPI) child);
-                }
-            }
-            if(panelReflector != null) {
-                directionalObjects.addAll(panelReflector.getChildPanels(3).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
+            var coreUiReflector = new CoreUIReflector(CampaignStateReflector.GetInstance().getCoreUI());
+            //getPanelNavigatables(coreUiReflector, directionalObjects, new ArrayList<>());
+            UIPanelReflector logistics = new UIPanelReflector(coreUiReflector.getLogistics());
+            directionalObjects.addAll(logistics.getChildPanels().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
+            CoursePanelReflector coursePanelReflector = new CoursePanelReflector(coreUiReflector.getCourse());
 
-                for (var pnl : panelReflector.getChildPanels()) {
-                    CoreUIHUD coreUIHUD = CoreUIHUD.tryGet(pnl);
-                    if(coreUIHUD != null) {
-                        directionalObjects.addAll(coreUIHUD.getChildPanels().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
-                    }
-                }
+            if(coursePanelReflector.getInner().getState() == Fader.State.IN) {
+                directionalObjects.addAll(coursePanelReflector.getChildButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
             }
+            directionalObjects.addAll(coreUiReflector.getChildPanels(3).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
             shipInfoNavigator = new DirectionalUINavigator(directionalObjects);
             addDigitalJoystickHandler("Navigate ship information / hotkeys", Joystick.DPad, shipInfoNavigator);
             addButtonPressOrHoldHandler("More Info", "Open Codex", LogicalButtons.Y, new ButtonPressOrHoldHandler() {
@@ -236,6 +231,9 @@ public class MainCampaignUI extends InputScreenBase {
         if(controller.isButtonPressed(LogicalButtons.LeftStickButton)) {
             CampaignFleetAPI playerFleet = Global.getSector().getPlayerFleet();
             playerFleet.goSlowOneFrame();
+        }
+        if(shipInfoNavigator != null) {
+            shipInfoNavigator.advance(advance);
         }
     }
 
