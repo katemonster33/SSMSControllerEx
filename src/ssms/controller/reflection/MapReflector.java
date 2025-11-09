@@ -20,8 +20,7 @@ public class MapReflector extends UIPanelReflector {
         this.coreUIAPI = coreUi;
     }
 
-    public static MapReflector TryGet(CoreUIAPI coreUIAPI, BorderedPanelReflector borderedPanelReflector) {
-        var mapObj = borderedPanelReflector.getInnerPanel();
+    public static MapReflector TryGet(CoreUIAPI coreUIAPI, UIPanelReflector mapObj) {
         if (mapType == null) {
             var clsReflector = new ClassReflector(mapObj.getPanel().getClass());
             getMap = clsReflector.getDeclaredMethod("getMap");

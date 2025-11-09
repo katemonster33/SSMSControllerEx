@@ -28,6 +28,7 @@ public class RefitTabUI extends InputScreenBase {
     List<DirectionalUINavigator.NavigationObject> directionalObjects;
     DirectionalUINavigator refitNavigator;
     InteractionDialogReflector interactionDialogReflector;
+    UIPanelReflector campaignStatePanel;
     @Override
     public String getId() {
         return ID;
@@ -78,6 +79,7 @@ public class RefitTabUI extends InputScreenBase {
                 }
             }
         };
+        campaignStatePanel = new UIPanelReflector(CampaignStateReflector.GetInstance().getScreenPanel());
         interactionDialogReflector = InteractionDialogReflector.getCurrentInstance();
         indicators = null;
     }
@@ -94,9 +96,9 @@ public class RefitTabUI extends InputScreenBase {
         if(interactionDialogReflector != null && !interactionDialogReflector.isCoreUiOpen()) {
             InputScreenManager.getInstance().transitionDelayed(DialogUI.ID);
         }
-        if(isMessageBoxShown(refitPanel)) return;
+        //if(isMessageBoxShown(refitPanel)) return;
         List<DirectionalUINavigator.NavigationObject> directionalObjectsTmp = new ArrayList<>(); //new ArrayList<>(refitPanel.getChildButtons(true).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
-        getPanelNavigatables(refitPanel, directionalObjectsTmp, new ArrayList<>());
+        getPanelNavigatables(campaignStatePanel, directionalObjectsTmp, new ArrayList<>());
         if(directionalObjectsTmp.size() != directionalObjects.size()) {
             directionalObjects = directionalObjectsTmp;
             refitNavigator.setNavigationObjects(directionalObjects);

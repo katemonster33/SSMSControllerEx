@@ -26,7 +26,7 @@ public class MessageBoxReflector extends DialogBaseReflector {
             ClassReflector msgBoxReflector = new ClassReflector(clsTmp);
             getOptionMap = msgBoxReflector.getDeclaredMethod("getOptionMap");
 
-            getInnerPanel = msgBoxReflector.findDeclaredMethod("getInnerPanel");
+            getInnerPanel = msgBoxReflector.getDeclaredMethod("getInnerPanel");
 
             actionPerformed = MethodHandles.lookup().findVirtual(clsTmp, "actionPerformed", MethodType.methodType(void.class, Object.class, Object.class));
 
@@ -40,10 +40,8 @@ public class MessageBoxReflector extends DialogBaseReflector {
         return messageBoxClass.isAssignableFrom(obj.getClass());
     }
 
-    UIPanelAPI dialogObject;
     public MessageBoxReflector(UIPanelAPI dialogObject) {
         super(dialogObject);
-        this.dialogObject = dialogObject;
     }
 
     public List<ButtonAPI> getDialogButtons() {
@@ -51,16 +49,16 @@ public class MessageBoxReflector extends DialogBaseReflector {
     }
 
     public UIPanelReflector getInnerPanel() {
-        return new UIPanelReflector((UIPanelAPI) getInnerPanel.invoke(dialogObject));
+        return new UIPanelReflector((UIPanelAPI) getInnerPanel.invoke(panel));
     }
 
     public Object getDialogObject() {
-        return dialogObject;
+        return panel;
     }
 
     public void doActionPerformed(Object obj1, Object obj2) {
         try {
-            actionPerformed.invoke(dialogObject, obj1, obj2);
+            actionPerformed.invoke(panel, obj1, obj2);
         } catch(Throwable ex) {
             Global.getLogger(getClass()).fatal("Could not invoke actionPerformed on dialog!", ex);
         }

@@ -40,6 +40,7 @@ import ssms.controller.inputhelper.*;
 import ssms.controller.reflection.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 
@@ -97,7 +98,11 @@ public class InputScreenBase {
     }
 
     protected boolean isMessageBoxShown(UIPanelReflector panel) {
-        for(var pnl : panel.getPanelsOnTopOfMe()) {
+        return isMessageBoxShown(panel.getPanelsOnTopOfMe());
+    }
+
+    protected boolean isMessageBoxShown(List<UIPanelAPI> panels) {
+        for(var pnl : panels) {
             if(MessageBoxReflector.isMsgBox(pnl)) {
                 InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, new MessageBoxReflector(pnl), getId());
                 return true;
@@ -274,28 +279,18 @@ public class InputScreenBase {
         return false;
     }
 
-    protected boolean openCoreUiTab(CoreUIAPI coreUI) {
-        BorderedPanelReflector borderedPanelReflector = null;
-        for(var coreuiChild : new UIPanelReflector((UIPanelAPI) coreUI).getChildPanels()) {
-            var borderedPanel = BorderedPanelReflector.TryGet(coreUI, coreuiChild);
-            if (borderedPanel != null) {
-                if(borderedPanelReflector == null) {
-                    borderedPanelReflector = borderedPanel;
-                } else {
-                    return false; // more than 1 bordered panel, skip it
-                }
-            }
-        }
-        if(borderedPanelReflector != null) {
+    protected boolean openCoreUiTab(CoreUIReflector coreUIReflector) {
+        if(coreUIReflector.getCurrentTab() != null) {
+            var tabPanelReflector = new UIPanelReflector(coreUIReflector.getCurrentTab());
             boolean output = switch (Global.getSector().getCampaignUI().getCurrentCoreTab()) {
-                case CARGO -> tryOpenScreen(TradeUiReflector.TryGet(coreUI, borderedPanelReflector), TradeScreen.ID);
-                case CHARACTER -> tryOpenScreen(CharacterSheetReflector.TryGet(coreUI, borderedPanelReflector), CharacterTabUI.ID);
-                case FLEET -> tryOpenScreen(FleetTabReflector.TryGet(coreUI, borderedPanelReflector), FleetTabUI.ID) ||
-                            tryOpenScreen(FleetMarketTabUI.FleetMarketTabReflector.TryGet(coreUI, borderedPanelReflector), FleetMarketTabUI.ID);
-                case INTEL -> tryOpenScreen(IntelTabReflector.TryGet(coreUI, borderedPanelReflector), IntelTabUI.ID);
-                case MAP -> tryOpenScreen(MapReflector.TryGet(coreUI, borderedPanelReflector), MapTabUI.ID);
-                case REFIT -> tryOpenScreen(borderedPanelReflector.getInnerPanel(), RefitTabUI.ID);
-                case OUTPOSTS -> tryOpenScreen(borderedPanelReflector.getInnerPanel(), CommandTabUI.ID);
+                case CARGO -> tryOpenScreen(TradeUiReflector.TryGet(coreUIReflector.getCoreUIAPI(), tabPanelReflector), TradeScreen.ID);
+                case CHARACTER -> tryOpenScreen(CharacterSheetReflector.TryGet(coreUIReflector.getCoreUIAPI(), tabPanelReflector), CharacterTabUI.ID);
+                case FLEET -> tryOpenScreen(FleetTabReflector.TryGet(coreUIReflector.getCoreUIAPI(), tabPanelReflector), FleetTabUI.ID) ||
+                            tryOpenScreen(FleetMarketTabUI.FleetMarketTabReflector.TryGet(coreUIReflector.getCoreUIAPI(), tabPanelReflector), FleetMarketTabUI.ID);
+                case INTEL -> tryOpenScreen(IntelTabReflector.TryGet(coreUIReflector.getCoreUIAPI(), tabPanelReflector), IntelTabUI.ID);
+                case MAP -> tryOpenScreen(MapReflector.TryGet(coreUIReflector.getCoreUIAPI(), tabPanelReflector), MapTabUI.ID);
+                case REFIT -> tryOpenScreen(tabPanelReflector, RefitTabUI.ID);
+                case OUTPOSTS -> tryOpenScreen(tabPanelReflector, CommandTabUI.ID);
             };
             return output;
         }
@@ -306,14 +301,29 @@ public class InputScreenBase {
         if( ScrollPanelAPI.class.isAssignableFrom(pnl.getPanel().getClass())) {
             getScrollerNavigatables(new ScrollPanelReflector((ScrollPanelAPI) pnl.getPanel()), directionalObjects, scrollers);
         } else {
-            for (var item : pnl.getChildItems()) {
+            var children = pnl.getChildItems();
+            for(int index = children.size() - 1; index >= 0; index--) {
+                var item = children.get(index);
                 if (ButtonAPI.class.isAssignableFrom(item.getClass()) && isComponentVisible((ButtonAPI)item)) {
                     ButtonReflector btnReflector = new ButtonReflector((ButtonAPI) item);
                     var btnPanel = btnReflector.getRendererPanel();
-                    if(btnPanel != null) {
+                    if (btnPanel != null) {
                         getPanelNavigatables(new UIPanelReflector(btnPanel), directionalObjects, scrollers);
                     } else {
                         directionalObjects.add(new DirectionalUINavigator.NavigationObject((ButtonAPI) item));
+                    }
+                } else if(DialogBaseReflector.getDialogBaseCls().isAssignableFrom(item.getClass())) {
+                    DialogBaseReflector dialogBaseReflector;
+                    if(MessageBoxReflector.isMsgBox((UIPanelAPI) item)) {
+                        var msgBoxReflector = new MessageBoxReflector((UIPanelAPI) item);
+                        getPanelNavigatables(msgBoxReflector.getInnerPanel(), directionalObjects, scrollers);
+                        dialogBaseReflector = msgBoxReflector;
+                    } else {
+                        dialogBaseReflector = new DialogBaseReflector((UIPanelAPI) item);
+                        getPanelNavigatables(dialogBaseReflector, directionalObjects, scrollers);
+                    }
+                    if(dialogBaseReflector.getAbsorbOutsideEvents()) {
+                        return;
                     }
                 } else if (UIPanelAPI.class.isAssignableFrom(item.getClass())) {
                     UIPanelReflector reflectorTmp = new UIPanelReflector((UIPanelAPI) item);

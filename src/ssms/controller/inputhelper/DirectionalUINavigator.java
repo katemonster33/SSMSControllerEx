@@ -312,6 +312,7 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
                     curContext = DirectionalUIContext.Other;
                 }
             }
+            lastFrameSelected = selected;
         } else if(desiredMousePos != null) {
             if (mapComponent != null && mousePosIntersects(mapComponent)) {
                 curContext = DirectionalUIContext.Map;

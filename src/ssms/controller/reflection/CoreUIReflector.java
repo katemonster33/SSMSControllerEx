@@ -8,6 +8,7 @@ public class CoreUIReflector extends UIPanelReflector {
     protected static Class<?> coreUiType;
     static MethodReflector getLogistics;
     static MethodReflector getCourse;
+    static MethodReflector getCurrentTab;
     static {
         ClassReflector campaignStateCls = new ClassReflector(CampaignState.class);
 
@@ -18,6 +19,8 @@ public class CoreUIReflector extends UIPanelReflector {
         getLogistics = coreUiReflector.getDeclaredMethod("getLogistics");
 
         getCourse = coreUiReflector.getDeclaredMethod("getCourse");
+
+        getCurrentTab = coreUiReflector.getDeclaredMethod("getCurrentTab");
     }
     CoreUIAPI coreUIAPI;
     public CoreUIReflector(CoreUIAPI coreUi) {
@@ -37,5 +40,7 @@ public class CoreUIReflector extends UIPanelReflector {
         return (UIPanelAPI) getCourse.invoke(coreUIAPI);
     }
 
-
+    public UIPanelAPI getCurrentTab() {
+        return (UIPanelAPI) getCurrentTab.invoke(coreUIAPI);
+    }
 }

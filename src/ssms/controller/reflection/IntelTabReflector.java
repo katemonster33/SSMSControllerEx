@@ -6,7 +6,7 @@ import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.campaign.comms.v2.EventsPanel;
 import com.fs.starfarer.campaign.ui.intel.FactionIntelPanel;
 
-public class IntelTabReflector {
+public class IntelTabReflector extends UIPanelReflector {
     CoreUIAPI coreUIAPI;
     BorderedPanelReflector borderedPanelReflector;
     UIPanelAPI intelUiParent;
@@ -16,6 +16,7 @@ public class IntelTabReflector {
     static MethodReflector getPlanetsPanel;
 
     private IntelTabReflector(CoreUIAPI coreUIAPI, BorderedPanelReflector borderedPanelReflector, UIPanelAPI intelUiParent) {
+        super(intelUiParent);
         this.coreUIAPI = coreUIAPI;
         this.borderedPanelReflector = borderedPanelReflector;
         this.intelUiParent = intelUiParent;
@@ -37,9 +38,9 @@ public class IntelTabReflector {
         return borderedPanelReflector;
     }
 
-    public static IntelTabReflector TryGet(CoreUIAPI coreUIAPI, BorderedPanelReflector borderedPanelReflector) {
+    public static IntelTabReflector TryGet(CoreUIAPI coreUIAPI, UIPanelReflector intelPanelReflector) {
         if(intelTabCls == null) {
-            var intelTabUi = borderedPanelReflector.getInnerPanel().getPanel();
+            var intelTabUi = intelPanelReflector.getPanel();
             ClassReflector intelTabClsReflector = new ClassReflector(intelTabUi.getClass());
             getFactionPanel = intelTabClsReflector.getDeclaredMethod("getFactionPanel");
             getEventsPanel = intelTabClsReflector.getDeclaredMethod("getEventsPanel");
@@ -48,8 +49,9 @@ public class IntelTabReflector {
                 intelTabCls = intelTabUi.getClass();
                 return new IntelTabReflector(coreUIAPI, borderedPanelReflector, intelTabUi);
             }
-        } else if(intelTabCls.isAssignableFrom(borderedPanelReflector.getInnerPanel().getPanel().getClass())) {
-            return new IntelTabReflector(coreUIAPI, borderedPanelReflector, borderedPanelReflector.getInnerPanel().getPanel());
+        } else if(intelTabCls.isAssignableFrom(intelPanelReflector.getPanel().getClass())) {
+            var borderedPanel = BorderedPanelReflector.TryGet(coreUIAPI, intelPanelReflector.getParent());
+            return new IntelTabReflector(coreUIAPI, borderedPanel, intelPanelReflector.getPanel());
         }
         return null;
     }

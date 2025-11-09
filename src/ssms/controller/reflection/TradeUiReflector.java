@@ -29,8 +29,7 @@ public class TradeUiReflector extends UIPanelReflector {
         return coreUIAPI;
     }
 
-    public static TradeUiReflector TryGet(CoreUIAPI coreUIAPI, BorderedPanelReflector borderedPanelReflector) {
-        var parentPanel = borderedPanelReflector.getInnerPanel();
+    public static TradeUiReflector TryGet(CoreUIAPI coreUIAPI, UIPanelReflector parentPanel) {
         if (tradeParentCls == null || tradePanelCls == null) {
             try {
                 var shouldShowLogisticsOnSwitch = new ClassReflector(parentPanel.getPanel().getClass()).findDeclaredMethod("shouldShowLogisticsOnSwitch");

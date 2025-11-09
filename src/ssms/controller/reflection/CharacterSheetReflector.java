@@ -29,8 +29,8 @@ public class CharacterSheetReflector extends UIPanelReflector {
         return coreUIAPI;
     }
 
-    public static CharacterSheetReflector TryGet(CoreUIAPI coreUIAPI, BorderedPanelReflector borderedPanelReflector) {
-        var parentPanel = borderedPanelReflector.getInnerPanel().getPanel();
+    public static CharacterSheetReflector TryGet(CoreUIAPI coreUIAPI, UIPanelReflector panelReflector) {
+        var parentPanel = panelReflector.getPanel();
         if(characterSheetCls == null) {
             try {
                 getAptitudeRows = MethodHandles.lookup().findVirtual(parentPanel.getClass(), "getAptitudeRows", MethodType.methodType(List.class));
