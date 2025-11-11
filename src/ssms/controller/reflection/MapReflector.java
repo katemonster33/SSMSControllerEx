@@ -5,36 +5,35 @@ import com.fs.starfarer.api.campaign.CoreUIAPI;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
+import com.fs.starfarer.campaign.comms.v2.EventsPanel;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MapReflector extends UIPanelReflector {
-    CoreUIAPI coreUIAPI;
     static Class<?> mapType;
     static MethodReflector getMap;
     static MethodReflector getScroller;
 
-    private MapReflector(CoreUIAPI coreUi, UIPanelAPI mapObj) {
-        super(mapObj);
-        this.coreUIAPI = coreUi;
+    static {
+        ClassReflector eventsCls = new ClassReflector(EventsPanel.class);
+        var getMapTab = eventsCls.getDeclaredMethod("getMap");
+
+        var clsReflector = new ClassReflector(getMapTab.getReturnType());
+
+        getMap = clsReflector.getDeclaredMethod("getMap");
+
+        getScroller = clsReflector.getDeclaredMethod("getScroller");
+
+        mapType = getMapTab.getReturnType();
     }
 
-    public static MapReflector TryGet(CoreUIAPI coreUIAPI, UIPanelReflector mapObj) {
-        if (mapType == null) {
-            var clsReflector = new ClassReflector(mapObj.getPanel().getClass());
-            getMap = clsReflector.getDeclaredMethod("getMap");
+    public MapReflector(UIPanelAPI mapObj) {
+        super(mapObj);
+    }
 
-            getScroller = clsReflector.getDeclaredMethod("getScroller");
-            if(getMap != null && getScroller != null) {
-                mapType = mapObj.getClass();
-                return new MapReflector(coreUIAPI, mapObj.getPanel());
-            }
-        } else if (mapType.isAssignableFrom(mapObj.getClass())) {
-            return new MapReflector(coreUIAPI, mapObj.getPanel());
-        }
-        Global.getLogger(MapReflector.class).error("Couldn't fetch map UI!");
-        return null;
+    public static boolean isAssignableFrom(Class<?> cls) {
+        return mapType.isAssignableFrom(cls);
     }
 
     // gets the buttons visible when you click and hold a location on the map.

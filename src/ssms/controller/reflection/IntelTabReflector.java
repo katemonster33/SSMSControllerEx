@@ -47,7 +47,7 @@ public class IntelTabReflector extends UIPanelReflector {
             getPlanetsPanel = intelTabClsReflector.getDeclaredMethod("getPlanetsPanel");
             if(getFactionPanel != null && getEventsPanel != null && getPlanetsPanel != null) {
                 intelTabCls = intelTabUi.getClass();
-                return new IntelTabReflector(coreUIAPI, borderedPanelReflector, intelTabUi);
+                return new IntelTabReflector(coreUIAPI, BorderedPanelReflector.TryGet(coreUIAPI, intelPanelReflector.getParent()), intelTabUi);
             }
         } else if(intelTabCls.isAssignableFrom(intelPanelReflector.getPanel().getClass())) {
             var borderedPanel = BorderedPanelReflector.TryGet(coreUIAPI, intelPanelReflector.getParent());

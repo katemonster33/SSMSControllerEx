@@ -67,7 +67,7 @@ public class IntelPlanetTabUi extends InputScreenBase {
         }
         for(var item : container.getChildItems()) {
             if(UIPanelAPI.class.isAssignableFrom(item.getClass()) && isComponentVisible((UIComponentAPI) item)) {
-                getPanelNavigatables(new UIPanelReflector((UIPanelAPI) item), directionalObjects, scrollers);
+                getPanelNavigatables(new UIPanelReflector((UIPanelAPI) item), directionalObjects, scrollers, new ArrayList<>());
             } else if(ButtonAPI.class.isAssignableFrom(item.getClass()) && isComponentVisible((UIComponentAPI) item)) {
                 directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI)item, scroller));
             }
@@ -95,7 +95,7 @@ public class IntelPlanetTabUi extends InputScreenBase {
         interactionDialogReflector = InteractionDialogReflector.getCurrentInstance();
         directionalObjects = new ArrayList<>();
         List<ScrollPanelReflector> scrollers = new ArrayList<>();
-        getPanelNavigatables(planetTabReflector, directionalObjects, scrollers);
+        getPanelNavigatables(planetTabReflector, directionalObjects, scrollers, new ArrayList<>());
         directionalUINavigator = new DirectionalUINavigator(directionalObjects) {
             @Override
             public void onSelect(NavigationObject navigationObject) {
@@ -128,7 +128,7 @@ public class IntelPlanetTabUi extends InputScreenBase {
         if(directionalUINavigator != null) {
             List<DirectionalUINavigator.NavigationObject> directionalObjectsTmp = new ArrayList<>();
             List<ScrollPanelReflector> scrollers = new ArrayList<>();
-            getPanelNavigatables(planetTabReflector, directionalObjectsTmp, scrollers);
+            getPanelNavigatables(planetTabReflector, directionalObjectsTmp, scrollers, new ArrayList<>());
             directionalObjects = directionalObjectsTmp;
             directionalUINavigator.setNavigationObjects(directionalObjects);
             for(var scroller : scrollers) {

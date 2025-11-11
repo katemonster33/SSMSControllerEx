@@ -72,8 +72,8 @@ public class FleetTabReflector {
         }
     }
 
-    public static FleetTabReflector TryGet(CoreUIAPI coreUIAPI, BorderedPanelReflector borderedPanelReflector) {
-        var children = borderedPanelReflector.getInnerPanel().getChildPanels();
+    public static FleetTabReflector TryGet(CoreUIAPI coreUIAPI, UIPanelReflector parentPanel) {
+        var children = parentPanel.getChildPanels();
         if (children.size() == 2) {
             UIPanelReflector fleetListObj = new UIPanelReflector(children.get(0));
             UIPanelReflector sidePanelObj = new UIPanelReflector(children.get(1));

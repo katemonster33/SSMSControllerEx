@@ -30,7 +30,7 @@ public class CharacterSheetReflector extends UIPanelReflector {
     }
 
     public static CharacterSheetReflector TryGet(CoreUIAPI coreUIAPI, UIPanelReflector panelReflector) {
-        var parentPanel = panelReflector.getPanel();
+        UIPanelAPI parentPanel = panelReflector.getPanel();
         if(characterSheetCls == null) {
             try {
                 getAptitudeRows = MethodHandles.lookup().findVirtual(parentPanel.getClass(), "getAptitudeRows", MethodType.methodType(List.class));
@@ -39,12 +39,12 @@ public class CharacterSheetReflector extends UIPanelReflector {
 
                 getButtonsMap = MethodHandles.lookup().findVirtual(AptitudeRow.class, "getButtonsMap", MethodType.methodType(Map.class));
 
-                return new CharacterSheetReflector(coreUIAPI, borderedPanelReflector.getInnerPanel().getPanel());
+                return new CharacterSheetReflector(coreUIAPI, parentPanel);
             } catch(Throwable ex) {
                 Global.getLogger(CharacterSheetReflector.class).fatal("Couldn't reflect CharacterSheet UI object!", ex);
             }
         } else if(characterSheetCls.isAssignableFrom(parentPanel.getClass())) {
-            return new CharacterSheetReflector(coreUIAPI, borderedPanelReflector.getInnerPanel().getPanel());
+            return new CharacterSheetReflector(coreUIAPI, parentPanel);
         }
         return null;
     }

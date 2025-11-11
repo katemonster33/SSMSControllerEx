@@ -40,7 +40,7 @@ public class CodexUI extends InputScreenBase {
         if(indicators == null) {
             indicators = new ArrayList<>();
             List<ScrollPanelReflector> scrollers = new ArrayList<>();
-            getPanelNavigatables(codexInnerPanel, tabNavItems, scrollers);
+            getPanelNavigatables(codexInnerPanel, tabNavItems, scrollers, new ArrayList<>());
             directionalUINavigator.clearScrollPanels();
             for(var scroller : scrollers) {
                 directionalUINavigator.addScrollPanel(scroller);
@@ -89,7 +89,7 @@ public class CodexUI extends InputScreenBase {
             }
         }
         List<DirectionalUINavigator.NavigationObject> tmpItems = new ArrayList<>();
-        getPanelNavigatables(codexInnerPanel, tmpItems, new ArrayList<>());
+        getPanelNavigatables(codexInnerPanel, tmpItems, new ArrayList<>(), new ArrayList<>());
         if(tmpItems.size() != tabNavItems.size()) {
             tabNavItems = tmpItems;
             directionalUINavigator.setNavigationObjects(tabNavItems);

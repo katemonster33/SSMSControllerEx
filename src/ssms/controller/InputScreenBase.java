@@ -39,10 +39,8 @@ import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.inputhelper.*;
 import ssms.controller.reflection.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.List;
+import java.lang.ref.Reference;
+import java.util.*;
 
 /**
  *
@@ -271,33 +269,19 @@ public class InputScreenBase {
                 pos.getY() >= 0 && pos.getY() <= Display.getHeight();
     }
 
-
-    boolean tryOpenScreen(Object screenUi, String screenId) {
-        if (screenUi != null) {
-            return InputScreenManager.getInstance().transitionToScreen(screenId, screenUi);
-        }
-        return false;
-    }
-
     protected boolean openCoreUiTab(CoreUIReflector coreUIReflector) {
         if(coreUIReflector.getCurrentTab() != null) {
             var tabPanelReflector = new UIPanelReflector(coreUIReflector.getCurrentTab());
-            boolean output = switch (Global.getSector().getCampaignUI().getCurrentCoreTab()) {
-                case CARGO -> tryOpenScreen(TradeUiReflector.TryGet(coreUIReflector.getCoreUIAPI(), tabPanelReflector), TradeScreen.ID);
-                case CHARACTER -> tryOpenScreen(CharacterSheetReflector.TryGet(coreUIReflector.getCoreUIAPI(), tabPanelReflector), CharacterTabUI.ID);
-                case FLEET -> tryOpenScreen(FleetTabReflector.TryGet(coreUIReflector.getCoreUIAPI(), tabPanelReflector), FleetTabUI.ID) ||
-                            tryOpenScreen(FleetMarketTabUI.FleetMarketTabReflector.TryGet(coreUIReflector.getCoreUIAPI(), tabPanelReflector), FleetMarketTabUI.ID);
-                case INTEL -> tryOpenScreen(IntelTabReflector.TryGet(coreUIReflector.getCoreUIAPI(), tabPanelReflector), IntelTabUI.ID);
-                case MAP -> tryOpenScreen(MapReflector.TryGet(coreUIReflector.getCoreUIAPI(), tabPanelReflector), MapTabUI.ID);
-                case REFIT -> tryOpenScreen(tabPanelReflector, RefitTabUI.ID);
-                case OUTPOSTS -> tryOpenScreen(tabPanelReflector, CommandTabUI.ID);
-            };
-            return output;
+            if(Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.CARGO) {
+                return InputScreenManager.getInstance().transitionToScreen(TradeScreen.ID, TradeUiReflector.TryGet(coreUIReflector.getCoreUIAPI(), tabPanelReflector));
+            } else {
+                return InputScreenManager.getInstance().transitionToScreen(CommandTabUI.ID, tabPanelReflector);
+            }
         }
         return false;
     }
 
-    protected void getPanelNavigatables(UIPanelReflector pnl, List<DirectionalUINavigator.NavigationObject> directionalObjects, List<ScrollPanelReflector> scrollers) {
+    protected void getPanelNavigatables(UIPanelReflector pnl, List<DirectionalUINavigator.NavigationObject> directionalObjects, List<ScrollPanelReflector> scrollers, List<UIPanelAPI> map) {
         if( ScrollPanelAPI.class.isAssignableFrom(pnl.getPanel().getClass())) {
             getScrollerNavigatables(new ScrollPanelReflector((ScrollPanelAPI) pnl.getPanel()), directionalObjects, scrollers);
         } else {
@@ -308,7 +292,11 @@ public class InputScreenBase {
                     ButtonReflector btnReflector = new ButtonReflector((ButtonAPI) item);
                     var btnPanel = btnReflector.getRendererPanel();
                     if (btnPanel != null) {
-                        getPanelNavigatables(new UIPanelReflector(btnPanel), directionalObjects, scrollers);
+                        int countBefore = directionalObjects.size();
+                        getPanelNavigatables(new UIPanelReflector(btnPanel), directionalObjects, scrollers, map);
+                        if(directionalObjects.size() == countBefore) {
+                            directionalObjects.add(new DirectionalUINavigator.NavigationObject((ButtonAPI) item));
+                        }
                     } else {
                         directionalObjects.add(new DirectionalUINavigator.NavigationObject((ButtonAPI) item));
                     }
@@ -316,19 +304,32 @@ public class InputScreenBase {
                     DialogBaseReflector dialogBaseReflector;
                     if(MessageBoxReflector.isMsgBox((UIPanelAPI) item)) {
                         var msgBoxReflector = new MessageBoxReflector((UIPanelAPI) item);
-                        getPanelNavigatables(msgBoxReflector.getInnerPanel(), directionalObjects, scrollers);
+                        getPanelNavigatables(msgBoxReflector.getInnerPanel(), directionalObjects, scrollers, map);
                         dialogBaseReflector = msgBoxReflector;
                     } else {
                         dialogBaseReflector = new DialogBaseReflector((UIPanelAPI) item);
-                        getPanelNavigatables(dialogBaseReflector, directionalObjects, scrollers);
+                        getPanelNavigatables(dialogBaseReflector, directionalObjects, scrollers, map);
                     }
                     if(dialogBaseReflector.getAbsorbOutsideEvents()) {
                         return;
                     }
+                } else if(MapReflector.isAssignableFrom(item.getClass())) {
+                    var mapReflector = new MapReflector((UIPanelAPI) item);
+                    var scroller = mapReflector.getScroller();
+                    map.add(scroller);
+                    for(var child : mapReflector.getChildItems()) {
+                        if(child != scroller) {
+                            if(ButtonAPI.class.isAssignableFrom(child.getClass())) {
+                                directionalObjects.add(new DirectionalUINavigator.NavigationObject((ButtonAPI) child));
+                            } else if(UIPanelAPI.class.isAssignableFrom(child.getClass())) {
+                                getPanelNavigatables(new UIPanelReflector((UIPanelAPI) child), directionalObjects, scrollers, map);
+                            }
+                        }
+                    }
                 } else if (UIPanelAPI.class.isAssignableFrom(item.getClass())) {
                     UIPanelReflector reflectorTmp = new UIPanelReflector((UIPanelAPI) item);
                     if (reflectorTmp.getFader().getBrightness() == 1.f && isComponentVisible(reflectorTmp.getPanel())) {
-                        getPanelNavigatables(reflectorTmp, directionalObjects, scrollers);
+                        getPanelNavigatables(reflectorTmp, directionalObjects, scrollers, map);
                     }
                 }
             }
@@ -342,25 +343,28 @@ public class InputScreenBase {
             return;
         }
         for(var item : container.getChildItems()) {
-            if(UIPanelAPI.class.isAssignableFrom(item.getClass()) && (TagDisplayAPI.class.isAssignableFrom(item.getClass()) || AptitudeRow.class.isAssignableFrom(item.getClass()) || WeaponGroupRowReflector.isWeaponGroupRow((UIPanelAPI) item))) {
-                if(isComponentVisible((UIComponentAPI) item)) {
-                    getPanelNavigatables(new UIPanelReflector((UIPanelAPI) item), directionalObjects, scrollers);
-                }
-            } else if(UIComponentAPI.class.isAssignableFrom(item.getClass())) {
+            if(UIComponentAPI.class.isAssignableFrom(item.getClass())) {
                 if(isComponentVisible((UIComponentAPI)item)) {
                     if(ButtonAPI.class.isAssignableFrom(item.getClass())) {
                         var btn = new ButtonReflector((ButtonAPI) item);
                         var btnRenderer = btn.getRendererPanel();
                         if (btnRenderer != null && WeaponGroupRowReflector.isWeaponGroupRow(btnRenderer)) {
                             int objectCount = directionalObjects.size();
-                            getPanelNavigatables(new UIPanelReflector(btnRenderer), directionalObjects, scrollers);
+                            getPanelNavigatables(new UIPanelReflector(btnRenderer), directionalObjects, scrollers, new ArrayList<>());
                             if(directionalObjects.size() > objectCount) {
                                 continue;
                             }
                         }
+                    } else if(UIPanelAPI.class.isAssignableFrom(item.getClass())) {
+                        List<DirectionalUINavigator.NavigationObject> tmpObjects = new ArrayList<>();
+                        getPanelNavigatables(new UIPanelReflector((UIPanelAPI) item), tmpObjects, scrollers, new ArrayList<>());
+                        if(!tmpObjects.isEmpty()) {
+                            directionalObjects.addAll(tmpObjects);
+                            continue;
+                        }
                     }
+                    directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI) item, scroller));
                 }
-                directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI) item, scroller));
             }
         }
         for(var item : scroller.getChildItems()) {

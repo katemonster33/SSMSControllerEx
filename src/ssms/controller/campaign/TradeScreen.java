@@ -38,7 +38,6 @@ public class TradeScreen extends InputScreenBase {
     CargoDataGridViewReflector otherDataGrid;
     CargoTransferHandlerReflector cargoTransferHandler;
     DirectionalUINavigator directionalUINavigator;
-    int lastFrameChildCount = 0;
     boolean isCargoTab = false;
     UIPanelReflector colonyInfoWidget;
     boolean isColonyInfoShown;
@@ -121,7 +120,6 @@ public class TradeScreen extends InputScreenBase {
         if(interactionDialogAPI != null) {
             interactionDialogReflector = new InteractionDialogReflector(interactionDialogAPI);
         }
-        lastFrameChildCount = 0;
 
         var tradeUiChildren = tradeUiReflector.getChildItems();
         if(tradeUiChildren.size() == 12) {
@@ -169,23 +167,7 @@ public class TradeScreen extends InputScreenBase {
                 InputScreenManager.getInstance().transitionDelayed(DialogUI.ID);
             }
             List<?> coreUiChildren = null;
-            if(interactionDialogAPI != null && Global.getCurrentState() == GameState.COMBAT) coreUiChildren = coreUiPanelReflector.getChildItems();
-            else if(coreUiPanelReflector.getParent() != null) coreUiChildren = new UIPanelReflector(coreUiPanelReflector.getParent()).getChildItems();
-            if(coreUiChildren != null) {
-                int numChildren = coreUiChildren.size();
-                if(numChildren > lastFrameChildCount) {
-                    for(int i = lastFrameChildCount; i < numChildren; i++) {
-                        var child = coreUiChildren.get(i);
-                        if(child instanceof UIPanelAPI uiPanelAPI && InputScreenManager.getInstance().getDisplayPanel() != null && child != InputScreenManager.getInstance().getDisplayPanel().getSubpanel()) {
-                            if(MessageBoxReflector.isMsgBox(uiPanelAPI)) {
-                                InputScreenManager.getInstance().transitionToScreen(MessageBoxScreen.ID, new MessageBoxReflector(uiPanelAPI), TradeScreen.ID);
-                                return;
-                            }
-                        }
-                    }
-                }
-                lastFrameChildCount = numChildren;
-            }
+            if(isMessageBoxShown(tradeUiReflector)) return;
         }
         if(isCodexOpen()) {
             InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());

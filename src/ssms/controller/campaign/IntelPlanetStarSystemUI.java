@@ -112,7 +112,7 @@ public class IntelPlanetStarSystemUI extends InputScreenBase {
         }
 
         // intel tab was recreated due to user clicking the map, this is dumb and I hate it
-        if (intelTabReflector.getParent().getParent() == null) {
+        if (new UIPanelReflector(intelTabReflector.getParent()).getParent() == null) {
             var coreUi = intelTabReflector.getBorderedPanel().getCoreUIAPI();
             for(var coreUiChild : new UIPanelReflector((UIPanelAPI) coreUi).getChildPanels()) {
                 var newBorderedPanel = BorderedPanelReflector.TryGet(coreUi, coreUiChild);

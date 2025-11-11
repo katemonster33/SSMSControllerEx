@@ -49,7 +49,7 @@ public class MessageBoxScreen extends InputScreenBase {
             indicators = new ArrayList<>();
             List<DirectionalUINavigator.NavigationObject> navigationObjects = new ArrayList<>();
             List<ScrollPanelReflector> scrollPanelReflectors = new ArrayList<>();
-            getPanelNavigatables(dialogReflector.getInnerPanel(), navigationObjects, scrollPanelReflectors);
+            getPanelNavigatables(dialogReflector.getInnerPanel(), navigationObjects, scrollPanelReflectors, new ArrayList<>());
             if (!navigationObjects.isEmpty()) {
                 //dialogOptions.get(0).highlight();
                 directionalUINavigator.setNavigationObjects(navigationObjects);

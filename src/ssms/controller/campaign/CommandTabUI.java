@@ -13,23 +13,57 @@ import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.CodexUI;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
-import ssms.controller.reflection.InteractionDialogReflector;
-import ssms.controller.reflection.ScrollPanelReflector;
-import ssms.controller.reflection.UIPanelReflector;
+import ssms.controller.reflection.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class CommandTabUI  extends InputScreenBase {
     public static final String ID = "CommandTab";
     UIPanelReflector commandPanelReflector;
+    UIPanelReflector campaignStatePanelReflector;
     List<DirectionalUINavigator.NavigationObject> tabNavItems = new ArrayList<>();
+    List<ScrollPanelReflector> scrollPanelReflectors = new ArrayList<>();
+    List<UIPanelAPI> mapReflectors = new ArrayList<>();
     DirectionalUINavigator directionalUINavigator;
     InteractionDialogReflector interactionDialogReflector;
+
+    Pair<Integer, Character>[] tabInputs = new Pair[] {
+            new Pair<>(Keyboard.KEY_C, 'c'),
+            new Pair<>(Keyboard.KEY_F, 'f'),
+            new Pair<>(Keyboard.KEY_R, 'r'),
+            new Pair<>(Keyboard.KEY_I, 'i'),
+            new Pair<>(Keyboard.KEY_TAB, '\0'),
+            new Pair<>(Keyboard.KEY_E, 'e'),
+            new Pair<>(Keyboard.KEY_D, 'd'),
+    };
+
+    List<CoreUITabId> tabs = Arrays.asList(CoreUITabId.values());
 
     @Override
     public String getId() {
         return ID;
+    }
+
+    void selectNextTab(float advance) {
+        var selectedTab = Global.getSector().getCampaignUI().getCurrentCoreTab();
+        if(selectedTab != null) {
+            int selectedTabIdx = tabs.indexOf(selectedTab);
+            selectedTabIdx++;
+            if(selectedTabIdx > tabs.size()) selectedTabIdx = 0;
+            InputShim.keyDownUp(tabInputs[selectedTabIdx].one, tabInputs[selectedTabIdx].two);
+        }
+    }
+
+    void selectPrevTab(float advance) {
+        var selectedTab = Global.getSector().getCampaignUI().getCurrentCoreTab();
+        if(selectedTab != null) {
+            int selectedTabIdx = tabs.indexOf(selectedTab);
+            selectedTabIdx--;
+            if(selectedTabIdx < 0) selectedTabIdx = tabs.size() - 1;
+            InputShim.keyDownUp(tabInputs[selectedTabIdx].one, tabInputs[selectedTabIdx].two);
+        }
     }
 
     @Override
@@ -37,15 +71,20 @@ public class CommandTabUI  extends InputScreenBase {
         if (indicators == null) {
             indicators = new ArrayList<>();
             addDirectionalUINavigator(directionalUINavigator);
-            addButtonPressHandler("Return to campaign view", LogicalButtons.B, new KeySender(Keyboard.KEY_B, 'b'));
-            addButtonPressHandler("Select intel tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_E, 'e'));
-            List<DirectionalUINavigator.NavigationObject> tmpNavObjects = new ArrayList<>();
-            List<ScrollPanelReflector> scrollers = new ArrayList<>();
-            getPanelNavigatables(commandPanelReflector, tmpNavObjects, scrollers);
-            directionalUINavigator.setNavigationObjects(tmpNavObjects);
+            addButtonPressHandler("Return to campaign view", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
+            addButtonPressHandler("Select previous campaign tab", LogicalButtons.BumperLeft, this::selectPrevTab);
+            addButtonPressHandler("Select next campaign tab", LogicalButtons.BumperRight, this::selectNextTab);
+            tabNavItems.clear();
+            scrollPanelReflectors.clear();
+            mapReflectors.clear();
+            getPanelNavigatables(campaignStatePanelReflector, tabNavItems, scrollPanelReflectors, mapReflectors);
+            directionalUINavigator.setNavigationObjects(tabNavItems);
             directionalUINavigator.clearScrollPanels();
-            for(var scroller : scrollers) {
+            for(var scroller : scrollPanelReflectors) {
                 directionalUINavigator.addScrollPanel(scroller);
+            }
+            if(!mapReflectors.isEmpty()) {
+                directionalUINavigator.setMapComponent(mapReflectors.get(0));
             }
         }
         return indicators;
@@ -58,6 +97,7 @@ public class CommandTabUI  extends InputScreenBase {
         }
         indicators = null;
         interactionDialogReflector = InteractionDialogReflector.getCurrentInstance();
+        campaignStatePanelReflector = new UIPanelReflector(CampaignStateReflector.GetInstance().getScreenPanel());
         directionalUINavigator = new DirectionalUINavigator(new ArrayList<>()) {
             @Override
             public void onSelect(NavigationObject directionalObject) {
@@ -71,12 +111,18 @@ public class CommandTabUI  extends InputScreenBase {
 
     @Override
     public void preInput(float amount) {
-        if (Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.OUTPOSTS) {
+        if (Global.getSector().getCampaignUI().getCurrentCoreTab() == null) {
             InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
             return;
-        }
-        if(isCodexOpen()) {
-            InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
+        } else if(Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.CARGO) {
+            CoreUIReflector coreUiReflector;
+            if(interactionDialogReflector != null) {
+                coreUiReflector = new CoreUIReflector(interactionDialogReflector.getCoreUI(Global.getSector().getCampaignUI().getCurrentInteractionDialog()));
+            } else {
+                coreUiReflector = new CoreUIReflector(CampaignStateReflector.GetInstance().getCoreUI());
+            }
+            InputScreenManager.getInstance().transitionDelayed(TradeScreen.ID, TradeUiReflector.TryGet(coreUiReflector.getCoreUIAPI(), new UIPanelReflector(coreUiReflector.getCurrentTab())));
+            return;
         }
 
         if(interactionDialogReflector != null && !interactionDialogReflector.isCoreUiOpen()) {
@@ -84,9 +130,20 @@ public class CommandTabUI  extends InputScreenBase {
         }
 
         List<DirectionalUINavigator.NavigationObject> tmpNavObjects = new ArrayList<>();
-        getPanelNavigatables(commandPanelReflector, tmpNavObjects, new ArrayList<>());
-        if(tmpNavObjects.size() != tabNavItems.size()) {
+        List<ScrollPanelReflector> scrollersTmp = new ArrayList<>();
+        List<UIPanelAPI> mapsTmp = new ArrayList<>();
+        getPanelNavigatables(campaignStatePanelReflector, tmpNavObjects, scrollersTmp, mapsTmp);
+        if(tmpNavObjects.size() != tabNavItems.size() || mapsTmp.size() != mapReflectors.size() || scrollersTmp.size() != scrollPanelReflectors.size() ) {
             directionalUINavigator.setNavigationObjects(tmpNavObjects);
+            directionalUINavigator.clearScrollPanels();
+            scrollPanelReflectors = scrollersTmp;
+            mapReflectors = mapsTmp;
+            for(var scroller : scrollPanelReflectors) {
+                directionalUINavigator.addScrollPanel(scroller);
+            }
+            if(!mapReflectors.isEmpty()) {
+                directionalUINavigator.setMapComponent(mapReflectors.get(0));
+            }
             tabNavItems = tmpNavObjects;
         }
 

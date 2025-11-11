@@ -247,7 +247,7 @@ public class MainCampaignUI extends InputScreenBase {
     boolean openScreenForCoreTab() {
         var coreUI = CampaignStateReflector.GetInstance().getCoreUI();
         if (coreUI != null) {
-            return openCoreUiTab(coreUI);
+            return openCoreUiTab(new CoreUIReflector(coreUI));
         }
         return false;
     }

@@ -132,21 +132,17 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         man.registerScreen(new WarroomScreen());
         man.registerScreen(new TradeScreen());
         man.registerScreen(new CargoStackPickerScreen());
-        man.registerScreen(new CharacterTabUI());
-        man.registerScreen(new FleetTabUI());
         man.registerScreen(new MapTabUI());
         man.registerScreen(new IntelTabUI());
         man.registerScreen(new IntelPlanetTabUi());
         man.registerScreen(new IntelFactionTabUi());
         man.registerScreen(new IntelPlanetStarSystemUI());
-        man.registerScreen(new RefitTabUI());
         man.registerScreen(new CommandTabUI());
         man.registerScreen(new MissionScreenUI());
         man.registerScreen(new LoadGameUI());
         man.registerScreen(new NewGameUI());
         man.registerScreen(new ControllerSettingsUI());
         man.registerScreen(new CodexUI());
-        man.registerScreen(new FleetMarketTabUI());
         man.registerScreen(new CampaignTransitionUI());
     }
 
