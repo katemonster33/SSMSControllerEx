@@ -2,15 +2,12 @@ package ssms.controller.campaign;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
-import com.fs.starfarer.api.combat.ViewportAPI;
-import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.*;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.LogicalButtons;
-import ssms.controller.generic.CodexUI;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.*;
@@ -19,9 +16,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class CommandTabUI  extends InputScreenBase {
-    public static final String ID = "CommandTab";
-    UIPanelReflector commandPanelReflector;
+public class GenericCampaignTabUI extends InputScreenBase {
+    public static final String ID = "GenericCampaignTab";
     UIPanelReflector campaignStatePanelReflector;
     List<DirectionalUINavigator.NavigationObject> tabNavItems = new ArrayList<>();
     List<ScrollPanelReflector> scrollPanelReflectors = new ArrayList<>();
@@ -92,9 +88,6 @@ public class CommandTabUI  extends InputScreenBase {
 
     @Override
     public void activate(Object... args) {
-        if(args.length > 0) {
-            commandPanelReflector = (UIPanelReflector) args[0];
-        }
         indicators = null;
         interactionDialogReflector = InteractionDialogReflector.getCurrentInstance();
         campaignStatePanelReflector = new UIPanelReflector(CampaignStateReflector.GetInstance().getScreenPanel());

@@ -81,36 +81,22 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
         InputShim.mouseMove((int) selectedNav.getCenterX(),(int) selectedNav.getCenterY());
     }
 
-    public float getDeltaX(NavigationObject a, NavigationObject b) {
-        if((b.getCenterX() - a.getCenterX()) >= 0) {
-            if ((a.x1 >= b.x1 && a.x1 < b.x2) ||
-                    (a.x2 > b.x1 && a.x2 <= b.x2) ||
-                    (b.x1 >= a.x1 && b.x1 < a.x2) ||
-                    (b.x2 > a.x1 && b.x2 <= a.x2)) {
-                return 0;
-            } else if (a.x2 <= b.x1) {
-                return b.getCenterX() - a.getCenterX();
-            }
-        }
-        return -1;
+    boolean lineIntersects(float a1, float a2, float b1, float b2) {
+        return (a1 >= b1 && a1 < b2) ||
+                (a2 > b1 && a2 <= b2) ||
+                (b1 >= a1 && b1 < a2) ||
+                (b2 > a1 && b2 <= a2);
     }
 
-    public float getDeltaY(NavigationObject a, NavigationObject b) {
-        if((b.getCenterY() - a.getCenterY()) >= 0) {
-            if ((a.y1 >= b.y1 && a.y1 < b.y2) ||
-                    (a.y2 > b.y1 && a.y2 <= b.y2) ||
-                    (b.y1 >= a.y2 && b.y1 < a.y2) ||
-                    (b.y2 > a.y1 && b.y2 <= a.y2)) {
-                return 0;
-            } else if (a.y2 <= b.y1) {
-                return b.getCenterY() - a.getCenterY();
-            }
+    public float getDelta(float a1, float a2, float b1, float b2) {
+        if (lineIntersects (a1, a2, b1, b2)) {
+            return 0;
+        } else {
+            return ((b1 + b2) / 2) - ((a1 + a2) / 2);
         }
-        return -1;
     }
 
     public void setNavigationObjects(List<NavigationObject> navigationObjects) {
-
         if (navigationObjects.isEmpty()) {
             this.navigationObjects = new ArrayList<>(navigationObjects);
             curIndex = -1;
@@ -179,10 +165,10 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
             } else if(deltaA == 0 && deltaB == 0) {
                 float distBackup = (float) Math.sqrt(Math.pow(Math.abs(other.getCenterX() - selectedObj.getCenterX()), 2) +
                         Math.pow(Math.abs(other.getCenterY() - selectedObj.getCenterY()), 2));
-                if (distBackup < distPrime) {
-                    distPrime = distBackup;
-                    closestNavObj = other;
-                    newIndexPrime = tmpIndex;
+                if (distBackup < distSecondary) {
+                    distSecondary = distBackup;
+                    closestNavObjSecondary = other;
+                    newIndexSecondary = tmpIndex;
                 }
             }
         }
@@ -197,23 +183,23 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
     }
 
     public void performLeftAction(float advance) {
-        moveSelection((NavigationObject orig, NavigationObject other) -> (int) getDeltaX(other, orig),
-                (NavigationObject orig, NavigationObject other) -> (int) getDeltaY(orig, other));
+        moveSelection((NavigationObject orig, NavigationObject other) -> (int) (orig.x2 - other.x2),
+                (NavigationObject orig, NavigationObject other) -> (int) getDelta(orig.y1, orig.y2, other.y1, other.y2));
     }
 
     public void performRightAction(float advance) {
-        moveSelection((NavigationObject orig, NavigationObject other) -> (int) getDeltaX(orig, other),
-                (NavigationObject orig, NavigationObject other) -> (int) getDeltaY(orig, other));
+        moveSelection((NavigationObject orig, NavigationObject other) -> (int) (other.x1 - orig.x1),
+                (NavigationObject orig, NavigationObject other) -> (int) getDelta(orig.y1, orig.y2, other.y1, other.y2));
     }
 
     public void performUpAction(float advance) {
-        moveSelection((NavigationObject orig, NavigationObject other) -> (int) getDeltaY(orig, other),
-                (NavigationObject orig, NavigationObject other) -> (int) getDeltaX(orig, other));
+        moveSelection((NavigationObject orig, NavigationObject other) -> (int) (other.y1 - orig.y1),
+                (NavigationObject orig, NavigationObject other) -> (int) getDelta(orig.x1, orig.x2, other.x1, other.x2));
     }
 
     public void performDownAction(float advance) {
-        moveSelection((NavigationObject orig, NavigationObject other) -> (int) getDeltaY(other, orig),
-                (NavigationObject orig, NavigationObject other) -> (int) getDeltaX(orig, other));
+        moveSelection((NavigationObject orig, NavigationObject other) -> (int) (orig.y2 - other.y2),
+                (NavigationObject orig, NavigationObject other) -> (int) getDelta(orig.x1, orig.x2, other.x1, other.x2));
     }
 
     public void handleAButton(float advance, boolean buttonVal) {

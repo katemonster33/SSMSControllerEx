@@ -19,14 +19,12 @@ package ssms.controller;
 
 import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.campaign.CoreUIAPI;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.*;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.codex2.CodexDialog;
-import com.fs.starfarer.coreui.AptitudeRow;
 import com.fs.state.AppDriver;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
@@ -39,7 +37,6 @@ import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.inputhelper.*;
 import ssms.controller.reflection.*;
 
-import java.lang.ref.Reference;
 import java.util.*;
 
 /**
@@ -275,7 +272,7 @@ public class InputScreenBase {
             if(Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.CARGO) {
                 return InputScreenManager.getInstance().transitionToScreen(TradeScreen.ID, TradeUiReflector.TryGet(coreUIReflector.getCoreUIAPI(), tabPanelReflector));
             } else {
-                return InputScreenManager.getInstance().transitionToScreen(CommandTabUI.ID, tabPanelReflector);
+                return InputScreenManager.getInstance().transitionToScreen(GenericCampaignTabUI.ID, tabPanelReflector);
             }
         }
         return false;
@@ -349,19 +346,10 @@ public class InputScreenBase {
                         var btn = new ButtonReflector((ButtonAPI) item);
                         var btnRenderer = btn.getRendererPanel();
                         if (btnRenderer != null && WeaponGroupRowReflector.isWeaponGroupRow(btnRenderer)) {
-                            int objectCount = directionalObjects.size();
                             getPanelNavigatables(new UIPanelReflector(btnRenderer), directionalObjects, scrollers, new ArrayList<>());
-                            if(directionalObjects.size() > objectCount) {
-                                continue;
-                            }
                         }
                     } else if(UIPanelAPI.class.isAssignableFrom(item.getClass())) {
-                        List<DirectionalUINavigator.NavigationObject> tmpObjects = new ArrayList<>();
-                        getPanelNavigatables(new UIPanelReflector((UIPanelAPI) item), tmpObjects, scrollers, new ArrayList<>());
-                        if(!tmpObjects.isEmpty()) {
-                            directionalObjects.addAll(tmpObjects);
-                            continue;
-                        }
+                        getPanelNavigatables(new UIPanelReflector((UIPanelAPI) item), directionalObjects, scrollers, new ArrayList<>());
                     }
                     directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI) item, scroller));
                 }
