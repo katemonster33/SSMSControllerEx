@@ -33,24 +33,22 @@ public class TradeScreen extends InputScreenBase {
     TradeUiReflector tradeUiReflector;
     InteractionDialogAPI interactionDialogAPI;
     UIPanelReflector coreUiPanelReflector;
+    UIPanelReflector campaignPanelReflector;
     InteractionDialogReflector interactionDialogReflector;
     CargoDataGridViewReflector playerDataGrid;
     CargoDataGridViewReflector otherDataGrid;
     CargoTransferHandlerReflector cargoTransferHandler;
     DirectionalUINavigator directionalUINavigator;
+    List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>();
     boolean isCargoTab = false;
-    UIPanelReflector colonyInfoWidget;
-    boolean isColonyInfoShown;
     InteractionDialogReflector interactDialog;
 
     @Override
     public List<Pair<Indicators, String>> getIndicators() {
         if(indicators == null) {
             indicators = new ArrayList<>();
-            if(isCargoTab) {
-                addButtonPressHandler("Select refit tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_R, 'r'));
-                addButtonPressHandler("Select map tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_TAB));
-            }
+            addButtonPressHandler("Select refit tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_R, 'r'));
+            addButtonPressHandler("Select map tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_TAB));
             addDirectionalUINavigator(directionalUINavigator);
 
             addButtonPressHandler("Take partial stack", LogicalButtons.X, advance -> {
@@ -86,6 +84,7 @@ public class TradeScreen extends InputScreenBase {
             tradeUiReflector = (TradeUiReflector) args[0];
             coreUiPanelReflector = new UIPanelReflector((UIPanelAPI) tradeUiReflector.getCoreUIAPI());
         }
+        campaignPanelReflector = new UIPanelReflector(getPanelForIndicators());
         interactDialog = InteractionDialogReflector.getCurrentInstance();
         isCargoTab = Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.CARGO;
         directionalUINavigator = new DirectionalUINavigator(new ArrayList<>())
@@ -112,21 +111,12 @@ public class TradeScreen extends InputScreenBase {
             }
         };
         playerDataGrid = tradeUiReflector.getPlayerCargoView();
-        directionalUINavigator.addScrollPanel(new ScrollPanelReflector(playerDataGrid.getScroller()));
         otherDataGrid = tradeUiReflector.getOtherCargoView();
-        directionalUINavigator.addScrollPanel(new ScrollPanelReflector(otherDataGrid.getScroller()));
+        directionalObjects = new ArrayList<>();
         cargoTransferHandler = tradeUiReflector.getCargoTransferHandler();
         interactionDialogAPI = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
         if(interactionDialogAPI != null) {
             interactionDialogReflector = new InteractionDialogReflector(interactionDialogAPI);
-        }
-
-        var tradeUiChildren = tradeUiReflector.getChildItems();
-        if(tradeUiChildren.size() == 12) {
-            colonyInfoWidget = new UIPanelReflector((UIPanelAPI) tradeUiChildren.get(7));
-            isColonyInfoShown = colonyInfoWidget.getFader().getBrightness() == 1.f;
-        } else {
-            colonyInfoWidget = null;
         }
         indicators = null;
         updateDirectionalObjects();
@@ -160,26 +150,17 @@ public class TradeScreen extends InputScreenBase {
                 InputScreenManager.getInstance().transitionToScreen(CargoStackPickerScreen.ID, tradeUiReflector);
             }
         }
-        if(!Global.getSector().getCampaignUI().isShowingDialog() || (isCargoTab && Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.CARGO)) {
+        if(!Global.getSector().getCampaignUI().isShowingDialog() || Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.CARGO) {
             InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
         } else if(tradeUiReflector.getCoreUIAPI().getTradeMode() != null){
             if(interactDialog != null && !interactDialog.isCoreUiOpen()) {
                 InputScreenManager.getInstance().transitionDelayed(DialogUI.ID);
             }
-            List<?> coreUiChildren = null;
-            if(isMessageBoxShown(tradeUiReflector)) return;
         }
         if(isCodexOpen()) {
             InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
         }
 
-        if(colonyInfoWidget != null) {
-            var isMarketInfoShownTmp = colonyInfoWidget.getFader().getBrightness() == 1.f;
-            if (isMarketInfoShownTmp == isColonyInfoShown && !isMarketInfoShownTmp) {
-                return;
-            }
-            isColonyInfoShown = isMarketInfoShownTmp;
-        }
         updateDirectionalObjects();
         if(directionalUINavigator != null) {
             directionalUINavigator.advance(advance);
@@ -187,46 +168,17 @@ public class TradeScreen extends InputScreenBase {
     }
 
     private void updateDirectionalObjects() {
-        var tradeUiChildren = tradeUiReflector.getChildItems();
-        List<ButtonAPI> buttons = new ArrayList<>();
-//        if(marketInfoWidget != null) {
-//            if(isMarketInfoShown) {
-//                buttons.addAll(marketInfoWidget.getChildButtons(true));
-//            } else {
-//                for( var item : tradeUiChildren) {
-//                    if (item != marketInfoWidget.getPanel()) {
-//                        if (item instanceof UIPanelAPI uiPanelAPI) {
-//                            buttons.addAll(new UIPanelReflector(uiPanelAPI).getChildButtons(true));
-//                        } else if (item instanceof ButtonAPI buttonAPI) {
-//                            buttons.add(buttonAPI);
-//                        }
-//                    }
-//                }
-//            }
-//        } else {
-//            buttons.addAll(tradeUiReflector.getChildButtons(true));
-//        }
-
-        for( var item : tradeUiChildren) {
-            if(UIComponentReflector.isComponent(item.getClass())) {
-                UIComponentReflector uiComponentReflector = new UIComponentReflector((UIComponentAPI) item);
-                if(uiComponentReflector.getFader() != null && uiComponentReflector.getFader().getBrightness() == 1.f) {
-                    if (item instanceof UIPanelAPI uiPanelAPI) {
-                        buttons.addAll(new UIPanelReflector(uiPanelAPI).getChildButtons(true));
-                    } else if (item instanceof ButtonAPI buttonAPI) {
-                        buttons.add(buttonAPI);
-                    }
-                }
+        List<ScrollPanelReflector> scrollers = new ArrayList<>();
+        List<DirectionalUINavigator.NavigationObject> tmpDirObjects = new ArrayList<>();
+        getPanelNavigatables(campaignPanelReflector, tmpDirObjects, scrollers, new ArrayList<>());
+        if(tmpDirObjects.size() != directionalObjects.size()) {
+            directionalObjects = tmpDirObjects;
+            directionalUINavigator.setNavigationObjects(directionalObjects);
+            directionalUINavigator.clearScrollPanels();
+            for(var scroller : scrollers) {
+                directionalUINavigator.addScrollPanel(scroller);
             }
         }
-        List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>(buttons.stream().filter(ButtonAPI::isEnabled).map(DirectionalUINavigator.NavigationObject::new).toList());
-        if(colonyInfoWidget == null || !isColonyInfoShown) {
-            var playerGridScroller = new ScrollPanelReflector(playerDataGrid.getScroller());
-            directionalObjects.addAll(playerDataGrid.getStacks().stream().map(stack -> new DirectionalUINavigator.NavigationObject(stack, playerGridScroller)).toList());
-            var otherGridScroller = new ScrollPanelReflector(otherDataGrid.getScroller());
-            directionalObjects.addAll(otherDataGrid.getStacks().stream().map(stack -> new DirectionalUINavigator.NavigationObject(stack, otherGridScroller)).toList());
-        }
-        directionalUINavigator.setNavigationObjects(directionalObjects);
     }
 
     @Override

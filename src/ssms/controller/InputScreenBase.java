@@ -24,6 +24,8 @@ import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.*;
 import com.fs.starfarer.api.util.Pair;
+import com.fs.starfarer.campaign.ui.trade.CargoDataGridView;
+import com.fs.starfarer.campaign.ui.trade.CargoStackView;
 import com.fs.starfarer.codex2.CodexDialog;
 import com.fs.state.AppDriver;
 import org.lwjgl.opengl.Display;
@@ -314,11 +316,11 @@ public class InputScreenBase {
                     var mapReflector = new MapReflector((UIPanelAPI) item);
                     var scroller = mapReflector.getScroller();
                     map.add(scroller);
-                    for(var child : mapReflector.getChildItems()) {
-                        if(child != scroller) {
-                            if(ButtonAPI.class.isAssignableFrom(child.getClass())) {
+                    for (var child : mapReflector.getChildItems()) {
+                        if (child != scroller) {
+                            if (ButtonAPI.class.isAssignableFrom(child.getClass())) {
                                 directionalObjects.add(new DirectionalUINavigator.NavigationObject((ButtonAPI) child));
-                            } else if(UIPanelAPI.class.isAssignableFrom(child.getClass())) {
+                            } else if (UIPanelAPI.class.isAssignableFrom(child.getClass())) {
                                 getPanelNavigatables(new UIPanelReflector((UIPanelAPI) child), directionalObjects, scrollers, map);
                             }
                         }
@@ -341,13 +343,18 @@ public class InputScreenBase {
         }
         for(var item : container.getChildItems()) {
             if(UIComponentAPI.class.isAssignableFrom(item.getClass())) {
-                if(isComponentVisible((UIComponentAPI)item)) {
+                if(((UIComponentAPI)item).getOpacity() == 1.f) {
                     if(ButtonAPI.class.isAssignableFrom(item.getClass())) {
                         var btn = new ButtonReflector((ButtonAPI) item);
                         var btnRenderer = btn.getRendererPanel();
                         if (btnRenderer != null && WeaponGroupRowReflector.isWeaponGroupRow(btnRenderer)) {
                             getPanelNavigatables(new UIPanelReflector(btnRenderer), directionalObjects, scrollers, new ArrayList<>());
                         }
+                    } else if(item instanceof CargoDataGridView cargoDataGridView) {
+                        for(var cargoView : new UIPanelReflector(cargoDataGridView).getChildPanels()) {
+                            directionalObjects.add(new DirectionalUINavigator.NavigationObject(cargoView, scroller));
+                        }
+                        continue;
                     } else if(UIPanelAPI.class.isAssignableFrom(item.getClass())) {
                         getPanelNavigatables(new UIPanelReflector((UIPanelAPI) item), directionalObjects, scrollers, new ArrayList<>());
                     }
