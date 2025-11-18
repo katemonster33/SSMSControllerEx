@@ -232,7 +232,7 @@ public class MainCampaignUI extends InputScreenBase {
             CampaignFleetAPI playerFleet = Global.getSector().getPlayerFleet();
             playerFleet.goSlowOneFrame();
         }
-        if(shipInfoNavigator != null) {
+        if(shipInfoNavigator != null && gameCurrentlyPaused) {
             shipInfoNavigator.advance(advance);
         }
     }
