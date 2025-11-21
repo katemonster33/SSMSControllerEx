@@ -127,7 +127,7 @@ public class BattleTargetingScreen extends InputScreenBase {
     
     @Override
     public void preInput(float advance) {
-        if(Global.getCombatEngine().getCombatUI().isShowingCommandUI()) {
+        if(Global.getCombatEngine().getCombatUI() != null && Global.getCombatEngine().getCombatUI().isShowingCommandUI()) {
             InputScreenManager.getInstance().transitionDelayed(WarroomScreen.ID);
         }
         if(isCodexOpen()) {
