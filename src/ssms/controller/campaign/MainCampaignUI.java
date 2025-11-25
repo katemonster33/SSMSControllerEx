@@ -38,6 +38,7 @@ import ssms.controller.generic.LoadGameUI;
 public class MainCampaignUI extends InputScreenBase {
     public static final String ID = "MainCampaign";
     Vector2f mousePos = new Vector2f(-1.f, -1.f);
+    SectorEntityToken focusedEntity;
 
     boolean leftStickActive = false, rightStickActive = false;
     boolean gameCurrentlyPaused = false;
@@ -80,7 +81,7 @@ public class MainCampaignUI extends InputScreenBase {
         addButtonPressHandler("Switch ship control mode", LogicalButtons.LeftStickButton, (float advance) -> {
             directShipControlMode = !directShipControlMode;
             refreshIndicators();
-            if(directShipControlMode) InputShim.clearAll();
+            if(directShipControlMode) InputShim.clearAll(); // reset the mouse control flags to ensure the targeting reticle disappears
         });
         if(gameCurrentlyPaused) {
             List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>();
@@ -183,7 +184,7 @@ public class MainCampaignUI extends InputScreenBase {
             int x = 277 + currentHotkey * 59 + 29, y = 103 - 29;
             hotbarIndicatorRenderer.AttemptRender(viewport, x, y);
         }
-        if(InputShim.hasMouseControl() && (!directShipControlMode || cameraControlMode)) {
+        if(InputShim.hasMouseControl() && (!directShipControlMode || cameraControlMode || focusedEntity != null)) {
             headingIndicator.setMousePos(mousePos.x, mousePos.y);
             headingIndicator.render();
         }
@@ -288,7 +289,7 @@ public class MainCampaignUI extends InputScreenBase {
         }
         if(directShipControlMode) {
             moveShipWithStick(controller.getJoystick(Joystick.Left));
-            SectorEntityToken closestEntity = null;
+            focusedEntity = null;
             float closestEntityDist = Float.MAX_VALUE;
             Vector2f fleetPos = Global.getSector().getPlayerFleet().getLocation();
             for(var ent : Global.getSector().getCurrentLocation().getAllEntities()) {
@@ -296,13 +297,13 @@ public class MainCampaignUI extends InputScreenBase {
                     float dist = new Vector2f(ent.getLocation().x - fleetPos.x, ent.getLocation().y - fleetPos.y).length();
                     if(dist < 50.f && dist < closestEntityDist) {
                         closestEntityDist = dist;
-                        closestEntity = ent;
+                        focusedEntity = ent;
                     }
                 }
             }
-            if(closestEntity != null) {
-                mousePos.setX(sectorViewport.convertWorldXtoScreenX(closestEntity.getLocation().x));
-                mousePos.setY(sectorViewport.convertWorldYtoScreenY(closestEntity.getLocation().y));
+            if(focusedEntity != null) {
+                mousePos.setX(sectorViewport.convertWorldXtoScreenX(focusedEntity.getLocation().x));
+                mousePos.setY(sectorViewport.convertWorldYtoScreenY(focusedEntity.getLocation().y));
                 InputShim.mouseMove((int)mousePos.x, (int)mousePos.y);
             }
         } else {
