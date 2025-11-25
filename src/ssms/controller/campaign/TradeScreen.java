@@ -150,9 +150,13 @@ public class TradeScreen extends InputScreenBase {
                 InputScreenManager.getInstance().transitionToScreen(CargoStackPickerScreen.ID, tradeUiReflector);
             }
         }
-        if(!Global.getSector().getCampaignUI().isShowingDialog() || Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.CARGO) {
+        if(interactionDialogAPI != null) {
+            if(!interactDialog.isCoreUiOpen() || (tradeUiReflector.getCoreUIAPI().getTradeMode() != null && (Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.CARGO && Global.getSector().getCampaignUI().getCurrentCoreTab() != null))) {
+                InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
+            }
+        } else if(!Global.getSector().getCampaignUI().isShowingDialog() || Global.getSector().getCampaignUI().getCurrentCoreTab() != CoreUITabId.CARGO) {
             InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
-        } else if(tradeUiReflector.getCoreUIAPI().getTradeMode() != null){
+        } else if(tradeUiReflector.getCoreUIAPI().getTradeMode() != null) {
             if(interactDialog != null && !interactDialog.isCoreUiOpen()) {
                 InputScreenManager.getInstance().transitionDelayed(DialogUI.ID);
             }

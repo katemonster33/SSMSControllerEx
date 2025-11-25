@@ -274,6 +274,17 @@ public class InputScreenBase {
             if(Global.getSector().getCampaignUI().getCurrentCoreTab() == CoreUITabId.CARGO) {
                 return InputScreenManager.getInstance().transitionToScreen(TradeScreen.ID, TradeUiReflector.TryGet(coreUIReflector.getCoreUIAPI(), tabPanelReflector));
             } else {
+                var interactDialog = Global.getSector().getCampaignUI().getCurrentInteractionDialog();
+                if(interactDialog != null) {
+                    var interactReflector = new InteractionDialogReflector(interactDialog);
+                    var coreUi = interactReflector.getCoreUI(interactDialog);
+                    if(coreUi.getTradeMode() != null && Global.getSector().getCampaignUI().getCurrentCoreTab() == null) {
+                        var tradeUi = TradeUiReflector.TryGet(coreUIReflector.getCoreUIAPI(), tabPanelReflector);
+                        if(tradeUi != null) {
+                            return InputScreenManager.getInstance().transitionToScreen(TradeScreen.ID, tradeUi);
+                        }
+                    }
+                }
                 return InputScreenManager.getInstance().transitionToScreen(GenericCampaignTabUI.ID, tabPanelReflector);
             }
         }
