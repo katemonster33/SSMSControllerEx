@@ -1,15 +1,12 @@
 package ssms.controller.combat;
 
+import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
-import com.fs.starfarer.api.ui.UIComponentAPI;
-import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.util.vector.ReadableVector2f;
-import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
-import ssms.controller.enums.Indicators;
+import ssms.controller.campaign.MainCampaignUI;
 import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.CodexUI;
@@ -19,7 +16,6 @@ import ssms.controller.inputhelper.MapInputHandler;
 import ssms.controller.reflection.*;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class WarroomScreen extends InputScreenBase {
     public static final String ID = "Warroom";
@@ -65,6 +61,10 @@ public class WarroomScreen extends InputScreenBase {
 
     @Override
     public void preInput(float advance) {
+        if(Global.getCurrentState() == GameState.CAMPAIGN) {
+            InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
+            return;
+        }
         if(!Global.getCombatEngine().getCombatUI().isShowingCommandUI()) {
             InputScreenManager.getInstance().transitionDelayed(BattleSteeringScreen.ID);
         } else if(Global.getCombatEngine().getCombatUI().isShowingDeploymentDialog()) {

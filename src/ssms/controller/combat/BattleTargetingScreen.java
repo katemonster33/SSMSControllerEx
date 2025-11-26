@@ -17,6 +17,7 @@
  */
 package ssms.controller.combat;
 
+import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.FogOfWarAPI;
@@ -29,6 +30,7 @@ import java.util.Comparator;
 import java.util.List;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
+import ssms.controller.campaign.MainCampaignUI;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.CodexUI;
@@ -127,6 +129,10 @@ public class BattleTargetingScreen extends InputScreenBase {
     
     @Override
     public void preInput(float advance) {
+        if(Global.getCurrentState() == GameState.CAMPAIGN) {
+            InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
+            return;
+        }
         if(Global.getCombatEngine().getCombatUI() != null && Global.getCombatEngine().getCombatUI().isShowingCommandUI()) {
             InputScreenManager.getInstance().transitionDelayed(WarroomScreen.ID);
         }

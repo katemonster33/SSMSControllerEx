@@ -17,6 +17,7 @@
  */
 package ssms.controller.combat;
 
+import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.ShieldAPI;
@@ -35,6 +36,7 @@ import java.util.List;
 import org.apache.log4j.Level;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
+import ssms.controller.campaign.MainCampaignUI;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.CodexUI;
@@ -111,10 +113,13 @@ public class BattleSteeringScreen extends InputScreenBase {
     protected boolean processShipInputs(ShipAPI ps) {
         return scope.isControllerSteeringEnabled() && engine.isEntityInPlay(ps) && !ps.isHulk() && !ps.controlsLocked();
     }
-
     
     @Override
     public void preInput(float amount) {
+        if(Global.getCurrentState() == GameState.CAMPAIGN) {
+            InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
+            return;
+        }
         if(Global.getCombatEngine().getCombatUI() == null) {
             return;
         }
