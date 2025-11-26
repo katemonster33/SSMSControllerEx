@@ -68,6 +68,17 @@ public class TradeScreen extends InputScreenBase {
                     InputShim.keyUp(Keyboard.KEY_LSHIFT, '\0');
                 }
             });
+            addButtonPressOrHoldHandler("More Info", "Open Codex", LogicalButtons.Select, new ButtonPressOrHoldHandler() {
+                @Override
+                public void performHoldAction(float advance) {
+                    InputShim.keyDownUp(Keyboard.KEY_F1, '\0');
+                }
+
+                @Override
+                public void performPressAction(float advance) {
+                    InputShim.keyDownUp(Keyboard.KEY_F2, '\0');
+                }
+            });
             addButtonPressHandler("Cancel / Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
         }
         return indicators;
