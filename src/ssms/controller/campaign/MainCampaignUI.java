@@ -81,7 +81,8 @@ public class MainCampaignUI extends InputScreenBase {
         addButtonPressHandler("Switch ship control mode", LogicalButtons.LeftStickButton, (float advance) -> {
             directShipControlMode = !directShipControlMode;
             refreshIndicators();
-            if(directShipControlMode) InputShim.clearAll(); // reset the mouse control flags to ensure the targeting reticle disappears
+            if(directShipControlMode) InputShim.clearAll();
+            else focusedEntity = null;
         });
         if(gameCurrentlyPaused) {
             List<DirectionalUINavigator.NavigationObject> directionalObjects = new ArrayList<>();
@@ -164,10 +165,11 @@ public class MainCampaignUI extends InputScreenBase {
 
     boolean isCompatibleEntity(SectorEntityToken ent) {
         if(ent == Global.getSector().getPlayerFleet()) return false;
+        if(ent.getTags() == null || ent.getTags().isEmpty()) return false;
         for(var tag : ent.getTags()) {
             switch(tag) {
                 case Entities.ABYSSAL_LIGHT, Entities.BASE_CONSTELLATION_LABEL, Entities.DEBRIS_FIELD_SHARED,
-                     Entities.EXPLOSION -> {
+                     Entities.EXPLOSION, "orbital_junk" -> {
                     return false;
                 }
             }

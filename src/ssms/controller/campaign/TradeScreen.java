@@ -1,11 +1,9 @@
 package ssms.controller.campaign;
 
-import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.input.InputEventMouseButton;
-import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
@@ -15,10 +13,8 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
-import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.CodexUI;
-import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.inputhelper.ButtonPressOrHoldHandler;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
@@ -26,7 +22,6 @@ import ssms.controller.reflection.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class TradeScreen extends InputScreenBase {
     public static final String ID = "Trade";
@@ -51,6 +46,18 @@ public class TradeScreen extends InputScreenBase {
             addButtonPressHandler("Select map tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_TAB));
             addDirectionalUINavigator(directionalUINavigator);
 
+            addButtonPressHandler("Fill cargo with stack", LogicalButtons.Y, (float advance) -> {
+                var selectedStack = getSelectedCargoStack();
+                if(selectedStack == null) {
+                    return;
+                }
+                var stackPos = ((UIComponentAPI)selectedStack).getPosition();
+                var mousePos = new Vector2f(stackPos.getCenterX(), stackPos.getCenterY());
+                InputShim.keyDown(Keyboard.KEY_LCONTROL, '\0');
+                InputShim.mouseDownUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.LEFT);
+                InputShim.keyUp(Keyboard.KEY_LCONTROL, '\0');
+            });
+
             addButtonPressHandler("Take partial stack", LogicalButtons.X, advance -> {
                 var selectedStack = getSelectedCargoStack();
                 if(selectedStack == null) {
@@ -68,14 +75,14 @@ public class TradeScreen extends InputScreenBase {
                     InputShim.keyUp(Keyboard.KEY_LSHIFT, '\0');
                 }
             });
-            addButtonPressOrHoldHandler("More Info", "Open Codex", LogicalButtons.Select, new ButtonPressOrHoldHandler() {
+            addButtonPressOrHoldHandler("More Info", "Codex", LogicalButtons.Select, new ButtonPressOrHoldHandler() {
                 @Override
-                public void performHoldAction(float advance) {
+                public void performPressAction(float advance) {
                     InputShim.keyDownUp(Keyboard.KEY_F1, '\0');
                 }
 
                 @Override
-                public void performPressAction(float advance) {
+                public void performHoldAction(float advance) {
                     InputShim.keyDownUp(Keyboard.KEY_F2, '\0');
                 }
             });
