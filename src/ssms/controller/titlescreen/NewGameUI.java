@@ -1,21 +1,17 @@
 package ssms.controller.titlescreen;
 
-import com.fs.starfarer.api.input.InputEventMouseButton;
 import com.fs.starfarer.api.ui.ButtonAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
-import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
-import com.fs.starfarer.coreui.P;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.InputScreenBase;
 import ssms.controller.InputScreenManager;
-import ssms.controller.InputShim;
 import ssms.controller.enums.Indicators;
-import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
+import ssms.controller.inputhelper.DirectionalUINavigator.NavigationObject;
 import ssms.controller.reflection.*;
 
 import java.util.ArrayList;
@@ -47,8 +43,8 @@ public class NewGameUI extends InputScreenBase {
             @Override
             public void onSelect(NavigationObject selectedObj) {
                 super.onSelect(selectedObj);
-                if (selectedObj.component instanceof UIPanelAPI scroller) {
-                    ensurePortraitVisible.invoke(scroller, selectedObj.component);
+                if (portraitPickerOpen && selectedObj.tag instanceof ScrollPanelReflector) {
+                    ensurePortraitVisible.invoke(portraitScroller, selectedObj.component);
                 }
             }
         };
@@ -60,18 +56,15 @@ public class NewGameUI extends InputScreenBase {
         if(indicators == null) {
             indicators = new ArrayList<>();
 
-            if(portraitPicker != null) {
-                directionalUINavigator.setNavigationObjects(portraitPicker.getInnerPanel().getChildButtons(true).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
-            } else {
-                directionalUINavigator.setNavigationObjects(uiButtons.stream().map(DirectionalUINavigator.NavigationObject::new).toList());
+            List<NavigationObject> directionalObjects = new ArrayList<>();
+            List<ScrollPanelReflector> scrollers = new ArrayList<ScrollPanelReflector>();
+            getPanelNavigatables(newGameUiPanel, directionalObjects, scrollers, new ArrayList<>());
+            directionalUINavigator.setNavigationObjects(directionalObjects);
+            directionalUINavigator.clearScrollPanels();
+            for(var scroller : scrollers) {
+                directionalUINavigator.addScrollPanel(scroller);
             }
-            addDigitalJoystickHandler("Navigate", Joystick.DPad, directionalUINavigator);
-            addButtonPressHandler("Select", LogicalButtons.A, (float advance) -> {
-                if(directionalUINavigator.getSelected() != null) {
-                    var sel = directionalUINavigator.getSelected();
-                    InputShim.mouseDownUp((int) sel.getCenterX(), (int) sel.getCenterY(), InputEventMouseButton.LEFT);
-                }
-            });
+            addDirectionalUINavigator(directionalUINavigator);
             addButtonPressHandler("Close", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
         }
         return indicators;
