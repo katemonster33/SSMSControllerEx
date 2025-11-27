@@ -133,7 +133,7 @@ public class MainCampaignUI extends InputScreenBase {
                     if(currentHotkey < 9) currentHotkey++;
                 }
             });
-            addButtonPressHandler("Use hotkey", LogicalButtons.Y, (float advance) -> InputShim.keyDownUp(Keyboard.KEY_1 + currentHotkey, (char)('1' + currentHotkey)));
+            addButtonPressHandler("Use hotkey", LogicalButtons.A, (float advance) -> InputShim.keyDownUp(Keyboard.KEY_1 + currentHotkey, (char)('1' + currentHotkey)));
         }
         if(cameraControlMode) {
             indicators.add(new Pair<>(null, "Camera Pan"));

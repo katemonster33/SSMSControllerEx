@@ -8,6 +8,7 @@ import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.LogicalButtons;
+import ssms.controller.inputhelper.ButtonPressOrHoldHandler;
 import ssms.controller.inputhelper.DirectionalUINavigator;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.*;
@@ -70,6 +71,17 @@ public class GenericCampaignTabUI extends InputScreenBase {
             addButtonPressHandler("Return to campaign view", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
             addButtonPressHandler("Select previous campaign tab", LogicalButtons.BumperLeft, this::selectPrevTab);
             addButtonPressHandler("Select next campaign tab", LogicalButtons.BumperRight, this::selectNextTab);
+            addButtonPressOrHoldHandler("More Info", "Codex", LogicalButtons.Select, new ButtonPressOrHoldHandler() {
+                @Override
+                public void performPressAction(float advance) {
+                    InputShim.keyDownUp(Keyboard.KEY_F1, '\0');
+                }
+
+                @Override
+                public void performHoldAction(float advance) {
+                    InputShim.keyDownUp(Keyboard.KEY_F2, '\0');
+                }
+            });
             tabNavItems.clear();
             scrollPanelReflectors.clear();
             mapReflectors.clear();
