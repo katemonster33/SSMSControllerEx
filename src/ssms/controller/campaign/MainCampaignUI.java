@@ -238,6 +238,9 @@ public class MainCampaignUI extends InputScreenBase {
             Global.getSector().getPlayerFleet().goSlowOneFrame();
         }
         pf.setMoveDestination(shipPos.getX(), shipPos.getY());
+        if(!movedShipLastFrame) {
+            InputShim.mouseDownUp(-9999, -9999, InputEventMouseButton.LEFT);
+        }
         movedShipLastFrame = true;
         return true;
     }
