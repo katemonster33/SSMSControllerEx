@@ -25,7 +25,6 @@ import com.fs.starfarer.api.util.Pair;
 import java.util.ArrayList;
 import java.util.List;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.vector.ReadableVector2f;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.InputShim;
 import ssms.controller.enums.Joystick;
@@ -159,11 +158,12 @@ public class SteeringController_FreeFlight extends SteeringController_Base {
         }
         GL11.glEnd();
 
-        if ( heading.getX() != 0 || heading.getY() != 0 ) {
-            float mouseX = viewport.convertWorldXtoScreenX(pentagonCenter.x);
-            float mouseY = viewport.convertWorldYtoScreenY(pentagonCenter.y);
-            InputShim.mouseMove((int) mouseX, (int) mouseY);
-        }
+        // var rightJoystick = handler.getJoystick(Joystick.Right);
+        // if ((heading.getX() != 0 || heading.getY() != 0) && rightJoystick.x == 0.f && rightJoystick.y == 0.f) {
+        //     float mouseX = viewport.convertWorldXtoScreenX(pentagonCenter.x);
+        //     float mouseY = viewport.convertWorldYtoScreenY(pentagonCenter.y);
+        //     InputShim.mouseMove((int) mouseX, (int) mouseY);
+        // }
     }
 
     @Override

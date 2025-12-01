@@ -34,10 +34,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Level;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
 import ssms.controller.campaign.MainCampaignUI;
 import ssms.controller.enums.Indicators;
+import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.CodexUI;
 import ssms.controller.reflection.CombatStateReflector;
@@ -57,12 +59,16 @@ public class BattleSteeringScreen extends InputScreenBase {
     protected BattleScope scope;
     protected CombatEngineAPI engine;
     protected CombatStateReflector csr;
+    Vector2f mousePos = new Vector2f((int)Display.getWidth() / 2, (int)Display.getHeight() / 2);
     protected BattleScope.PlayerShipCache psCache;
     protected boolean isAlternateSteering = false;
     private boolean adjustOmniShieldFacing = false;
     private Vector2f v1 = new Vector2f();
     protected List<Pair<Indicators, String>> screenIndicators;
     protected SteeringController lastSteeringController;
+    boolean cameraPanningMode = false;
+    boolean rightStickActive = false;
+    ViewportAPI combatViewport = null;
 
     public BattleSteeringScreen() {
         screenIndicators = new ArrayList<>();
@@ -73,19 +79,27 @@ public class BattleSteeringScreen extends InputScreenBase {
         screenIndicators.add(new Pair<>(Indicators.Y, "Vent"));
         screenIndicators.add(new Pair<>(Indicators.Start, "Menu"));
         screenIndicators.add(new Pair<>(Indicators.Select, "Targeting"));
-        screenIndicators.add(new Pair<>(Indicators.RightStickUp, "Toggle Fighters"));
-        screenIndicators.add(new Pair<>(Indicators.RightStickDown, "Toggle Autofire"));
-        screenIndicators.add(new Pair<>(Indicators.RightStickLeft, "Prev Wpn Grp"));
-        screenIndicators.add(new Pair<>(Indicators.RightStickRight, "Next Wpn Grp"));
+        screenIndicators.add(new Pair<>(Indicators.DPadUp, "Toggle Fighters"));
+        screenIndicators.add(new Pair<>(Indicators.DPadDown, "Toggle Autofire"));
+        screenIndicators.add(new Pair<>(Indicators.DPadLeft, "Prev Wpn Grp"));
+        screenIndicators.add(new Pair<>(Indicators.DPadRight, "Next Wpn Grp"));
     }
     
-    private void updateIndicators(SteeringController currentSteeringController) {
-        if ( lastSteeringController == currentSteeringController ) return;
+    private void updateIndicators(SteeringController currentSteeringController, boolean forceUpdate) {
+        if ( lastSteeringController == currentSteeringController && !forceUpdate ) return;
         if ( indicators == null ) indicators = new ArrayList<>(screenIndicators);
         else {
             indicators.clear();
             indicators.addAll(screenIndicators);
         }
+        indicators.add(new Pair<>(null, "Camera Controls"));
+        if(cameraPanningMode) {
+            indicators.add(new Pair<>(Indicators.RightStick, "Pan Camera"));
+        } else {
+            indicators.add(new Pair<>(Indicators.RightStickUp, "Zoom In"));
+            indicators.add(new Pair<>(Indicators.RightStickDown, "Zoom Out"));
+        }
+        indicators.add(new Pair<>(Indicators.RightStickButton, "Toggle camera mode"));
         if ( currentSteeringController != null )
             indicators.addAll(currentSteeringController.getIndicators());
         lastSteeringController = currentSteeringController;
@@ -107,7 +121,10 @@ public class BattleSteeringScreen extends InputScreenBase {
         engine = scope.engine;
         psCache = scope.psCache;
         lastSteeringController = null;
-        updateIndicators(psCache.steeringController);
+        cameraPanningMode = false;
+        rightStickActive = false;
+        updateIndicators(psCache.steeringController, false);
+        combatViewport = Global.getCombatEngine().getViewport();
     }
     
     protected boolean processShipInputs(ShipAPI ps) {
@@ -156,7 +173,7 @@ public class BattleSteeringScreen extends InputScreenBase {
                     isAlternateSteering = false;
                     psCache.setSteeringController(new SteeringController_FreeFlight(), controller, engine);
                 }
-                updateIndicators(psCache.steeringController);
+                updateIndicators(psCache.steeringController, false);
                 psCache.steeringController.steer(amount, scope.getOffsetFacingAngle());
 
                 Vector2f targetLocation;
@@ -231,16 +248,16 @@ public class BattleSteeringScreen extends InputScreenBase {
 
                 //second joystick cycles fighter modes and weapon groups if not held down. up fighter mode, left right weapon groups, down autofire
                 //toggle fighter mode
-                if ( psCache.hasFighters && controller.getButtonEvent(LogicalButtons.RightStickUp) == 1 ) {
+                if ( psCache.hasFighters && controller.getButtonEvent(LogicalButtons.DpadUp) == 1 ) {
                     ps.setPullBackFighters(true);
                     //ps.giveCommand(ShipCommand.PULL_BACK_FIGHTERS, null, -1);
                 }
                 //toggle autofire
-                if ( controller.getButtonEvent(LogicalButtons.RightStickDown) == 1 ) {
+                if ( controller.getButtonEvent(LogicalButtons.DpadDown) == 1 ) {
                     ps.giveCommand(ShipCommand.TOGGLE_AUTOFIRE, null, ps.getWeaponGroupsCopy().indexOf(ps.getSelectedGroupAPI()));
                 }
                 //select weapon group
-                if ( controller.getButtonEvent(LogicalButtons.RightStickRight) == 1 ) {
+                if ( controller.getButtonEvent(LogicalButtons.DpadRight) == 1 ) {
                     List<WeaponGroupAPI> wgs = ps.getWeaponGroupsCopy();
                     int indx = wgs.indexOf(ps.getSelectedGroupAPI()) + 1;
                     if ( indx >= wgs.size() ) {
@@ -248,7 +265,7 @@ public class BattleSteeringScreen extends InputScreenBase {
                     }
                     ps.giveCommand(ShipCommand.SELECT_GROUP, null, indx);
                 }
-                if ( controller.getButtonEvent(LogicalButtons.RightStickLeft) == 1 ) {
+                if ( controller.getButtonEvent(LogicalButtons.DpadLeft) == 1 ) {
                     List<WeaponGroupAPI> wgs = ps.getWeaponGroupsCopy();
                     int indx = wgs.indexOf(ps.getSelectedGroupAPI()) - 1;
                     if ( indx < 0 ) {
@@ -260,12 +277,41 @@ public class BattleSteeringScreen extends InputScreenBase {
                 //wasShieldOn = ps.getShield() != null && ps.getShield().isOn();
             }// else wasShieldOn = false;
         }// else wasShieldOn = false;
+        if(controller.getButtonEvent(LogicalButtons.RightStickButton) == 1) {
+            cameraPanningMode = !cameraPanningMode;
+            updateIndicators(lastSteeringController, true);
+            rightStickActive = false;
+        }
         
         //center on player ship
         //CombatStateReflector.GetInstance().SetVideoFeedToPlayerShip();
-        if(ps != null) {
-            Global.getCombatEngine().getViewport().setExternalControl(true);
-            Global.getCombatEngine().getViewport().setCenter(ps.getLocation());
+        if(cameraPanningMode) {
+            var rightStickVal = SSMSControllerModPluginEx.controller.getJoystick(Joystick.Right);
+            rightStickActive = rightStickVal.x != 0.f || rightStickVal.y != 0.f;
+            if(rightStickActive) {
+                //combatViewport.setExternalControl(false);
+                
+                Vector2f displayCenterPos = new Vector2f(Display.getWidth() / 2.f, Display.getHeight() / 2.f);
+                mousePos.x = displayCenterPos.x + (displayCenterPos.x * rightStickVal.getX());
+                mousePos.y = displayCenterPos.y - (displayCenterPos.y * rightStickVal.getY());
+                InputShim.mouseMove((int)mousePos.x, (int)mousePos.y);
+                //combatViewport.setCenter(new Vector2f(combatViewport.convertScreenXToWorldX(mousePos.x), combatViewport.convertScreenYToWorldY(mousePos.y)));
+            } else {
+                //combatViewport.setExternalControl(true);
+                //combatViewport.setCenter(ps.getLocation());
+            }
+        } else {
+            if(controller.getButtonEvent(LogicalButtons.RightStickUp) == 1) {
+                InputShim.mouseMove((int)Display.getWidth() / 2, (int)Display.getHeight() / 2);
+                InputShim.mouseWheel(Display.getWidth() / 2, Display.getHeight() / 2, 5);
+            } else if(controller.getButtonEvent(LogicalButtons.RightStickDown) == 1) {
+                InputShim.mouseMove((int)Display.getWidth() / 2, (int)Display.getHeight() / 2);
+                InputShim.mouseWheel(Display.getWidth() / 2, Display.getHeight() / 2, -5);
+            }
+            if(ps != null) {
+                //combatViewport.setExternalControl(true);
+                //combatViewport.setCenter(ps.getLocation());
+            }
         }
     }
     
