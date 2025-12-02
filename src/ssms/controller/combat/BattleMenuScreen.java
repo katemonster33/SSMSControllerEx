@@ -17,6 +17,7 @@
  */
 package ssms.controller.combat;
 
+import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.CombatEngineAPI;
 import com.fs.starfarer.api.combat.CombatFleetManagerAPI;
@@ -30,6 +31,7 @@ import com.fs.starfarer.api.util.Pair;
 import java.util.*;
 import lunalib.lunaUI.panel.LunaBaseCustomPanelPlugin;
 import ssms.controller.*;
+import ssms.controller.campaign.MainCampaignUI;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.reflection.CombatStateReflector;
@@ -182,6 +184,17 @@ public class BattleMenuScreen extends InputScreenBase {
     public void renderUI(ViewportAPI viewport) {
         if(currentMenu == null) {
             currentMenu = assembleMenu();
+        }
+    }
+
+    @Override
+    public void preInput(float advance) {
+        if(Global.getCurrentState() == GameState.CAMPAIGN) {   
+            if(currentMenu != null) {
+                currentMenu.hide();
+                currentMenu = null;
+            }
+            InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
         }
     }
     
