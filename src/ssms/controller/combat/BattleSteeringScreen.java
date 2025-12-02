@@ -43,6 +43,7 @@ import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.CodexUI;
 import ssms.controller.reflection.CombatStateReflector;
+import ssms.controller.reflection.UIPanelReflector;
 import ssms.controller.reflection.WeaponReflection;
 import ssms.controller.steering.SteeringController;
 import ssms.controller.steering.SteeringController_FreeFlight;
@@ -69,6 +70,8 @@ public class BattleSteeringScreen extends InputScreenBase {
     boolean cameraPanningMode = false;
     boolean rightStickActive = false;
     ViewportAPI combatViewport = null;
+    UIPanelReflector combatWidgetPanel;
+    UIPanelReflector combatView;
 
     public BattleSteeringScreen() {
         screenIndicators = new ArrayList<>();
@@ -145,6 +148,12 @@ public class BattleSteeringScreen extends InputScreenBase {
             return;
         } else if(Global.getCombatEngine().getCombatUI().isShowingCommandUI()) {
             InputScreenManager.getInstance().transitionDelayed(WarroomScreen.ID);
+        } 
+        if(combatView == null) {
+            combatWidgetPanel = new UIPanelReflector(csr.getWidgetPanel());
+            combatView = new UIPanelReflector(combatWidgetPanel.getChildPanels().get(0));
+        } else if(isMessageBoxShown(combatView)) {
+            return;
         }
         if ( controller.getButtonEvent(LogicalButtons.Select) == 1 ) {
             InputScreenManager.getInstance().transitionDelayed(BattleTargetingScreen.ID);
