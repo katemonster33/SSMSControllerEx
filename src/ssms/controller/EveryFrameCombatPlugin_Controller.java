@@ -113,9 +113,6 @@ public class EveryFrameCombatPlugin_Controller extends BaseEveryFrameCombatPlugi
             BattleScope battleScope = (BattleScope) man.getCurrentScope();
 
             if (!battleScope.engine.getCombatUI().isShowingCommandUI()) {
-                if (wasShowingWarroom) {
-                    battleScope.adjustZoom();
-                }
 
                 ShipAPI ps = getControlledShip();
                 if (ps != null && battleScope.engine.isEntityInPlay(ps)) {

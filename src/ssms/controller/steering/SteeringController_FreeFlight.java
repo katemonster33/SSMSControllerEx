@@ -24,6 +24,8 @@ import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.util.Pair;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.lazywizard.lazylib.VectorUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.InputShim;
@@ -56,11 +58,8 @@ public class SteeringController_FreeFlight extends SteeringController_Base {
         if ( indicators == null ) {
             indicators = new ArrayList<>();
             indicators.add(new Pair<>(null, "Directional Steering"));
-            indicators.add(new Pair<>(Indicators.LeftStick, "Direction"));
-            indicators.add(new Pair<>(Indicators.LeftTrigger, "Backwards"));
-            indicators.add(new Pair<>(Indicators.RightTrigger, "Forwards"));
-            indicators.add(new Pair<>(Indicators.BumperLeft, "Strafe Left"));
-            indicators.add(new Pair<>(Indicators.BumperRight, "Strafe Right"));
+            indicators.add(new Pair<>(Indicators.LeftStick, "Steer"));
+            indicators.add(new Pair<>(Indicators.RightStick, "Move"));
         }
         
         return true;
@@ -85,22 +84,21 @@ public class SteeringController_FreeFlight extends SteeringController_Base {
     @Override
     public void steer(float timeAdvanced, float offsetFacingAngle) {
         calculateAllowances(ps);
-        
         //turning the ship based on joystick and accelerating with the triggers
-        if ( allowAcceleration ) {
-            if ( handler.isButtonPressed(LogicalButtons.RightTrigger) ) {
+        if (allowAcceleration) {
+            if (handler.isButtonPressed(LogicalButtons.RightStickUp)) {
                 ps.giveCommand(ShipCommand.ACCELERATE, null, -1);
-            } else if ( handler.isButtonPressed(LogicalButtons.LeftTrigger) ) {
+            } else if (handler.isButtonPressed(LogicalButtons.RightStickDown)) {
                 ps.giveCommand(ShipCommand.ACCELERATE_BACKWARDS, null, -1);
-            } else if ( ps.getAcceleration() < 0.1f ) {
+            } else if (ps.getAcceleration() < 0.1f) {
                 //if the player leaves the throttle idle close to zero we assume a full stop is desired
                 ps.giveCommand(ShipCommand.DECELERATE, null, -1);
             }
         }
-        if ( allowStrafe ) {
-            if ( handler.isButtonPressed(LogicalButtons.BumperLeft) ) {
+        if (allowStrafe) {
+            if (handler.isButtonPressed(LogicalButtons.RightStickLeft)) {
                 ps.giveCommand(ShipCommand.STRAFE_LEFT, null, -1);
-            } else if ( handler.isButtonPressed(LogicalButtons.BumperRight) ) {
+            } else if (handler.isButtonPressed(LogicalButtons.RightStickRight)) {
                 ps.giveCommand(ShipCommand.STRAFE_RIGHT, null, -1);
             }
         }

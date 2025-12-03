@@ -63,8 +63,8 @@ public class SteeringController_OrbitTarget extends SteeringController_Base {
             indicators = new ArrayList<>();
             indicators.add(new Pair<>(null, "Orbital Steering"));
             indicators.add(new Pair<>(Indicators.LeftStick, "Relative Pos"));
-            indicators.add(new Pair<>(Indicators.LeftTrigger, "Further"));
-            indicators.add(new Pair<>(Indicators.RightTrigger, "Closer"));
+            indicators.add(new Pair<>(Indicators.RightStickDown, "Further"));
+            indicators.add(new Pair<>(Indicators.RightStickUp, "Closer"));
         }
         return true;
     }
@@ -90,10 +90,10 @@ public class SteeringController_OrbitTarget extends SteeringController_Base {
     public void steer(float timeAdvanced, float offsetFacingAngle) {
         calculateAllowances(ps);
         
-        if ( handler.isButtonPressed(LogicalButtons.RightTrigger) ) {
+        if ( handler.isButtonPressed(LogicalButtons.RightStickUp) ) {
             desiredDistance -= Math.max(ps.getEngineController().getMaxSpeedWithoutBoost(), 400f) * timeAdvanced;
             desiredDistance = Math.max(ps.getCollisionRadius() + ps.getShipTarget().getCollisionRadius(), desiredDistance);
-        } else if ( handler.isButtonPressed(LogicalButtons.LeftTrigger) ) {
+        } else if ( handler.isButtonPressed(LogicalButtons.RightStickDown) ) {
             desiredDistance += Math.max(ps.getEngineController().getMaxSpeedWithoutBoost(), 400f) * timeAdvanced;
         }
 

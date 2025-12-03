@@ -60,7 +60,6 @@ public class BattleSteeringScreen extends InputScreenBase {
     protected BattleScope scope;
     protected CombatEngineAPI engine;
     protected CombatStateReflector csr;
-    Vector2f mousePos = new Vector2f((int)Display.getWidth() / 2, (int)Display.getHeight() / 2);
     protected BattleScope.PlayerShipCache psCache;
     protected boolean isAlternateSteering = false;
     private boolean adjustOmniShieldFacing = false;
@@ -76,16 +75,16 @@ public class BattleSteeringScreen extends InputScreenBase {
     public BattleSteeringScreen() {
         screenIndicators = new ArrayList<>();
         screenIndicators.add(new Pair<>(Indicators.LeftStickButton, "Switch Mode"));
-        screenIndicators.add(new Pair<>(Indicators.A, "Fire"));
-        screenIndicators.add(new Pair<>(Indicators.B, "Shield"));
-        screenIndicators.add(new Pair<>(Indicators.X, "System"));
-        screenIndicators.add(new Pair<>(Indicators.Y, "Vent"));
+        screenIndicators.add(new Pair<>(Indicators.RightTrigger, "Fire"));
+        screenIndicators.add(new Pair<>(Indicators.LeftTrigger, "Shield"));
+        screenIndicators.add(new Pair<>(Indicators.A, "System"));
+        screenIndicators.add(new Pair<>(Indicators.X, "Vent"));
+        screenIndicators.add(new Pair<>(Indicators.Y, "Toggle Fighters"));
         screenIndicators.add(new Pair<>(Indicators.Start, "Menu"));
         screenIndicators.add(new Pair<>(Indicators.Select, "Targeting"));
-        screenIndicators.add(new Pair<>(Indicators.DPadUp, "Toggle Fighters"));
         screenIndicators.add(new Pair<>(Indicators.DPadDown, "Toggle Autofire"));
-        screenIndicators.add(new Pair<>(Indicators.DPadLeft, "Prev Wpn Grp"));
-        screenIndicators.add(new Pair<>(Indicators.DPadRight, "Next Wpn Grp"));
+        screenIndicators.add(new Pair<>(Indicators.BumperLeft, "Prev Wpn Grp"));
+        screenIndicators.add(new Pair<>(Indicators.BumperRight, "Next Wpn Grp"));
     }
     
     private void updateIndicators(SteeringController currentSteeringController, boolean forceUpdate) {
@@ -200,7 +199,7 @@ public class BattleSteeringScreen extends InputScreenBase {
 
                         WeaponReflection.AimWeapon(weapon, targetLocation);
                     }
-                    if ( controller.isButtonPressed(LogicalButtons.A) ) ps.giveCommand(ShipCommand.FIRE, v1, -1);
+                    if ( controller.isButtonPressed(LogicalButtons.RightTrigger) ) ps.giveCommand(ShipCommand.FIRE, v1, -1);
                 }
 
                 //start venting
@@ -290,37 +289,6 @@ public class BattleSteeringScreen extends InputScreenBase {
             cameraPanningMode = !cameraPanningMode;
             updateIndicators(lastSteeringController, true);
             rightStickActive = false;
-        }
-        
-        //center on player ship
-        //CombatStateReflector.GetInstance().SetVideoFeedToPlayerShip();
-        if(cameraPanningMode) {
-            var rightStickVal = SSMSControllerModPluginEx.controller.getJoystick(Joystick.Right);
-            rightStickActive = rightStickVal.x != 0.f || rightStickVal.y != 0.f;
-            if(rightStickActive) {
-                //combatViewport.setExternalControl(false);
-                
-                Vector2f displayCenterPos = new Vector2f(Display.getWidth() / 2.f, Display.getHeight() / 2.f);
-                mousePos.x = displayCenterPos.x + (displayCenterPos.x * rightStickVal.getX());
-                mousePos.y = displayCenterPos.y - (displayCenterPos.y * rightStickVal.getY());
-                InputShim.mouseMove((int)mousePos.x, (int)mousePos.y);
-                //combatViewport.setCenter(new Vector2f(combatViewport.convertScreenXToWorldX(mousePos.x), combatViewport.convertScreenYToWorldY(mousePos.y)));
-            } else {
-                //combatViewport.setExternalControl(true);
-                //combatViewport.setCenter(ps.getLocation());
-            }
-        } else {
-            if(controller.getButtonEvent(LogicalButtons.RightStickUp) == 1) {
-                InputShim.mouseMove((int)Display.getWidth() / 2, (int)Display.getHeight() / 2);
-                InputShim.mouseWheel(Display.getWidth() / 2, Display.getHeight() / 2, 5);
-            } else if(controller.getButtonEvent(LogicalButtons.RightStickDown) == 1) {
-                InputShim.mouseMove((int)Display.getWidth() / 2, (int)Display.getHeight() / 2);
-                InputShim.mouseWheel(Display.getWidth() / 2, Display.getHeight() / 2, -5);
-            }
-            if(ps != null) {
-                //combatViewport.setExternalControl(true);
-                //combatViewport.setCenter(ps.getLocation());
-            }
         }
     }
     

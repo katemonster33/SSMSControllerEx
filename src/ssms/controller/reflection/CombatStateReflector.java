@@ -10,7 +10,6 @@ import org.apache.log4j.Level;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipAPI;
-import com.fs.starfarer.api.combat.ShipCommand;
 import com.fs.starfarer.api.combat.ShipwideAIFlags;
 import com.fs.state.AppDriver;
 
@@ -146,16 +145,22 @@ public class CombatStateReflector {
         return (float)getZoomFactorMethod.invoke(cs);
     }
 
+    public ZoomTrackerReflector getZoomTracker() {
+        if (!InitZoomTracker()) return null;
+
+        return zoomTracker;
+    }
+
     public void setZoomFactor(float desiredZoomFactor)
     {
-        if ( !InitZoomTracker() ) return;
+        if (!InitZoomTracker()) return;
 
         if ( getZoomFactor() == desiredZoomFactor ) {
             return;
         }
         
         try {
-            zoomTracker.SetZoom(cs, desiredZoomFactor);
+            zoomTracker.setZoom(desiredZoomFactor);
         } catch (Throwable t) {
             Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to adjust zoom tracker, ensure SSMSUnlock is installed!", t);
         }

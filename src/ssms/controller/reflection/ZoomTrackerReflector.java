@@ -1,7 +1,5 @@
 package ssms.controller.reflection;
 
-import com.fs.starfarer.combat.CombatState;
-
 public class ZoomTrackerReflector {
     FieldReflector zoomAField;
     FieldReflector zoomBField;
@@ -27,7 +25,16 @@ public class ZoomTrackerReflector {
         }
     }
 
-    public void SetZoom(Object combatStateObj, float desiredZoom) throws Throwable
+    public void setZoom(float desiredZoom) {
+        zoomAField.set(zoomTrackerObj, desiredZoom);
+        zoomBField.set(zoomTrackerObj, desiredZoom);
+    }
+
+    public float getZoom() {
+        return (float)zoomAField.get(zoomTrackerObj);
+    }
+
+    public void forceZoom(float desiredZoom) throws Throwable
     {
         zoomMaxField.set(zoomTrackerObj, desiredZoom);
         zoomMinField.set(zoomTrackerObj, desiredZoom);
