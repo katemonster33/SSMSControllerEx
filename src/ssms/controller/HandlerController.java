@@ -283,6 +283,11 @@ public class HandlerController {
         try {
             Integer axisIdxRaw = axisIndexByMapping.get(axisMapping);
             if(axisIdxRaw == null) {
+                if(axisMapping == AxisMapping.DPadX) {
+                    return controller.getPovX();
+                } else if(axisMapping == AxisMapping.DPadY) {
+                    return controller.getPovY();
+                }
                 return -1.f;
             }
             val = getAxisValue(axisIdxRaw);

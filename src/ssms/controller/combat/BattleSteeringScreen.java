@@ -32,6 +32,7 @@ import com.fs.starfarer.combat.entities.Ship;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 import org.apache.log4j.Level;
 import org.lwjgl.opengl.Display;
@@ -78,14 +79,16 @@ public class BattleSteeringScreen extends InputScreenBase {
         screenIndicators.add(new Pair<>(Indicators.LeftStickButton, "Switch Mode"));
         screenIndicators.add(new Pair<>(Indicators.RightTrigger, "Fire"));
         screenIndicators.add(new Pair<>(Indicators.LeftTrigger, "Shield"));
+        screenIndicators.add(new Pair<>(Indicators.BumperLeft, "Prev Wpn Grp"));
+        screenIndicators.add(new Pair<>(Indicators.BumperRight, "Next Wpn Grp"));
         screenIndicators.add(new Pair<>(Indicators.A, "System"));
         screenIndicators.add(new Pair<>(Indicators.X, "Vent"));
         screenIndicators.add(new Pair<>(Indicators.Y, "Toggle Fighters"));
         screenIndicators.add(new Pair<>(Indicators.Start, "Menu"));
         screenIndicators.add(new Pair<>(Indicators.Select, "Targeting"));
-        screenIndicators.add(new Pair<>(Indicators.DPadDown, "Toggle Autofire"));
-        screenIndicators.add(new Pair<>(Indicators.BumperLeft, "Prev Wpn Grp"));
-        screenIndicators.add(new Pair<>(Indicators.BumperRight, "Next Wpn Grp"));
+        screenIndicators.add(new Pair<>(Indicators.DPadLeft, "Toggle Autofire"));
+        screenIndicators.add(new Pair<>(Indicators.DPadDown, "Zoom Out"));
+        screenIndicators.add(new Pair<>(Indicators.DPadUp, "Zoom In"));
     }
     
     private void updateIndicators(SteeringController currentSteeringController, boolean forceUpdate) {
@@ -95,14 +98,11 @@ public class BattleSteeringScreen extends InputScreenBase {
             indicators.clear();
             indicators.addAll(screenIndicators);
         }
-        indicators.add(new Pair<>(null, "Camera Controls"));
         if(cameraPanningMode) {
-            indicators.add(new Pair<>(Indicators.RightStick, "Pan Camera"));
+            indicators.add(new Pair<>(Indicators.RightStickButton, "Disable Camera Panning"));
         } else {
-            indicators.add(new Pair<>(Indicators.RightStickUp, "Zoom In"));
-            indicators.add(new Pair<>(Indicators.RightStickDown, "Zoom Out"));
+            indicators.add(new Pair<>(Indicators.RightStickButton, "Enable Camera Panning"));
         }
-        indicators.add(new Pair<>(Indicators.RightStickButton, "Toggle camera mode"));
         if ( currentSteeringController != null )
             indicators.addAll(currentSteeringController.getIndicators());
         lastSteeringController = currentSteeringController;
@@ -128,6 +128,11 @@ public class BattleSteeringScreen extends InputScreenBase {
         rightStickActive = false;
         updateIndicators(psCache.steeringController, false);
         combatViewport = Global.getCombatEngine().getViewport();
+        combatWidgetPanel = null;
+        combatView = null;
+
+        // if we don't do this here, when the user zooms the view, the view spazzes out because it tries to go where the (real) mouse cursor is. we don't want this.
+        InputShim.mouseMove((int)(Display.getWidth() / 2.f), (int)(Display.getHeight() / 2.f));
     }
     
     protected boolean processShipInputs(ShipAPI ps) {
@@ -204,42 +209,18 @@ public class BattleSteeringScreen extends InputScreenBase {
                 }
 
                 //start venting
-                if ( controller.getButtonEvent(LogicalButtons.Y) == 1 ) {
+                if ( controller.getButtonEvent(LogicalButtons.X) == 1 ) {
                     ps.giveCommand(ShipCommand.VENT_FLUX, null, -1);
                 }
 
                 //TODO maybe adjust shield facing in the after input processed method if it got turned on this frame
                 //shield/cloak on/off
-                if ( controller.getButtonEvent(LogicalButtons.B) == 1 ) {
-                    if ( ps.getShield() != null ) {
-                        if ( ps.getShield().getType() == ShieldAPI.ShieldType.OMNI) {
-                            CombatStateReflector.GetInstance().setAutoOmniShield();
-                            //we only want auto shields if they are turned on otherwise the AI decides when to turn on the shields as well
-                            try {
-                                var flags = CombatStateReflector.GetInstance().playerShipShieldAIFlags();
-                                if ( ps.getShield() != null && ps.getShield().isOff() ) {
-                                    flags.unsetFlag(ShipwideAIFlags.AIFlags.DO_NOT_USE_SHIELDS);
-                                    flags.setFlag(ShipwideAIFlags.AIFlags.KEEP_SHIELDS_ON, Float.MAX_VALUE);
-                                    adjustOmniShieldFacing = true;
-                                } else {
-                                    flags.setFlag(ShipwideAIFlags.AIFlags.DO_NOT_USE_SHIELDS, Float.MAX_VALUE);
-                                    flags.unsetFlag(ShipwideAIFlags.AIFlags.KEEP_SHIELDS_ON);
-                                }
-                            } catch ( Throwable t ) {
-                                Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to get field playerShipShieldAIFlags on CombatState!", t);
-                                ps.giveCommand(ShipCommand.TOGGLE_SHIELD_OR_PHASE_CLOAK, null, -1);
-                            }
-                        } else {
-                            ps.giveCommand(ShipCommand.TOGGLE_SHIELD_OR_PHASE_CLOAK, null, -1);
-                        }
-                    } else if ( ps.getPhaseCloak() != null ) {
-                        
-                        ps.giveCommand(ShipCommand.TOGGLE_SHIELD_OR_PHASE_CLOAK, null, -1);
-                    }
+                if ( controller.getButtonEvent(LogicalButtons.LeftTrigger) == 1 ) {
+                    toggleShieldOrCloak(ps);
                 }
 
                 //activate system
-                if ( controller.getButtonEvent(LogicalButtons.X) == 1 ) {
+                if ( controller.getButtonEvent(LogicalButtons.A) == 1 ) {
                     if ( ps.getShipTarget() != null ) {
                         //due to a bug in vanilla coding the getAI method must return not null in order for the minestrike to use the override
                         //replacing the script with a corrected version that skips the AI check
@@ -257,16 +238,16 @@ public class BattleSteeringScreen extends InputScreenBase {
 
                 //second joystick cycles fighter modes and weapon groups if not held down. up fighter mode, left right weapon groups, down autofire
                 //toggle fighter mode
-                if ( psCache.hasFighters && controller.getButtonEvent(LogicalButtons.DpadUp) == 1 ) {
+                if ( psCache.hasFighters && controller.getButtonEvent(LogicalButtons.Y) == 1 ) {
                     ps.setPullBackFighters(true);
                     //ps.giveCommand(ShipCommand.PULL_BACK_FIGHTERS, null, -1);
                 }
                 //toggle autofire
-                if ( controller.getButtonEvent(LogicalButtons.DpadDown) == 1 ) {
+                if ( controller.getButtonEvent(LogicalButtons.DpadLeft) == 1 ) {
                     ps.giveCommand(ShipCommand.TOGGLE_AUTOFIRE, null, ps.getWeaponGroupsCopy().indexOf(ps.getSelectedGroupAPI()));
                 }
                 //select weapon group
-                if ( controller.getButtonEvent(LogicalButtons.DpadRight) == 1 ) {
+                if ( controller.getButtonEvent(LogicalButtons.BumperRight) == 1 ) {
                     List<WeaponGroupAPI> wgs = ps.getWeaponGroupsCopy();
                     int indx = wgs.indexOf(ps.getSelectedGroupAPI()) + 1;
                     if ( indx >= wgs.size() ) {
@@ -274,7 +255,7 @@ public class BattleSteeringScreen extends InputScreenBase {
                     }
                     ps.giveCommand(ShipCommand.SELECT_GROUP, null, indx);
                 }
-                if ( controller.getButtonEvent(LogicalButtons.DpadLeft) == 1 ) {
+                if ( controller.getButtonEvent(LogicalButtons.BumperLeft) == 1 ) {
                     List<WeaponGroupAPI> wgs = ps.getWeaponGroupsCopy();
                     int indx = wgs.indexOf(ps.getSelectedGroupAPI()) - 1;
                     if ( indx < 0 ) {
@@ -291,8 +272,59 @@ public class BattleSteeringScreen extends InputScreenBase {
             updateIndicators(lastSteeringController, true);
             rightStickActive = false;
         }
+        if(cameraPanningMode) {
+            var rightStickVal = SSMSControllerModPluginEx.controller.getJoystick(Joystick.Right);
+            // make sure the mouse stays at the center when swapping modes, so the view doesn't end up skewed off to the side...
+            InputShim.mouseMove((int)(Display.getWidth() / 2.f), (int)(Display.getHeight() / 2.f));
+            combatViewport.setExternalControl(false);
+
+            Vector2f displayCenterPos = new Vector2f(Display.getWidth() / 2.f, Display.getHeight() / 2.f);
+            InputShim.mouseMove((int)(displayCenterPos.x + (displayCenterPos.x * rightStickVal.getX())), (int)(displayCenterPos.y - (displayCenterPos.y * rightStickVal.getY())));
+            //combatViewport.setCenter(new Vector2f(combatViewport.convertScreenXToWorldX(mousePos.x), combatViewport.convertScreenYToWorldY(mousePos.y)));
+        } else {
+            if(controller.isButtonPressed(LogicalButtons.DpadUp)) {
+                InputShim.mouseMove((int)(Display.getWidth() / 2.f), (int)(Display.getHeight() / 2.f));
+                combatViewport.setExternalControl(false);
+                csr.getZoomTracker().setZoom(csr.getZoomTracker().getZoom() - 0.05f );
+            } else if(controller.isButtonPressed(LogicalButtons.DpadDown)) {
+                InputShim.mouseMove((int)(Display.getWidth() / 2.f), (int)(Display.getHeight() / 2.f));
+                combatViewport.setExternalControl(false);
+                csr.getZoomTracker().setZoom(csr.getZoomTracker().getZoom() + 0.1f );
+            } else if(ps != null) {
+                combatViewport.setExternalControl(true);
+                combatViewport.setCenter(ps.getLocation());
+            }
+        }
     }
-    
+
+    private void toggleShieldOrCloak(ShipAPI ps) {
+        if ( ps.getShield() != null ) {
+            if ( ps.getShield().getType() == ShieldAPI.ShieldType.OMNI) {
+                CombatStateReflector.GetInstance().setAutoOmniShield();
+                //we only want auto shields if they are turned on otherwise the AI decides when to turn on the shields as well
+                try {
+                    var flags = CombatStateReflector.GetInstance().playerShipShieldAIFlags();
+                    if ( ps.getShield() != null && ps.getShield().isOff() ) {
+                        flags.unsetFlag(ShipwideAIFlags.AIFlags.DO_NOT_USE_SHIELDS);
+                        flags.setFlag(ShipwideAIFlags.AIFlags.KEEP_SHIELDS_ON, Float.MAX_VALUE);
+                        adjustOmniShieldFacing = true;
+                    } else {
+                        flags.setFlag(ShipwideAIFlags.AIFlags.DO_NOT_USE_SHIELDS, Float.MAX_VALUE);
+                        flags.unsetFlag(ShipwideAIFlags.AIFlags.KEEP_SHIELDS_ON);
+                    }
+                } catch ( Throwable t ) {
+                    Global.getLogger(SSMSControllerModPluginEx.class).log(Level.ERROR, "Failed to get field playerShipShieldAIFlags on CombatState!", t);
+                    ps.giveCommand(ShipCommand.TOGGLE_SHIELD_OR_PHASE_CLOAK, null, -1);
+                }
+            } else {
+                ps.giveCommand(ShipCommand.TOGGLE_SHIELD_OR_PHASE_CLOAK, null, -1);
+            }
+        } else if ( ps.getPhaseCloak() != null ) {
+
+            ps.giveCommand(ShipCommand.TOGGLE_SHIELD_OR_PHASE_CLOAK, null, -1);
+        }
+    }
+
     @Override
     public void postInput(float amount) {
         //If an omni shield was raised during the last frame we change its facing based on the selected broadside if no target is selected and otherwise facing the target

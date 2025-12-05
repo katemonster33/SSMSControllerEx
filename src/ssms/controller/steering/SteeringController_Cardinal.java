@@ -11,7 +11,6 @@ import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.HandlerController;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
-import ssms.controller.enums.LogicalButtons;
 import ssms.controller.reflection.CombatStateReflector;
 import ssms.controller.reflection.MethodReflector;
 
@@ -65,14 +64,24 @@ public class SteeringController_Cardinal extends SteeringController_Base {
         return false;
     }
 
+    boolean movedShip = false;
     @Override
     public void steer(float timeAdvanced, float offsetFacingAngle) {
         calculateAllowances(ps);
         //turning the ship based on joystick and accelerating with the triggers
         if (allowAcceleration && allowStrafe) {
             var leftStick = handler.getJoystick(Joystick.Left);
-            leftStick.y = -leftStick.y;
-            performCardinalSteer(Util.getFacingFromHeading(leftStick), leftStick.length());
+            if(leftStick.y != 0.f || leftStick.x != 0.f) {
+                leftStick.y = -leftStick.y;
+                performCardinalSteer(Util.getFacingFromHeading(leftStick), leftStick.length());
+                movedShip = true;
+            } else if(movedShip) {
+                if(ps.getVelocity().x != 0.f || ps.getVelocity().y != 0.f) {
+                    ps.giveCommand(ShipCommand.DECELERATE, null, -1);
+                } else {
+                    movedShip = false;
+                }
+            }
         }
         if ( allowTurning ) {
             var vDesiredHeading = handler.getJoystick(Joystick.Right);
