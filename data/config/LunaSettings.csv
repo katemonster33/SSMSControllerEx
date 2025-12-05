@@ -1,0 +1,3 @@
+fieldID,fieldName,fieldType,defaultValue,secondaryValue,fieldDescription,minValue,maxValue,tab
+luna_settingsHeader,Steering Header,Header,Steering,,,,,
+useCardinalSteering,Use Enhanced Cardinal Steering Controller?,Boolean,false,,A button that switches between true and false.,,,
