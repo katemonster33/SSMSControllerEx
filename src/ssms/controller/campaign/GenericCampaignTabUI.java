@@ -26,6 +26,7 @@ public class GenericCampaignTabUI extends InputScreenBase {
     DirectionalUINavigator directionalUINavigator;
     InteractionDialogReflector interactionDialogReflector;
 
+    @SuppressWarnings("unchecked")
     Pair<Integer, Character>[] tabInputs = new Pair[] {
             new Pair<>(Keyboard.KEY_C, 'c'),
             new Pair<>(Keyboard.KEY_F, 'f'),

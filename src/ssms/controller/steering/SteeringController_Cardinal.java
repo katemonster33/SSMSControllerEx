@@ -1,20 +1,3 @@
-/*
- * Copyright (C) 2020 Malte Schulze.
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 3 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library;  If not, see 
- * <https://www.gnu.org/licenses/>.
- */
 package ssms.controller.steering;
 
 import com.fs.starfarer.api.Global;
@@ -23,39 +6,46 @@ import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.combat.ShipCommand;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.util.Pair;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.util.vector.Vector2f;
+import ssms.controller.HandlerController;
+import ssms.controller.enums.Indicators;
+import ssms.controller.enums.Joystick;
+import ssms.controller.enums.LogicalButtons;
+import ssms.controller.reflection.CombatStateReflector;
+import ssms.controller.reflection.MethodReflector;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.util.vector.Vector2f;
-import ssms.controller.enums.Joystick;
-import ssms.controller.enums.LogicalButtons;
-import ssms.controller.HandlerController;
-import ssms.controller.enums.Indicators;
-import ssms.controller.reflection.CombatStateReflector;
-
-/**
- *
- * @author Malte Schulze
- */
-public class SteeringController_FreeFlight extends SteeringController_Base {
+public class SteeringController_Cardinal extends SteeringController_Base {
     protected ShipAPI ps;
     protected HandlerController handler;
     protected List<Pair<Indicators, String>> indicators;
 
-    public SteeringController_FreeFlight() {
-        indicators = new ArrayList<>();
-        indicators.add(new Pair<>(null, "Directional Steering"));
-        indicators.add(new Pair<>(Indicators.LeftStick, "Steer"));
-        indicators.add(new Pair<>(Indicators.RightStickUp, "Accelerate"));
-        indicators.add(new Pair<>(Indicators.RightStickDown, "Accelerate Backward"));
-        indicators.add(new Pair<>(Indicators.RightStickLeft, "Strafe Left"));
-        indicators.add(new Pair<>(Indicators.RightStickUp, "Strafe Right"));
+    static MethodReflector steerCardinal;
+
+    public static void initSteerMethod(MethodReflector steerCardinal) {
+        SteeringController_Cardinal.steerCardinal = steerCardinal;
     }
 
-    @Override
-    public List<Pair<Indicators, String>> getIndicators() {
-        return indicators;
+    public SteeringController_Cardinal() {
+        indicators = new ArrayList<>();
+        indicators.add(new Pair<>(null, "Directional Steering"));
+        indicators.add(new Pair<>(Indicators.LeftStick, "Move"));
+        indicators.add(new Pair<>(Indicators.RightStick, "Steer"));
+    }
+
+    public static void performCardinalSteer(float angle, float throttlePercent) {
+        var ps = Global.getCombatEngine().getPlayerShip();
+        if(ps != null) {
+            float maxSpeed = ps.getMaxSpeed() * throttlePercent;
+            if(ps.getVelocity().length() > maxSpeed) {
+                ps.giveCommand(ShipCommand.DECELERATE, null, -1);
+            } else {
+                steerCardinal.invoke(null, ps, angle, maxSpeed);
+            }
+        }
     }
 
     @Override
@@ -64,46 +54,28 @@ public class SteeringController_FreeFlight extends SteeringController_Base {
         this.handler = controller;
         return true;
     }
-    
-    @Override
-    public void discard() {
-        ps = null;
-        handler = null;
-    }
 
     @Override
     public void onTargetSelected() {
-        
+
     }
 
     @Override
     public boolean isTargetValid() {
-        return true;
+        return false;
     }
 
     @Override
     public void steer(float timeAdvanced, float offsetFacingAngle) {
         calculateAllowances(ps);
         //turning the ship based on joystick and accelerating with the triggers
-        if (allowAcceleration) {
-            if (handler.isButtonPressed(LogicalButtons.RightStickUp)) {
-                ps.giveCommand(ShipCommand.ACCELERATE, null, -1);
-            } else if (handler.isButtonPressed(LogicalButtons.RightStickDown)) {
-                ps.giveCommand(ShipCommand.ACCELERATE_BACKWARDS, null, -1);
-            } else if (ps.getAcceleration() < 0.1f) {
-                //if the player leaves the throttle idle close to zero we assume a full stop is desired
-                ps.giveCommand(ShipCommand.DECELERATE, null, -1);
-            }
-        }
-        if (allowStrafe) {
-            if (handler.isButtonPressed(LogicalButtons.RightStickLeft)) {
-                ps.giveCommand(ShipCommand.STRAFE_LEFT, null, -1);
-            } else if (handler.isButtonPressed(LogicalButtons.RightStickRight)) {
-                ps.giveCommand(ShipCommand.STRAFE_RIGHT, null, -1);
-            }
+        if (allowAcceleration && allowStrafe) {
+            var leftStick = handler.getJoystick(Joystick.Left);
+            leftStick.y = -leftStick.y;
+            performCardinalSteer(Util.getFacingFromHeading(leftStick), leftStick.length());
         }
         if ( allowTurning ) {
-            var vDesiredHeading = handler.getJoystick(Joystick.Left);
+            var vDesiredHeading = handler.getJoystick(Joystick.Right);
             if ( vDesiredHeading.getX() != 0 || vDesiredHeading.getY() != 0 ) {
                 vDesiredHeading.setY(-vDesiredHeading.getY());
                 float desiredFacing = Util.getFacingFromHeading((Vector2f)vDesiredHeading);
@@ -115,15 +87,15 @@ public class SteeringController_FreeFlight extends SteeringController_Base {
     @Override
     public void renderInWorldCoords(ViewportAPI viewport, float offsetFacingAngle) {
         Vector2f shipLocation = ps.getLocation();
-        var heading = handler.getJoystick(Joystick.Left);
+        var heading = handler.getJoystick(Joystick.Right);
         heading.setY(-heading.getY());
         if ( heading.getX() == 0 && heading.getY() == 0 ) {
             heading = Util.getHeadingFromFacing(ps.getFacing());
         }
         if (CombatStateReflector.GetInstance().getWidgetPanel() == null ) return;
         float zoom = CombatStateReflector.GetInstance().getZoomFactor();
-        
-        //a pentagon that points in the direction the ship ship wants to head into, useful since the ship turns slowly 
+
+        //a pentagon that points in the direction the ship ship wants to head into, useful since the ship turns slowly
         //and this way the user immediately has feedback on where he is steering.
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_BLEND);
@@ -158,12 +130,23 @@ public class SteeringController_FreeFlight extends SteeringController_Base {
     }
 
     @Override
+    public void discard() {
+        ps = null;
+        handler = null;
+    }
+
+    @Override
+    public List<Pair<Indicators, String>> getIndicators() {
+        return indicators;
+    }
+
+    @Override
     public boolean getAllowsEveryTarget() {
-        return true;
+        return false;
     }
 
     @Override
     public String getLabel() {
-        return "[SSMS] Directional";
+        return "[SSMS] Cardinal";
     }
 }

@@ -5,6 +5,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.util.Objects;
+import java.lang.reflect.Method;
 
 import org.apache.log4j.Level;
 
@@ -17,6 +18,7 @@ public class ClassReflector {
     static MethodHandle getDeclaredMethod;
     static MethodHandle getDeclaredMethods;
     static MethodHandle getDeclaredConstructor;
+    static MethodHandle getDeclaredConstructors;
 
     public static boolean suppressWarnings = false;
     static
@@ -36,6 +38,8 @@ public class ClassReflector {
             getDeclaredMethods = lookup.findVirtual(Class.class, "getDeclaredMethods", MethodType.methodType(methodClass.arrayType()));
 
             getDeclaredConstructor = lookup.findVirtual(Class.class, "getDeclaredConstructor", MethodType.methodType(ctorClass, Class[].class));
+
+            getDeclaredConstructors = lookup.findVirtual(Class.class, "getDeclaredConstructors", MethodType.methodType(ctorClass.arrayType()));
         } catch(Throwable ex) {
             throw new RuntimeException(ex);
         }
@@ -133,5 +137,23 @@ public class ClassReflector {
             }
         }
         return null;
+    }
+
+    public ConstructorReflector[] getDeclaredConstructors() {
+        ConstructorReflector[] output = null;
+        try {
+            Object[] lst = (Object[])getDeclaredConstructors.invoke(cls);
+            if(lst != null) {
+                output = new ConstructorReflector[lst.length];
+                for(int i = 0; i < lst.length; i++) {
+                    output[i] = new ConstructorReflector(lst[i]);
+                }
+            }
+        } catch(Throwable ex) {
+            if(!suppressWarnings) {
+                Global.getLogger(getClass()).error("Couldn't invoke getDeclaredConstructors!", ex);
+            }
+        }
+        return output;
     }
 }

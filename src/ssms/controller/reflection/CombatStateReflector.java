@@ -76,6 +76,10 @@ public class CombatStateReflector {
         return instance;
     }
 
+    public static  CombatStateReflector newInstance() {
+        return instance = new CombatStateReflector();
+    }
+
     public void clearEntityToFollow()
     {
         entityToFollowField.set(cs, null);

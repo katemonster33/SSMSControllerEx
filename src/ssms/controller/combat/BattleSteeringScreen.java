@@ -43,6 +43,7 @@ import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.CodexUI;
 import ssms.controller.reflection.CombatStateReflector;
+import ssms.controller.reflection.MethodReflector;
 import ssms.controller.reflection.UIPanelReflector;
 import ssms.controller.reflection.WeaponReflection;
 import ssms.controller.steering.SteeringController;
@@ -119,7 +120,7 @@ public class BattleSteeringScreen extends InputScreenBase {
     @Override
     public void activate(Object... args) {
         scope = (BattleScope)InputScreenManager.getInstance().getCurrentScope();
-        csr = CombatStateReflector.GetInstance();
+        csr = CombatStateReflector.newInstance();
         engine = scope.engine;
         psCache = scope.psCache;
         lastSteeringController = null;
@@ -173,13 +174,13 @@ public class BattleSteeringScreen extends InputScreenBase {
                     if ( isAlternateSteering ) {
                         psCache.setSteeringController(new SteeringController_OrbitTarget(), controller, engine);
                     } else {
-                        psCache.setSteeringController(new SteeringController_FreeFlight(), controller, engine);
+                        psCache.setSteeringController(SSMSControllerModPluginEx.createDefaultSteering(), controller, engine);
                     }
                 }
 
                 if ( isAlternateSteering && ( !scope.isValidTarget(ps.getShipTarget()) || !psCache.steeringController.isTargetValid() ) ) {
                     isAlternateSteering = false;
-                    psCache.setSteeringController(new SteeringController_FreeFlight(), controller, engine);
+                    psCache.setSteeringController(SSMSControllerModPluginEx.createDefaultSteering(), controller, engine);
                 }
                 updateIndicators(psCache.steeringController, false);
                 psCache.steeringController.steer(amount, scope.getOffsetFacingAngle());

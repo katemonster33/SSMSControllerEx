@@ -13,6 +13,7 @@ public class MethodReflector {
     static MethodHandle invoke;
     static MethodHandle getReturnType;
     static MethodHandle setAccessible;
+    static MethodHandle getModifiers;
     static
     {
         try {
@@ -28,6 +29,8 @@ public class MethodReflector {
             invoke = lookup.findVirtual(methodClass, "invoke", MethodType.methodType(Object.class, Object.class, Object[].class));
 
             setAccessible = lookup.findVirtual(methodClass, "setAccessible", MethodType.methodType(void.class, boolean.class));
+
+            getModifiers = lookup.findVirtual(methodClass, "getModifiers", MethodType.methodType(int.class));
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
@@ -77,6 +80,15 @@ public class MethodReflector {
             Global.getLogger(getClass()).error("Couldn't invoke method!", ex);
         }
         return null;
+    }
+
+    public int getModifiers() {
+        try {
+            return (int) getModifiers.invoke(methodObj);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).error("Couldn't get modifiers!", ex);
+        }
+        return -1;
     }
 
     public void setAccessible(boolean val)

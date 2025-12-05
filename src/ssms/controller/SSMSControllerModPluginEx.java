@@ -17,7 +17,10 @@
  */
 package ssms.controller;
 
+import com.fs.starfarer.api.combat.CombatEntityAPI;
+import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.util.Pair;
+import lunalib.lunaSettings.LunaSettingsListener;
 import org.jetbrains.annotations.NotNull;
 import ssms.controller.campaign.*;
 import ssms.controller.combat.*;
@@ -25,6 +28,9 @@ import ssms.controller.enums.*;
 import ssms.controller.generic.CodexUI;
 import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.reflection.*;
+import ssms.controller.steering.SteeringController;
+import ssms.controller.steering.SteeringController_Cardinal;
+import ssms.controller.steering.SteeringController_FreeFlight;
 import ssms.controller.titlescreen.*;
 import ssms.controller.generic.LoadGameUI;
 
@@ -32,6 +38,7 @@ import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
 
 import java.io.IOException;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.net.JarURLConnection;
 
@@ -42,6 +49,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.lwjgl.input.Controller;
 import org.lwjgl.input.Controllers;
+import lunalib.lunaSettings.LunaSettings;
 
 /**
  * Sets up configuration and application scoped persistency for the mod.
@@ -49,12 +57,45 @@ import org.lwjgl.input.Controllers;
  * @author Malte Schulze
  */
 public final class SSMSControllerModPluginEx extends BaseModPlugin {
+
     public static final String modId = "SSMSControllerEx";
     static public HandlerController controller = new HandlerController();
     static HashMap<String, EnumMap<Indicators, String>> indicatorsByController;
     static public JSONObject oldMappingsJson;
     static public JSONObject newMappingsJson;
     static public EnumMap<Indicators,String> defaultIndicators;
+    static boolean useCardinalSteering = false;
+
+    public static SteeringController createDefaultSteering() {
+        if(useCardinalSteering) {
+            return new SteeringController_Cardinal();
+        } else {
+            return new SteeringController_FreeFlight();
+        }
+    }
+
+    List<String> getAllClasses() throws IOException {
+        List<String> allClasses = new ArrayList<>();
+        var classLoader = Thread.currentThread().getContextClassLoader();
+        var resources = classLoader.getResources("com/fs/starfarer/ui");
+        while (resources.hasMoreElements()) {
+            var resource = resources.nextElement();
+            if (Objects.equals(resource.getProtocol(), "jar")) {
+                var jarConnection = (JarURLConnection) resource.openConnection();
+                var jarFile = jarConnection.getJarFile();
+                var entries = jarFile.entries();
+
+                while (entries.hasMoreElements()) {
+                    var entry = entries.nextElement();
+                    var entryName = entry.getName();
+                    if(entryName.endsWith(".class")) {
+                        allClasses.add(entryName.replace('/', '.').substring(0, entryName.length() - 6));
+                    }
+                }
+            }
+        }
+        return allClasses;
+    }
     
     @Override
     public void onApplicationLoad() throws Exception {
@@ -64,35 +105,55 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
             Global.getLogger(getClass()).error("no settings!!!");
             return;
         }
-        //f.setAccessible(true);
+        var boolTmp = LunaSettings.getBoolean(modId, "useCardinalSteering");
+        if(boolTmp != null) {
+            useCardinalSteering = boolTmp;
+        }
 
-        var classLoader = Thread.currentThread().getContextClassLoader();
-        var packagePath = "com/fs/starfarer/ui";
-        var resources = classLoader.getResources(packagePath);
+        LunaSettings.addSettingsListener(new LunaSettingsListener() {
+            @Override
+            public void settingsChanged(@NotNull String s) {
+                if(s.equals(modId)) {
+                    var boolTmp = LunaSettings.getBoolean(SSMSControllerModPluginEx.modId, "useCardinalSteering");
+                    if (boolTmp != null) {
+                        useCardinalSteering = boolTmp;
+                    }
+                }
+            }
+        });
+
         ClassReflector.suppressWarnings = true;
-        while (resources.hasMoreElements()) {
-            var resource = resources.nextElement();
-            if (Objects.equals(resource.getProtocol(), "jar")) {
-                var jarConnection = (JarURLConnection) resource.openConnection() ;
-                var jarFile = jarConnection.getJarFile();
-                var entries = jarFile.entries();
-
-                while (entries.hasMoreElements()) {
-                    var entry = entries.nextElement();
-                    var entryName = entry.getName();
-
-                    if (entryName.startsWith(packagePath) && entryName.endsWith(".class")) {
-                        var className = entryName.replace('/', '.').substring(0, entryName.length() - 6);
-
-                        try {
-                            var clazz = Class.forName(className);
-                            if(ComboBoxReflector.tryInit(clazz)) {
-                                break;
+        boolean comboBoxInit = false;
+        for(var clsName : getAllClasses()) {
+            if(!comboBoxInit && clsName.startsWith("com.fs.starfarer.ui")) {
+                try {
+                    var clazz = Class.forName(clsName);
+                    if(ComboBoxReflector.tryInit(clazz)) {
+                        comboBoxInit = true;
+                    }
+                } catch (Exception ex) {
+                    // Skip classes that can't be loaded
+                }
+            } else if(clsName.startsWith("com.fs.starfarer.combat.ai") && clsName.split("\\.").length == 6) {
+                try {
+                    var clazz = Class.forName(clsName);
+                    var clazzReflector = new ClassReflector(clazz);
+                    var ctors = clazzReflector.getDeclaredConstructors();
+                    if(ctors.length == 1 && ctors[0].getParameterTypes().length == 0) {
+                        for(var method : clazzReflector.getDeclaredMethods()) {
+                            var paramTypes = method.getParameterTypes();
+                            if(paramTypes.length == 3 &&
+                                    (method.getModifiers() & Modifier.STATIC) != 0 &&
+                                    method.getReturnType() == void.class &&
+                                    CombatEntityAPI.class.isAssignableFrom(paramTypes[0]) &&
+                                    paramTypes[1] == float.class &&
+                                    paramTypes[2] == float.class) {
+                                SteeringController_Cardinal.initSteerMethod(method);
                             }
-                        } catch (Exception ex) {
-                            // Skip classes that can't be loaded
                         }
                     }
+                } catch (Exception ex) {
+                    // Skip classes that can't be loaded
                 }
             }
         }

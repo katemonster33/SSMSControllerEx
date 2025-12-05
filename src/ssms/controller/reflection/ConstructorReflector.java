@@ -2,19 +2,22 @@ package ssms.controller.reflection;
 
 import com.fs.starfarer.api.Global;
 
-import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Constructor;
+import java.lang.invoke.MethodType;
 
 public class ConstructorReflector {
     Object ctor;
     static ClassReflector ctorType;
     static MethodReflector newInstanceMethod;
+    static MethodReflector getParameterTypes;
 
     static {
         try {
             ctorType = new ClassReflector(Class.forName("java.lang.reflect.Constructor", false, Class.class.getClassLoader()));
+
             newInstanceMethod = ctorType.getDeclaredMethod("newInstance", Object[].class);
+
+            getParameterTypes = ctorType.getDeclaredMethod("getParameterTypes");
         } catch(ClassNotFoundException cnfe) {
             throw new RuntimeException(cnfe);
         }
@@ -31,5 +34,9 @@ public class ConstructorReflector {
             Global.getLogger(getClass()).warn("Couldn't invoke constructor!", ex);
         }
         return null;
+    }
+
+    public Class<?>[] getParameterTypes() {
+        return (Class<?>[]) getParameterTypes.invoke(ctor);
     }
 }
