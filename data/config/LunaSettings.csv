@@ -1,3 +1,5 @@
 fieldID,fieldName,fieldType,defaultValue,secondaryValue,fieldDescription,minValue,maxValue,tab
 luna_settingsHeader,Steering Header,Header,Steering,,,,,
-useCardinalSteering,Use Enhanced Cardinal Steering Controller?,Boolean,false,,A button that switches between true and false.,,,
+useCardinalSteering,Use Enhanced Cardinal Steering Controller?,Boolean,false,,"When enabled, the left joystick moves the ship in the direction on the screen pointed to by the stick, regardless of the ship's facing.",,,
+defaultCampaignControlMode,Default control mode to use in the Campaign,Radio,Point-And-Click,"JoystickOnly,Point-And-Click","JoystickOnly - ship moves simply by pressing the joystick. The right bumper will open an interaction with an object when the ship is adjacent to it. Tilting the joystick slightly slows the fleet.
+Point-And-Click - The classic control scheme. Pressing the joystick a direction draws a fake mouse cursor, and pressing the right bumper clicks that point on the screen. Holding left bumper slows the fleet.",,,

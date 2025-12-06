@@ -53,7 +53,7 @@ public class MainCampaignUI extends InputScreenBase {
     int selectedTab;
 
     boolean cameraControlMode = false;
-    boolean directShipControlMode = false;
+    public static boolean directShipControlMode = false;
 
     DirectionalUINavigator shipInfoNavigator;
 
