@@ -12,7 +12,7 @@ val modName = rootDir.name
  * Where your Starsector game is installed to.
  * Note: On Linux, if you installed Starsector into your home directory, you have to write /home/<user>/ instead of ~/
  */
-val starsectorDirectory = "C:\\Users\\pn1711\\starsector"
+val starsectorDirectory = "C:\\Program Files (x86)\\Fractal Softworks\\Starsector"
 
 /** Defaults to the name of your mod, with spaces replaced by hyphens. */
 val modFolderName = modName.replace(" ", "-")
@@ -23,7 +23,7 @@ val modFolderName = modName.replace(" ", "-")
 /** Set below to `true` to automatically create mod_info.json and Version Checker files. */
 val shouldAutomaticallyCreateMetadataFiles = true
 // Then, if above is set to true, update the rest of the information below in SECTION B.
-val modVersion = "1.7.0"
+val modVersion = "2.0.0"
 val jarFileName = "${modName.replace(" ", "-")}.jar"
 val modId = "SSMSControllerEx"
 val modAuthor = "Kate M"

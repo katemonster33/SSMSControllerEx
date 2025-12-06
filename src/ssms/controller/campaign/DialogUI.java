@@ -7,6 +7,7 @@ import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.apache.log4j.Level;
+import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
@@ -14,11 +15,13 @@ import ssms.controller.enums.LogicalButtons;
 import ssms.controller.generic.CodexUI;
 import ssms.controller.generic.MessageBoxScreen;
 import ssms.controller.inputhelper.DirectionalUINavigator;
+import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.*;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.security.Key;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,6 +44,7 @@ public class DialogUI extends InputScreenBase {
         indicators = new ArrayList<>();
         directionalUINavigator = new DirectionalUINavigator(new ArrayList<>());
         addDigitalJoystickHandler("Navigate menu", Joystick.DPad, directionalUINavigator);
+        addButtonPressHandler("Dismiss", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
         addButtonPressHandler("Confirm", LogicalButtons.A, (float advance) -> clickButton());
         if(interactionDialogAPI != null) {
             optionsPanel = new UIPanelReflector((UIPanelAPI) interactionDialogAPI.getOptionPanel());

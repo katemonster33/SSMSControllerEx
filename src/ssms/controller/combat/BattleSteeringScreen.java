@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Vector;
 
 import org.apache.log4j.Level;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
@@ -84,6 +85,7 @@ public class BattleSteeringScreen extends InputScreenBase {
         screenIndicators.add(new Pair<>(Indicators.A, "System"));
         screenIndicators.add(new Pair<>(Indicators.X, "Vent"));
         screenIndicators.add(new Pair<>(Indicators.Y, "Toggle Fighters"));
+        screenIndicators.add(new Pair<>(Indicators.B, "End Combat / Settings"));
         screenIndicators.add(new Pair<>(Indicators.Start, "Menu"));
         screenIndicators.add(new Pair<>(Indicators.Select, "Targeting"));
         screenIndicators.add(new Pair<>(Indicators.DPadLeft, "Toggle Autofire"));
@@ -267,6 +269,9 @@ public class BattleSteeringScreen extends InputScreenBase {
                 //wasShieldOn = ps.getShield() != null && ps.getShield().isOn();
             }// else wasShieldOn = false;
         }// else wasShieldOn = false;
+        if(controller.getButtonEvent(LogicalButtons.B) == -1) {
+            InputShim.keyDownUp(Keyboard.KEY_ESCAPE, '\0');
+        }
         if(controller.getButtonEvent(LogicalButtons.RightStickButton) == 1) {
             cameraPanningMode = !cameraPanningMode;
             updateIndicators(lastSteeringController, true);
