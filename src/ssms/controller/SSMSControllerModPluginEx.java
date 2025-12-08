@@ -126,7 +126,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         });
 
         ClassReflector.suppressWarnings = true;
-        boolean comboBoxInit = false;
+        boolean comboBoxInit = false, fleetMemberUiInit = false;
         for(var clsName : getAllClasses()) {
             if(!comboBoxInit && clsName.startsWith("com.fs.starfarer.ui")) {
                 try {
@@ -157,6 +157,10 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                     }
                 } catch (Exception ex) {
                     // Skip classes that can't be loaded
+                }
+            } else if(!fleetMemberUiInit && clsName.startsWith("com.fs.starfarer.coreui") && clsName.split("\\.").length == 5) {
+                if(FleetMemberViewReflector.tryInit(Class.forName(clsName))) {
+                    fleetMemberUiInit = true;
                 }
             }
         }

@@ -27,6 +27,7 @@ import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.campaign.ui.trade.CargoDataGridView;
 import com.fs.starfarer.campaign.ui.trade.CargoStackView;
 import com.fs.starfarer.codex2.CodexDialog;
+import com.fs.starfarer.coreui.AptitudeRow;
 import com.fs.state.AppDriver;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
@@ -369,7 +370,9 @@ public class InputScreenBase {
                     } else if(UIPanelAPI.class.isAssignableFrom(item.getClass())) {
                         getPanelNavigatables(new UIPanelReflector((UIPanelAPI) item), directionalObjects, scrollers, new ArrayList<>());
                     }
-                    directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI) item, scroller));
+                    if(!AptitudeRow.class.isAssignableFrom(item.getClass()) && !FleetMemberViewReflector.getFleetMemberViewClass().isAssignableFrom(item.getClass())) {
+                        directionalObjects.add(new DirectionalUINavigator.NavigationObject((UIComponentAPI) item, scroller));
+                    }
                 }
             }
         }

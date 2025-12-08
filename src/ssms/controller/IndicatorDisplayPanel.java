@@ -48,6 +48,7 @@ public class IndicatorDisplayPanel extends LunaBaseCustomPanelPlugin  {
             case BL -> getPanel().getPosition().inBL(spacing, spacing);
             case BR -> getPanel().getPosition().inBR(spacing, spacing);
             case RMID -> getPanel().getPosition().inRMid(spacing);
+            case TR -> getPanel().getPosition().inTR(spacing, spacing);
 
             default -> getPanel().getPosition().inMid();
         }

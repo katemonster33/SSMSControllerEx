@@ -9,11 +9,13 @@ import com.fs.starfarer.api.campaign.SectorEntityToken;
 import com.fs.starfarer.api.combat.ViewportAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Entities;
 import com.fs.starfarer.api.input.InputEventMouseButton;
+import com.fs.starfarer.api.ui.Alignment;
 import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.api.util.Pair;
 import com.fs.starfarer.campaign.save.LoadGameDialog;
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.util.vector.Vector2f;
 import ssms.controller.*;
@@ -70,6 +72,7 @@ public class MainCampaignUI extends InputScreenBase {
         });
         if(directShipControlMode) {
             indicators.add(new Pair<>(Indicators.LeftStick, "Move ship"));
+            indicators.add(new Pair<>(Indicators.LeftTrigger, "Go Slow"));
         } else {
             addAnalogJoystickHandler("Set ship heading", Joystick.Left, this::handleShipMovement);
             indicators.add(new Pair<>(Indicators.LeftTrigger, "Go Slow"));
@@ -95,9 +98,16 @@ public class MainCampaignUI extends InputScreenBase {
             if(coursePanelReflector.getInner().getState() == Fader.State.IN) {
                 directionalObjects.addAll(coursePanelReflector.getChildButtons().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
             }
-            directionalObjects.addAll(coreUiReflector.getChildPanels(3).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
+            //directionalObjects.addAll(coreUiReflector.getChildPanels(3).stream().map(DirectionalUINavigator.NavigationObject::new).toList());
+            directionalObjects.addAll(new UIPanelReflector(coreUiReflector.getAbilityBar()).getChildPanels().stream().map(DirectionalUINavigator.NavigationObject::new).toList());
             shipInfoNavigator = new DirectionalUINavigator(directionalObjects);
             addDigitalJoystickHandler("Navigate ship information / hotkeys", Joystick.DPad, shipInfoNavigator);
+            addButtonPressHandler("Select active hotkey/button", LogicalButtons.A, (float advance) -> {
+                if(shipInfoNavigator.getSelected() != null) {
+                    InputShim.mouseMove((int) shipInfoNavigator.getSelected().getCenterX(), (int) shipInfoNavigator.getSelected().getCenterY());
+                    InputShim.mouseDownUp((int) shipInfoNavigator.getSelected().getCenterX(), (int) shipInfoNavigator.getSelected().getCenterY(), InputEventMouseButton.LEFT);
+                }
+            });
             addButtonPressOrHoldHandler("More Info", "Open Codex", LogicalButtons.Y, new ButtonPressOrHoldHandler() {
                 @Override
                 public void performHoldAction(float advance) {
@@ -148,6 +158,11 @@ public class MainCampaignUI extends InputScreenBase {
             refreshIndicators();
         });
         return indicators;
+    }
+
+    @Override
+    public Alignment getIndicatorsAlignment() {
+        return Alignment.TR;
     }
 
     @Override
@@ -297,24 +312,23 @@ public class MainCampaignUI extends InputScreenBase {
             focusedEntity = null;
             float closestEntityDist = Float.MAX_VALUE;
             Vector2f fleetPos = Global.getSector().getPlayerFleet().getLocation();
-            for(var ent : Global.getSector().getCurrentLocation().getAllEntities()) {
-                if(isCompatibleEntity(ent) && Global.getSector().getViewport().isNearViewport(ent.getLocation(), 10.f)) {
+            for (var ent : Global.getSector().getCurrentLocation().getAllEntities()) {
+                if (isCompatibleEntity(ent) && Global.getSector().getViewport().isNearViewport(ent.getLocation(), 10.f)) {
                     float dist = new Vector2f(ent.getLocation().x - fleetPos.x, ent.getLocation().y - fleetPos.y).length();
-                    if(dist < 50.f && dist < closestEntityDist) {
+                    if (dist < 50.f && dist < closestEntityDist) {
                         closestEntityDist = dist;
                         focusedEntity = ent;
                     }
                 }
             }
-            if(focusedEntity != null) {
+            if (focusedEntity != null) {
                 mousePos.setX(sectorViewport.convertWorldXtoScreenX(focusedEntity.getLocation().x));
                 mousePos.setY(sectorViewport.convertWorldYtoScreenY(focusedEntity.getLocation().y));
-                InputShim.mouseMove((int)mousePos.x, (int)mousePos.y);
+                InputShim.mouseMove((int) mousePos.x, (int) mousePos.y);
             }
-        } else {
-            if (controller.isButtonPressed(LogicalButtons.LeftTrigger)) {
-                Global.getSector().getPlayerFleet().goSlowOneFrame();
-            }
+        }
+        if (controller.isButtonPressed(LogicalButtons.LeftTrigger)) {
+            Global.getSector().getPlayerFleet().goSlowOneFrame();
         }
         if(shipInfoNavigator != null && gameCurrentlyPaused) {
             shipInfoNavigator.advance(advance);
