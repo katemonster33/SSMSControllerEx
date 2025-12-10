@@ -136,6 +136,14 @@ public class CombatStateReflector {
         }
     }
 
+    public void turnOffAutopilot() {
+        try {
+            setAutoPilot.invoke(cs, false);
+        } catch(Throwable ex) {
+            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.WARN, "Failed to turn off auto-pilot!");
+        }
+    }
+
     public void ToggleAutoPilot() {
         try {
             boolean autoPilotState = (boolean)isAutoPilotOn.invoke(cs);

@@ -173,6 +173,12 @@ public class BattleSteeringScreen extends InputScreenBase {
             return;
         }
         ShipAPI ps = psCache.ps;
+        if(!engine.isUIAutopilotOn()) {
+            Vector2f leftStick = controller.getJoystick(Joystick.Left), rightStick = controller.getJoystick(Joystick.Right);
+            if(leftStick.x != 0.f || leftStick.y != 0.f || rightStick.x != 0.f || rightStick.y != 0.f) {
+                CombatStateReflector.GetInstance().turnOffAutopilot();
+            }
+        }
         if ( processShipInputs(ps) ) {
             //autopilot flag is inverted!
             if ( engine.isUIAutopilotOn() && !engine.isPaused() && amount > 0f ) {
