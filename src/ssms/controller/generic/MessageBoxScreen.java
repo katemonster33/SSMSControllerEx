@@ -7,6 +7,8 @@ import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
+import ssms.controller.campaign.MainCampaignUI;
+import ssms.controller.titlescreen.TitleScreenUI;
 import ssms.controller.combat.BattleScope;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.Joystick;
@@ -78,12 +80,20 @@ public class MessageBoxScreen extends InputScreenBase {
         if (isCodexOpen()) {
             InputScreenManager.getInstance().transitionDelayed(CodexUI.ID, getId());
         }
-        for (var child : dialogReflector.getChildPanels()) {
-            if (MessageBoxReflector.isMsgBox(child)) {
-                dialogToReturnTo = dialogReflector;
-                dialogReflector = new MessageBoxReflector(child);
-                refreshIndicators();
-                return;
+        if(dialogReflector.getParent() == null) {
+            if(Global.getCurrentState() == GameState.CAMPAIGN) {
+                InputScreenManager.getInstance().transitionToScreen(MainCampaignUI.ID);
+            } else if(Global.getCurrentState() == GameState.TITLE) {
+                InputScreenManager.getInstance().transitionToScreen(TitleScreenUI.ID);
+            }
+        } else {
+            for (var child : dialogReflector.getChildPanels()) {
+                if (MessageBoxReflector.isMsgBox(child)) {
+                    dialogToReturnTo = dialogReflector;
+                    dialogReflector = new MessageBoxReflector(child);
+                    refreshIndicators();
+                    return;
+                }
             }
         }
         if (directionalUINavigator != null) {
