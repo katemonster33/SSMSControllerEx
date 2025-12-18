@@ -8,6 +8,7 @@ import java.util.List;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.InputImplementation;
 import ssms.controller.reflection.ClassReflector;
 import ssms.controller.reflection.FieldReflector;
@@ -23,6 +24,8 @@ public class InputShim implements InputImplementation {
     static List<InputEvent> pendingEvents = new ArrayList<>();
     static HashSet<Integer> keysDown = new HashSet<>();
     static HashSet<Integer> mouseBtnsDown = new HashSet<>();
+
+    static float screenScalingMultiplier = 1.0f;
 
     static FieldReflector inputImplField, inputImplFieldKb;
 
@@ -46,6 +49,15 @@ public class InputShim implements InputImplementation {
                 inputImplFieldKb.set(null, instance);
             }
         }
+        screenScalingMultiplier = Global.getSettings().getScreenScaleMult();
+    }
+
+    public static float getScaledScreenWidth() {
+        return Display.getWidth() / screenScalingMultiplier;
+    }
+
+    public static float getScaledScreenHeight() {
+        return Display.getHeight() / screenScalingMultiplier;
     }
 
     public static Integer getMouseX() {
@@ -175,10 +187,10 @@ public class InputShim implements InputImplementation {
     public void pollMouse(IntBuffer intBuffer, ByteBuffer byteBuffer) {
         realImpl.pollMouse(intBuffer, byteBuffer);
         if(mouseX != null) {
-            intBuffer.put(0, (int)mouseX);
+            intBuffer.put(0, (int)(mouseX * screenScalingMultiplier));
         }
         if(mouseY != null) {
-            intBuffer.put(1, (int)mouseY);
+            intBuffer.put(1, (int)(mouseY * screenScalingMultiplier));
         }
         if(mouseDWheel != null) {
             intBuffer.put(2, (int)mouseDWheel);
@@ -206,8 +218,8 @@ public class InputShim implements InputImplementation {
                 var evt = pendingEvents.get(0);
                 byteBuffer.put((byte)evt.mouseBtn);
                 byteBuffer.put((byte)(evt.state ? 1 : 0));
-                byteBuffer.putInt(evt.mouseX);
-                byteBuffer.putInt(evt.mouseY);
+                byteBuffer.putInt((int)(evt.mouseX * screenScalingMultiplier));
+                byteBuffer.putInt((int)(evt.mouseY * screenScalingMultiplier));
                 byteBuffer.putInt(evt.dwheel);
                 byteBuffer.putLong(10000000L);
                 mouseX = evt.mouseX;

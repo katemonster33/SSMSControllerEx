@@ -134,7 +134,7 @@ public class BattleSteeringScreen extends InputScreenBase {
         combatView = null;
 
         // if we don't do this here, when the user zooms the view, the view spazzes out because it tries to go where the (real) mouse cursor is. we don't want this.
-        InputShim.mouseMove((int)(Display.getWidth() / 2.f), (int)(Display.getHeight() / 2.f));
+        InputShim.mouseMove((int)(InputShim.getScaledScreenWidth() / 2.f), (int)(InputShim.getScaledScreenHeight() / 2.f));
     }
     
     protected boolean processShipInputs(ShipAPI ps) {
@@ -286,19 +286,19 @@ public class BattleSteeringScreen extends InputScreenBase {
         if(cameraPanningMode) {
             var rightStickVal = SSMSControllerModPluginEx.controller.getJoystick(Joystick.Right);
             // make sure the mouse stays at the center when swapping modes, so the view doesn't end up skewed off to the side...
-            InputShim.mouseMove((int)(Display.getWidth() / 2.f), (int)(Display.getHeight() / 2.f));
+            InputShim.mouseMove((int)(InputShim.getScaledScreenWidth() / 2.f), (int)(InputShim.getScaledScreenHeight() / 2.f));
             combatViewport.setExternalControl(false);
 
-            Vector2f displayCenterPos = new Vector2f(Display.getWidth() / 2.f, Display.getHeight() / 2.f);
+            Vector2f displayCenterPos = new Vector2f(InputShim.getScaledScreenWidth() / 2.f, InputShim.getScaledScreenHeight() / 2.f);
             InputShim.mouseMove((int)(displayCenterPos.x + (displayCenterPos.x * rightStickVal.getX())), (int)(displayCenterPos.y - (displayCenterPos.y * rightStickVal.getY())));
             //combatViewport.setCenter(new Vector2f(combatViewport.convertScreenXToWorldX(mousePos.x), combatViewport.convertScreenYToWorldY(mousePos.y)));
         } else {
             if(controller.isButtonPressed(LogicalButtons.DpadUp)) {
-                InputShim.mouseMove((int)(Display.getWidth() / 2.f), (int)(Display.getHeight() / 2.f));
+                InputShim.mouseMove((int)(InputShim.getScaledScreenWidth() / 2.f), (int)(InputShim.getScaledScreenHeight() / 2.f));
                 combatViewport.setExternalControl(false);
                 csr.getZoomTracker().setZoom(csr.getZoomTracker().getZoom() - 0.05f );
             } else if(controller.isButtonPressed(LogicalButtons.DpadDown)) {
-                InputShim.mouseMove((int)(Display.getWidth() / 2.f), (int)(Display.getHeight() / 2.f));
+                InputShim.mouseMove((int)(InputShim.getScaledScreenWidth() / 2.f), (int)(InputShim.getScaledScreenHeight() / 2.f));
                 combatViewport.setExternalControl(false);
                 csr.getZoomTracker().setZoom(csr.getZoomTracker().getZoom() + 0.1f );
             } else if(ps != null) {

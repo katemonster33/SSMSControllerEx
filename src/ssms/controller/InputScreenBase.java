@@ -265,8 +265,8 @@ public class InputScreenBase {
 
     protected boolean isComponentVisible(UIComponentAPI comp) {
         var pos = comp.getPosition();
-        return comp.getOpacity() == 1.f && pos.getX() >= 0 && pos.getX() <= Display.getWidth() &&
-                pos.getY() >= 0 && pos.getY() <= Display.getHeight();
+        return comp.getOpacity() == 1.f && pos.getX() >= 0 && pos.getX() <= InputShim.getScaledScreenWidth() &&
+                pos.getY() >= 0 && pos.getY() <= InputShim.getScaledScreenHeight();
     }
 
     protected boolean openCoreUiTab(CoreUIReflector coreUIReflector) {

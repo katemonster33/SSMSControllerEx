@@ -222,12 +222,12 @@ public class MainCampaignUI extends InputScreenBase {
         if(stickVal.getX() < 0) {
             mousePos.x = shipPos.x + stickVal.getX() * shipPos.x;
         } else {
-            mousePos.x = shipPos.x + stickVal.getX() * (Display.getWidth() - shipPos.x);
+            mousePos.x = shipPos.x + stickVal.getX() * (InputShim.getScaledScreenWidth() - shipPos.x);
         }
         if(stickVal.getY() < 0) {
             mousePos.y = shipPos.y - stickVal.getY() * shipPos.y;
         } else {
-            mousePos.y = shipPos.y - stickVal.getY() * (Display.getHeight() - shipPos.y);
+            mousePos.y = shipPos.y - stickVal.getY() * (InputShim.getScaledScreenHeight() - shipPos.y);
         }
         InputShim.mouseMove((int)mousePos.x, (int)mousePos.y);
         return true;
