@@ -180,6 +180,9 @@ public class MainCampaignUI extends InputScreenBase {
 
     boolean isCompatibleEntity(SectorEntityToken ent) {
         if(ent == Global.getSector().getPlayerFleet()) return false;
+        if(CampaignFleetAPI.class.isAssignableFrom(ent.getClass())) {
+            return true;
+        }
         if(ent.getTags() == null || ent.getTags().isEmpty()) return false;
         for(var tag : ent.getTags()) {
             switch(tag) {
@@ -241,20 +244,22 @@ public class MainCampaignUI extends InputScreenBase {
         }
         if ( stickVal.getX() == 0 && stickVal.getY() == 0) {
             if(movedShipLastFrame) {
-                pf.setMoveDestination(pf.getLocation().getX(), pf.getLocation().getY());
+                pf.setMoveDestinationOverride(pf.getLocation().getX(), pf.getLocation().getY());
                 movedShipLastFrame = false;
             }
             return false;
         }
         var shipPos = new Vector2f(pf.getLocation());
-        if(stickVal.getX() != 0) shipPos.setX(shipPos.getX() + (stickVal.getX() * 500.f));
-        if(stickVal.getY() != 0) shipPos.setY(shipPos.getY() + (stickVal.getY() * -500.f));
+        if(stickVal.getX() != 0) shipPos.setX(shipPos.getX() + (stickVal.getX() * 1000.f));
+        if(stickVal.getY() != 0) shipPos.setY(shipPos.getY() + (stickVal.getY() * -1000.f));
         if(stickVal.lengthSquared() < 0.3f) {
             Global.getSector().getPlayerFleet().goSlowOneFrame();
         }
-        pf.setMoveDestination(shipPos.getX(), shipPos.getY());
+        pf.setMoveDestinationOverride(shipPos.getX(), shipPos.getY());
         if(!movedShipLastFrame) {
+            InputShim.mouseMove(-9999, -9999);
             InputShim.mouseDownUp(-9999, -9999, InputEventMouseButton.LEFT);
+            InputShim.mouseMove((int) InputShim.getScaledScreenWidth() / 2, (int) InputShim.getScaledScreenHeight() / 2);
         }
         movedShipLastFrame = true;
         return true;
@@ -311,10 +316,13 @@ public class MainCampaignUI extends InputScreenBase {
             moveShipWithStick(controller.getJoystick(Joystick.Left));
             focusedEntity = null;
             float closestEntityDist = Float.MAX_VALUE;
-            Vector2f fleetPos = Global.getSector().getPlayerFleet().getLocation();
+            var pf = Global.getSector().getPlayerFleet();
+            Vector2f fleetPos = pf.getLocation();
             for (var ent : Global.getSector().getCurrentLocation().getAllEntities()) {
-                if (isCompatibleEntity(ent) && Global.getSector().getViewport().isNearViewport(ent.getLocation(), 10.f)) {
+                if (Global.getSector().getViewport().isNearViewport(ent.getLocation(), 10.f) && isCompatibleEntity(ent)) {
                     float dist = new Vector2f(ent.getLocation().x - fleetPos.x, ent.getLocation().y - fleetPos.y).length();
+                    dist -= ent.getRadius();
+                    dist -= pf.getRadius();
                     if (dist < 50.f && dist < closestEntityDist) {
                         closestEntityDist = dist;
                         focusedEntity = ent;
