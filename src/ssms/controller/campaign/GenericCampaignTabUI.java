@@ -1,11 +1,13 @@
 package ssms.controller.campaign;
 
+import com.fs.starfarer.api.GameState;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CoreUITabId;
 import com.fs.starfarer.api.ui.*;
 import com.fs.starfarer.api.util.Pair;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
+import ssms.controller.combat.BattleScope;
 import ssms.controller.enums.Indicators;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.ButtonPressOrHoldHandler;
@@ -117,6 +119,10 @@ public class GenericCampaignTabUI extends InputScreenBase {
 
     @Override
     public void preInput(float amount) {
+        if(Global.getCurrentState() == GameState.COMBAT) {
+            InputScreenManager.getInstance().transitionToScope(BattleScope.ID, Global.getCombatEngine());
+            return;
+        }
         if (Global.getSector().getCampaignUI().getCurrentCoreTab() == null) {
             InputScreenManager.getInstance().transitionDelayed(MainCampaignUI.ID);
             return;
