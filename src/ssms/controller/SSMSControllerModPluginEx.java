@@ -109,7 +109,6 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         if(boolTmp != null) {
             useCardinalSteering = boolTmp;
         }
-        MainCampaignUI.directShipControlMode = Objects.equals(LunaSettings.getString(modId, "defaultCampaignControlMode"), "JoystickOnly");
 
         LunaSettings.addSettingsListener(new LunaSettingsListener() {
             @Override
@@ -119,8 +118,6 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                     if (boolTmp != null) {
                         useCardinalSteering = boolTmp;
                     }
-
-                    MainCampaignUI.directShipControlMode = Objects.equals(LunaSettings.getString(modId, "defaultCampaignControlMode"), "JoystickOnly");
                 }
             }
         });

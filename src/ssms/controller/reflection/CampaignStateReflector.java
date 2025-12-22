@@ -6,6 +6,8 @@ import com.fs.starfarer.api.ui.UIPanelAPI;
 import com.fs.starfarer.campaign.CampaignState;
 import com.fs.state.AppDriver;
 
+import ssms.controller.InputShim;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -17,6 +19,8 @@ public class CampaignStateReflector {
     Object cs;
     MethodHandle getZoomFactor;
     static CampaignStateReflector instance;
+    static FieldReflector viewOffset;
+    static FieldReflector isFreeLookOn;
     private CampaignStateReflector() {
         cs = AppDriver.getInstance().getState(CampaignState.STATE_ID);
         try {
@@ -26,6 +30,17 @@ public class CampaignStateReflector {
             getZoomFactor = MethodHandles.lookup().findVirtual(CampaignState.class, "getZoomFactor", MethodType.methodType(float.class));
 
             coreUiField = csReflector.getDeclaredField("core");
+
+            viewOffset = csReflector.getDeclaredField("viewOffset");
+
+            ClassReflector viewOffsetCls = new ClassReflector(viewOffset.getType());
+            int boolFieldCount = 0;
+            for(var field : viewOffsetCls.getDeclaredFields()) {
+                if(field.getType() == boolean.class && ++boolFieldCount == 2) {
+                    isFreeLookOn = field;
+                    break;
+                }
+            }
         } catch(Throwable ex) {
             Global.getLogger(getClass()).fatal("Couldn't reflect into CampaignState!");
         }
@@ -36,6 +51,12 @@ public class CampaignStateReflector {
             instance = new CampaignStateReflector();
         }
         return instance;
+    }
+
+    public boolean getIsFreeLookOn() {
+        var viewOffsetObj = viewOffset.get(cs);
+
+        return (boolean) isFreeLookOn.get(viewOffsetObj);
     }
 
     public void refreshInstance() {
