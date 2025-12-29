@@ -166,6 +166,7 @@ public class TradeScreen extends InputScreenBase {
         if(cargoTransferHandler != null) {
             if(cargoTransferHandler.getScrollbar() != null || cargoTransferHandler.getPickedUpStack() != null) {
                 InputScreenManager.getInstance().transitionToScreen(CargoStackPickerScreen.ID, tradeUiReflector);
+                return;
             }
         }
         if(interactionDialogAPI != null) {
