@@ -8,6 +8,7 @@ import com.fs.starfarer.campaign.ui.trade.CargoDataGridView;
 import org.lwjgl.input.Keyboard;
 import ssms.controller.*;
 import ssms.controller.enums.Indicators;
+import ssms.controller.enums.Joystick;
 import ssms.controller.enums.LogicalButtons;
 import ssms.controller.inputhelper.KeySender;
 import ssms.controller.reflection.*;
@@ -23,10 +24,11 @@ public class CargoStackPickerScreen  extends InputScreenBase {
     public static final String ID = "CargoStackPicker";
     TradeUiReflector tradeUiReflector;
     CargoTransferHandlerReflector cargoTransferHandler;
-    int mouseX = -1, mouseY = -1;
+    float mouseX = -1, mouseY = -1;
     ScrollbarUiReflector scrollbar;
     boolean wasScrollerVisible = false;
     boolean movedNewCargoStack = false;
+    final float mouseMoveFactor = 400.f;
 
     @Override
     public void activate(Object ... args) {
@@ -42,29 +44,29 @@ public class CargoStackPickerScreen  extends InputScreenBase {
     public List<Pair<Indicators, String>> getIndicators() {
         indicators = new ArrayList<>();
         if(scrollbar != null) {
-            addButtonPressHandler("Select less", LogicalButtons.DpadLeft, (float advance) -> updateMousePos(mouseX - 10));
-            addButtonPressHandler("Select more", LogicalButtons.DpadRight, (float advance) -> updateMousePos(mouseX + 10));
-            addButtonPressHandler("Select all", LogicalButtons.DpadUp, (float advance) -> updateMousePos(Integer.MAX_VALUE));
-            addButtonPressHandler("Select none", LogicalButtons.DpadDown, (float advance) -> updateMousePos(Integer.MIN_VALUE));
+            addButtonPressHandler("Select less", LogicalButtons.DpadLeft, (float advance) -> updateMouseXPos((int) mouseX - 10));
+            addButtonPressHandler("Select more", LogicalButtons.DpadRight, (float advance) -> updateMouseXPos((int) mouseX + 10));
+            addButtonPressHandler("Select all", LogicalButtons.DpadUp, (float advance) -> updateMouseXPos(Integer.MAX_VALUE));
+            addButtonPressHandler("Select none", LogicalButtons.DpadDown, (float advance) -> updateMouseXPos(Integer.MIN_VALUE));
             addButtonPressHandler("Cancel", LogicalButtons.B, (float advance) -> {
-                InputShim.mouseDownUp(mouseX, mouseY, InputEventMouseButton.RIGHT);
-                InputShim.mouseUp(mouseX, mouseY, InputEventMouseButton.LEFT);
+                InputShim.mouseDownUp((int) mouseX, (int) mouseY, InputEventMouseButton.RIGHT);
+                InputShim.mouseUp((int) mouseX, (int) mouseY, InputEventMouseButton.LEFT);
             });
-            addButtonPressHandler("Confirm", LogicalButtons.A, (float advance) -> InputShim.mouseUp(mouseX, mouseY, InputEventMouseButton.LEFT));
+            addButtonPressHandler("Confirm", LogicalButtons.A, (float advance) -> InputShim.mouseUp((int) mouseX, (int) mouseY, InputEventMouseButton.LEFT));
         } else {
             addButtonPressHandler("Cancel", LogicalButtons.B, new KeySender(Keyboard.KEY_ESCAPE));
-            addButtonPressHandler("Confirm", LogicalButtons.A, (float advance) -> InputShim.mouseDownUp(mouseX, mouseY, InputEventMouseButton.LEFT));
+            addButtonPressHandler("Confirm", LogicalButtons.A, (float advance) -> InputShim.mouseDownUp((int) mouseX, (int) mouseY, InputEventMouseButton.LEFT));
         }
         return indicators;
     }
 
-    void updateMousePos(int newVal) {
+    void updateMouseXPos(float newVal) {
         if(scrollbar == null) return;
         var scrollbarPos = scrollbar.getPrivateObj().getPosition();
         mouseX = newVal;
         if(mouseX < scrollbarPos.getX()) mouseX = (int)scrollbarPos.getX();
         else if(mouseX > scrollbarPos.getX() + scrollbarPos.getWidth()) mouseX = (int)(scrollbarPos.getX() + scrollbarPos.getWidth());
-        InputShim.mouseMove(mouseX, mouseY);
+        InputShim.mouseMove((int) mouseX, (int) mouseY);
     }
 
     public ScrollbarUiReflector tryGetScrollbar() {
@@ -85,61 +87,80 @@ public class CargoStackPickerScreen  extends InputScreenBase {
         // sometimes when trade UI calls us, the trade UI is not actually transferring cargo so we need to pass control back to TradeScreen
         // OR user ended trade themselves with mouse
         scrollbar = tryGetScrollbar();
-        if(scrollbar == null && wasScrollerVisible) {
-            wasScrollerVisible = false;
-            refreshIndicators();
-        }
         if (scrollbar == null) {
+            if(wasScrollerVisible) {
+                wasScrollerVisible = false;
+                refreshIndicators();
+            }
             if (cargoTransferHandler.getPickedUpStack() == null) {
                 InputScreenManager.getInstance().transitionToScope(InputScopeBase.ID, new Object[]{}, TradeScreen.ID, new Object[]{tradeUiReflector});
             } else if(!movedNewCargoStack) {
                 movedNewCargoStack = true;
-                var cargoGridSrc = cargoTransferHandler.getOrigStackSource();
-                if(cargoGridSrc == null) return;
-                CargoDataGridView stackView = null;
-                try {
-                    MethodHandle getCargoDataView = MethodHandles.lookup().findVirtual(cargoGridSrc.getClass(), "getCargoDataView", MethodType.methodType(CargoDataGridView.class));
-                    stackView = (CargoDataGridView) getCargoDataView.invoke(cargoGridSrc);
-                } catch(Throwable ex) {
-                    Global.getLogger(getClass()).error("Couldn't fetch source cargo data grid!", ex);
-                }
-                if(stackView == null) return;
-                var gridToMoveTo = stackView == tradeUiReflector.getPlayerCargoView().getPrivateObject() ? tradeUiReflector.getOtherCargoView() : tradeUiReflector.getPlayerCargoView();
-                var pickedUpStack = cargoTransferHandler.getPickedUpStack();
-                for(var item : gridToMoveTo.getStacks()) {
-                    if(Objects.equals(item.getStack().getCommodityId(), pickedUpStack.getCommodityId())) {
-                        var pos = ((UIComponentAPI)item).getPosition();
-                        mouseX = (int) pos.getCenterX();
-                        mouseY = (int) pos.getCenterY();
-                        InputShim.mouseMove((int) pos.getCenterX(), (int) pos.getCenterY());
-                        return;
-                    }
-                }
-                var gridPos = ((UIComponentAPI)gridToMoveTo.getPrivateObject()).getPosition();
-                for(int row = 0; row < gridToMoveTo.getPrivateObject().getRows(); row++) {
-                    for(int col = 0; col < gridToMoveTo.getPrivateObject().getCols(); col++) {
-                        int xPos = (int)gridPos.getX() + (col * 100);
-                        int yPos = (int)gridPos.getY() + (int)gridPos.getHeight() - 100 - (row * 100);
-
-                        boolean cellFilled = false;
-                        for(var item : gridToMoveTo.getStacks()) {
-                            if(((UIComponentAPI)item).getPosition().getX() == xPos && ((UIComponentAPI)item).getPosition().getY() == yPos) {
-                                cellFilled = true;
-                                break;
-                            }
-                        }
-                        if(!cellFilled) {
-                            mouseX = xPos + 50;
-                            mouseY = yPos + 50;
-                            InputShim.mouseMove(mouseX, mouseY);
-                            return;
-                        }
-                    }
-                }
+                moveNewCargoStackToOtherGrid();
             }
         } else if (mouseX == -1 || mouseY == -1) {
             mouseX = (int) scrollbar.getPrivateObj().getPosition().getX();
             mouseY = (int) scrollbar.getPrivateObj().getPosition().getCenterY();
+        }
+        if(mouseX != -1 && mouseY != -1) {
+            var joystickVal = SSMSControllerModPluginEx.controller.getJoystick(Joystick.Left);
+            if(joystickVal.x != 0.f || joystickVal.y != 0.f) {
+                if (scrollbar != null) {
+                    updateMouseXPos(mouseX + (joystickVal.getX() * mouseMoveFactor * advance));
+                } else {
+                    mouseX += (joystickVal.getX() * mouseMoveFactor * advance);
+                    mouseY -= (joystickVal.getY() * mouseMoveFactor * advance);
+                    InputShim.mouseMove((int) mouseX, (int) mouseY);
+                }
+            }
+        }
+    }
+
+    void mouseOverGridCellAt(float xPos, float yPos, CargoDataGridViewReflector gridView) {
+        var gridScroller = new ScrollPanelReflector(gridView.getScroller());
+        float scrollVal = gridScroller.getScrollPanel().getYOffset();
+        //gridScroller.ensureVisible(item);
+        gridScroller.scrollToY(yPos - ((UIComponentAPI)gridView.getPrivateObject()).getPosition().getY() - 100);
+
+        mouseX = xPos + 50;
+        var gridViewObj = (UIComponentAPI)gridView.getPrivateObject();
+        mouseY = yPos - gridViewObj.getPosition().getY() - 50 + scrollVal - gridScroller.getScrollPanel().getYOffset();
+        InputShim.mouseMove((int) mouseX, (int) mouseY);
+    }
+
+    private void moveNewCargoStackToOtherGrid() {
+        var cargoGridSrc = cargoTransferHandler.getOrigStackSource();
+        if(cargoGridSrc == null) return;
+        CargoDataGridView stackView = null;
+        try {
+            MethodHandle getCargoDataView = MethodHandles.lookup().findVirtual(cargoGridSrc.getClass(), "getCargoDataView", MethodType.methodType(CargoDataGridView.class));
+            stackView = (CargoDataGridView) getCargoDataView.invoke(cargoGridSrc);
+        } catch(Throwable ex) {
+            Global.getLogger(getClass()).error("Couldn't fetch source cargo data grid!", ex);
+        }
+        if(stackView == null) return;
+        var gridToMoveTo = stackView == tradeUiReflector.getPlayerCargoView().getPrivateObject() ? tradeUiReflector.getOtherCargoView() : tradeUiReflector.getPlayerCargoView();
+        var pickedUpStack = cargoTransferHandler.getPickedUpStack();
+        for(var item : gridToMoveTo.getStacks()) {
+            if(Objects.equals(item.getStack().getCommodityId(), pickedUpStack.getCommodityId()) &&
+                Objects.equals(item.getStack().getDisplayName(), pickedUpStack.getDisplayName())) {
+                var pos = ((UIComponentAPI)item).getPosition();
+                mouseOverGridCellAt(pos.getX(), pos.getY(), gridToMoveTo);
+                return;
+            }
+        }
+        var gridPos = ((UIComponentAPI)gridToMoveTo.getPrivateObject()).getPosition();
+        for(int row = 0; row < gridToMoveTo.getPrivateObject().getRows(); row++) {
+            for(int col = 0; col < gridToMoveTo.getPrivateObject().getCols(); col++) {
+                int xPos = (int)gridPos.getX() + (col * 100);
+                int yPos = (int)gridPos.getY() + (int)gridPos.getHeight() - 100 - (row * 100);
+
+                if(gridToMoveTo.getStacks().stream().noneMatch((item) ->
+                        ((UIComponentAPI)item).getPosition().getX() == xPos && ((UIComponentAPI)item).getPosition().getY() == yPos)) {
+                    mouseOverGridCellAt(xPos, yPos, gridToMoveTo);
+                    return;
+                }
+            }
         }
     }
 
