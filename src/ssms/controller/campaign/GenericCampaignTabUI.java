@@ -51,7 +51,7 @@ public class GenericCampaignTabUI extends InputScreenBase {
         if(selectedTab != null) {
             int selectedTabIdx = tabs.indexOf(selectedTab);
             selectedTabIdx++;
-            if(selectedTabIdx > tabs.size()) selectedTabIdx = 0;
+            if(selectedTabIdx >= tabs.size()) selectedTabIdx = 0;
             InputShim.keyDownUp(tabInputs[selectedTabIdx].one, tabInputs[selectedTabIdx].two);
         }
     }
