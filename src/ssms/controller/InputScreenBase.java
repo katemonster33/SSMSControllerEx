@@ -235,6 +235,7 @@ public class InputScreenBase {
                 indicators.add(new Pair<>(Indicators.RightStick, "Move map"));
                 indicators.add(new Pair<>(Indicators.LeftTrigger, "Zoom out"));
                 indicators.add(new Pair<>(Indicators.RightTrigger, "Zoom in"));
+                addButtonChangeHandler("Lay in course", LogicalButtons.X, directionalUINavigator::handleXButton);
             }
             case Scroller -> indicators.add(new Pair<>(Indicators.RightStick, "Scroll"));
         }

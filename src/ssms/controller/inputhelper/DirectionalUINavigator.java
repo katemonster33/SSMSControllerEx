@@ -212,6 +212,16 @@ public class DirectionalUINavigator implements DigitalJoystickHandler {
         }
     }
 
+    public void handleXButton(float advance, boolean buttonVal) {
+        if(InputShim.getMouseX() != null && InputShim.getMouseY() != null) {
+            if (buttonVal) {
+                InputShim.mouseDown(InputShim.getMouseX(), InputShim.getMouseY(), InputEventMouseButton.RIGHT);
+            } else {
+                InputShim.mouseUp(InputShim.getMouseX(), InputShim.getMouseY(), InputEventMouseButton.RIGHT);
+            }
+        }
+    }
+
     boolean isStickActive(ReadableVector2f stick) {
         return stick.getX() != 0 || stick.getY() != 0;
     }
