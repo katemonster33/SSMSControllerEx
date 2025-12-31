@@ -120,7 +120,8 @@ public class CargoStackPickerScreen  extends InputScreenBase {
         var gridScroller = new ScrollPanelReflector(gridView.getScroller());
         float scrollVal = gridScroller.getScrollPanel().getYOffset();
         //gridScroller.ensureVisible(item);
-        gridScroller.scrollToY(((UIComponentAPI)gridView.getPrivateObject()).getPosition().getHeight() - yPos +  100);
+        var gridPos = ((UIComponentAPI)gridView.getPrivateObject()).getPosition();
+        gridScroller.scrollToY(gridPos.getHeight() + gridPos.getY() - yPos - 100);
 
         mouseX = xPos + 50;
         var gridViewObj = (UIComponentAPI)gridView.getPrivateObject();
