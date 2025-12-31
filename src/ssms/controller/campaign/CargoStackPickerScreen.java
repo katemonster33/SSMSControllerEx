@@ -120,11 +120,11 @@ public class CargoStackPickerScreen  extends InputScreenBase {
         var gridScroller = new ScrollPanelReflector(gridView.getScroller());
         float scrollVal = gridScroller.getScrollPanel().getYOffset();
         //gridScroller.ensureVisible(item);
-        gridScroller.scrollToY(yPos - ((UIComponentAPI)gridView.getPrivateObject()).getPosition().getY() - 100);
+        gridScroller.scrollToY(((UIComponentAPI)gridView.getPrivateObject()).getPosition().getHeight() - yPos +  100);
 
         mouseX = xPos + 50;
         var gridViewObj = (UIComponentAPI)gridView.getPrivateObject();
-        mouseY = yPos - gridViewObj.getPosition().getY() - 50 + scrollVal - gridScroller.getScrollPanel().getYOffset();
+        mouseY = yPos + 50 - scrollVal + gridScroller.getScrollPanel().getYOffset();
         InputShim.mouseMove((int) mouseX, (int) mouseY);
     }
 
@@ -158,6 +158,7 @@ public class CargoStackPickerScreen  extends InputScreenBase {
                 if(gridToMoveTo.getStacks().stream().noneMatch((item) ->
                         ((UIComponentAPI)item).getPosition().getX() == xPos && ((UIComponentAPI)item).getPosition().getY() == yPos)) {
                     mouseOverGridCellAt(xPos, yPos, gridToMoveTo);
+                    //InputShim.mouseMove((int)xPos, (int)yPos);
                     return;
                 }
             }
