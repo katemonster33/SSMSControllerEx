@@ -45,6 +45,15 @@ public class TradeScreen extends InputScreenBase {
             addButtonPressHandler("Select refit tab", LogicalButtons.BumperLeft, new KeySender(Keyboard.KEY_R, 'r'));
             addButtonPressHandler("Select map tab", LogicalButtons.BumperRight, new KeySender(Keyboard.KEY_TAB));
             addDirectionalUINavigator(directionalUINavigator);
+            addButtonPressHandler("Learn selected item", LogicalButtons.LeftStickButton, (float advance) -> {
+                var selectedStack = getSelectedCargoStack();
+                if(selectedStack == null) {
+                    return;
+                }
+                var stackPos = ((UIComponentAPI)selectedStack).getPosition();
+                var mousePos = new Vector2f(stackPos.getCenterX(), stackPos.getCenterY());
+                InputShim.mouseDownUp((int) mousePos.x, (int) mousePos.y, InputEventMouseButton.RIGHT);
+            });
 
             addButtonPressHandler("Fill cargo with stack", LogicalButtons.Y, (float advance) -> {
                 var selectedStack = getSelectedCargoStack();
