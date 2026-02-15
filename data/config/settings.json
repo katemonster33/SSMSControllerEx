@@ -54,6 +54,60 @@
 			},
 			"indicatorProfile" : "xbox360"
 		},
+		"GameSir T4 Kaleid" : {
+			"buttons" : [
+				"A",
+				"B",
+				"X",
+				"Y",
+				"BumperLeft",
+				"BumperRight",
+				"Select",
+				"Start",
+				"HomeButton",
+				"LeftStickButton",
+				"RightStickButton"
+			],
+			"axes" : {
+				"LeftStickX": "XAxis",
+				"LeftStickY": "YAxis",
+				"RightStickX": "XRotation",
+				"RightStickY": "YRotation",
+				"LeftTrigger": "ZAxis",
+				"RightTrigger": "ZRotation",
+				"DPadX" : "POVX",
+				"DPadY" : "POVY"
+			},
+			"indicatorProfile" : "xbox360"
+		},
+		"GameSir-T4K Controller" : {
+			"buttons" : [
+				"A",
+				"B",
+				null,
+				"X",
+				"Y",
+				null,
+				"BumperLeft",
+				"BumperRight",
+				"LeftTrigger",
+				"RightTrigger",
+				"Select",
+				"Start",
+				"HomeButton",
+				"LeftStickButton",
+				"RightStickButton"
+			],
+			"axes" : {
+				"LeftStickX": "XAxis",
+				"LeftStickY": "YAxis",
+				"RightStickX": "ZAxis",
+				"RightStickY": "ZRotation",
+				"DPadX" : "POVX",
+				"DPadY" : "POVY"
+			},
+			"indicatorProfile" : "xbox360"
+		},
 		"Nintendo Co., Ltd. Pro Controller (IMU)" : {
 			"buttons" : [
 				"A",
