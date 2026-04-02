@@ -13,8 +13,13 @@ LazyLib - https://github.com/LazyWizard/lazylib
 ## Installation (WINDOWS ONLY)
 After unzipping the mod contents to mods\SSMSControllerEx , from the SSMSControllerEx\native\windows folder, copy SSMSControllerExNative.dll to the folder Starsector\starsector-core\native\windows . If your controller worked in the previous version of SSMSControllerEx you shouldn't notice any difference in behavior. This step should ensure that just about any controller with a layout similar to an X-Box controller should work with the mod. To be clear, this is ONLY necessary on windows.
 
-## Installation (STEAM DECK ONLY)
-After unzipping the mod contents to mods/SSMSControllerEx, replace the jinput.jar under the starsector folder with the one here https://github.com/katemonster33/SSMSControllerEx/tree/master/dependencies/jinput.jar and replace libjinput-linux64.so under starsector/native/linux with this one https://github.com/katemonster33/SSMSControllerEx/blob/master/dependencies/native/linux/libjinput-linux64.so the version shipped with Starsector has some bugs with interpreting the buttons/axes from the Steam Deck controller.
+## Installation (SteamOS and Linux devices)
+Known to help with:
+* Steam Deck's integrated controller under SteamOS
+* Recognizing the Start button on the ROG Ally's integrated controller under NixOS 25.05
+* Recognizing the Start button on the GameSir T4 Kaleid controller under NixOS 25.05
+
+After unzipping the mod contents to mods/SSMSControllerEx, replace the jinput.jar under the starsector folder with the one here https://github.com/katemonster33/SSMSControllerEx/tree/master/dependencies/jinput.jar and replace libjinput-linux64.so under starsector/native/linux with this one https://github.com/katemonster33/SSMSControllerEx/blob/master/dependencies/native/linux/libjinput-linux64.so the version shipped with Starsector has some bugs with interpreting the buttons/axes from the Steam Deck controller and other controller under Linux.
 
 ## FAQ
 
