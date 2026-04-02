@@ -370,7 +370,8 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         */
         for ( int i = 0; i < Controllers.getControllerCount(); i++ ) {
             Controller con = Controllers.getController(i);
-            logger.info("Found controller: "+con.getName());
+            String controllerGuid = getControllerGuid(con);
+            logger.info("Found controller: "+con.getName() + " (GUID: " + controllerGuid + ")");
             StringBuilder axesInfo = new StringBuilder(" with axes: ");
             for ( int j = 0; j < con.getAxisCount(); j++ ) {
                 if(j != 0) axesInfo.append(", ");
