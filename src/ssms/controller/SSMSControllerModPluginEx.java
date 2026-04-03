@@ -269,7 +269,8 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
     public void onGameLoad(boolean newGame) {
         InputScreenManager.getInstance().transitionToScreen(CampaignTransitionUI.ID);
         Global.getSector().addTransientScript(new CampaignControllerListener());
-        Global.getSector().getListenerManager().addListener(new CampaignRenderer());
+        Global.getSector().getListenerManager().removeListenerOfClass(CampaignRenderer.class); //remove non-transient listener, if one exists
+        Global.getSector().getListenerManager().addListener(new CampaignRenderer(), true);
     }
 
     @NotNull
