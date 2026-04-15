@@ -40,6 +40,7 @@ import com.fs.starfarer.api.Global;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.regex.*;
 import java.net.JarURLConnection;
 
 import org.apache.log4j.Level;
@@ -61,8 +62,9 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
     public static final String modId = "SSMSControllerEx";
     static public HandlerController controller = new HandlerController();
     static HashMap<String, EnumMap<Indicators, String>> indicatorsByController;
-    static public JSONObject oldMappingsJson;
-    static public JSONObject newMappingsJson;
+    private static JSONObject oldMappingsJson;
+    private static ControllerMappingRecord[] controllerMappingDB;
+
     static public EnumMap<Indicators,String> defaultIndicators;
     static boolean useCardinalSteering = false;
 
@@ -96,10 +98,9 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         }
         return allClasses;
     }
-    
+
     @Override
     public void onApplicationLoad() throws Exception {
-
         JSONObject obj = Global.getSettings().loadJSON("data/config/settings.json", "SSMSControllerEx");
         if(obj == null) {
             Global.getLogger(getClass()).error("no settings!!!");
@@ -209,57 +210,44 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
         man.registerScreen(new CampaignTransitionUI());
     }
 
-     enum POVMapping
-     {
-         DPadLeft,
-         DPadRight,
-         DPadUp,
-         DPadDown,
-         Invalid
-     };
+    static ControllerMappingRecord[] loadControllerMappingDatabase() {
+        List<ControllerMappingRecord> records = new ArrayList<ControllerMappingRecord>();
+        try {
+            String dbText = Global.getSettings().loadText("data/config/gamecontrollerdb.txt", "SSMSControllerEx");
+            dbText = dbText.replace("\r", ""); // get rid of the carriage return to make line endings the same regardless of the soure system
+            String[] dbLines = dbText.split("\n");
+            for(int i = 0; i < dbLines.length; i++) {
+                if(Pattern.compile("^[\t ]*$").matcher(dbLines[i]).find() || Pattern.compile("^[\t ]*#").matcher(dbLines[i]).find())
+                    continue;
 
-     static JSONObject configureControllerMappingEx() {
-         JSONObject output = null;
-         try {
-             var controllerMapJson = Global.getSettings().loadJSON("data/config/controllerMappings.json");
-             String platform = System.getProperty("os.name");
-             if(platform.contains("Windows")) platform = "Windows";
-             else if(platform.contains("OS X")) platform = "Mac OS X";
-             else if(platform.contains("Linux")) platform = "Linux";
-             output = controllerMapJson.getJSONObject(platform);
-         } catch(IOException | JSONException ex) {
-             Global.getLogger(SSMSControllerModPluginEx.class).log(Level.FATAL, "Couldn't read controller button mappings!");
-         }
-         return output;
-     }
+                records.add(ControllerMappingRecord.parse(dbLines[i]));
+            }
+        } catch(Exception ex) {
+            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.FATAL, "Couldn't read controller button mappings!", ex);
+        }
+        ControllerMappingRecord[] result = new ControllerMappingRecord[records.size()];
+        records.toArray(result);
+        return result;
+    }
 
     @NotNull
-    private static ControllerMapping createControllerMappingFromJson(JSONObject controller) throws JSONException {
-        var buttons = controller.getJSONArray("buttons");
+    private static ControllerMapping createControllerMappingFromDB(ControllerMappingRecord mappingRecord) {
         ControllerMapping newMapping = new ControllerMapping();
-        for(int btnIdx = 0; btnIdx < buttons.length(); btnIdx++) {
-            if(!buttons.isNull(btnIdx)) {
-                ButtonMapping btnId = ButtonMapping.values()[buttons.getInt(btnIdx)];
-                newMapping.mapButton(new ControllerMapping.ButtonData(btnId, btnIdx));
+        for(int i = 0; i < mappingRecord.getButtons().length; i++){
+            newMapping.mapButton(new ControllerMapping.ButtonData(mappingRecord.getButtons()[i].getButtonMapping(), mappingRecord.getButtons()[i].getNumber()));
+        }
+
+        for(int i = 0; i < mappingRecord.getAxes().length; i++){
+            newMapping.mapAxis(new ControllerMapping.AxisData(mappingRecord.getAxes()[i].getAxisMapping(), null, mappingRecord.getAxes()[i].getNumber()));
+        }
+
+        for(int i = 0; i < mappingRecord.getPOVs().length; i++){
+            switch(mappingRecord.getPOVs()[i].getPOVMapping()) {
+                case DPadDown, DPadUp -> newMapping.mapPov(AxisMapping.DPadY);
+                case DPadLeft, DPadRight -> newMapping.mapPov(AxisMapping.DPadX);
             }
         }
-        var axisMappingsIndexed = AxisMapping.values();
-        var axes = controller.getJSONArray("axes");
-        for(int axisIdx = 0; axisIdx < axes.length(); axisIdx++) {
-            if(!axes.isNull(axisIdx)) {
-                newMapping.mapAxis(new ControllerMapping.AxisData(axisMappingsIndexed[axes.getInt(axisIdx)], null, axisIdx));
-            }
-        }
-        var povs = controller.getJSONArray("povs");
-        for(int povIdx = 0; povIdx < povs.length(); povIdx++) {
-            if(!povs.isNull(povIdx)) {
-                POVMapping povId = POVMapping.values()[povs.getInt(povIdx)];
-                switch(povId) {
-                    case DPadDown, DPadUp -> newMapping.mapPov(AxisMapping.DPadY);
-                    case DPadLeft, DPadRight -> newMapping.mapPov(AxisMapping.DPadX);
-                }
-            }
-        }
+
         // TODO: make indicators based off controller name somehow??
         newMapping.indicatorProfile = "xbox360";
         return newMapping;
@@ -391,7 +379,7 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
             }
             logger.info(rumblersInfo);
         }
-        if ( oldMappingsJson != null || newMappingsJson != null ) {
+        if ( oldMappingsJson != null || controllerMappingDB != null ) {
             for ( int i = 0; i < Controllers.getControllerCount(); i++ ) {
                 Controller con = Controllers.getController(i);
                 if(controllerToConnect != null && con.getIndex() != controllerToConnect.getIndex()) {
@@ -403,16 +391,18 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
                 ControllerMapping conMap = null;
                 String guid = getControllerGuid(con);
                 if (guid != null) {
-                    if(newMappingsJson == null) {
-                        newMappingsJson = configureControllerMappingEx();
+                    if(controllerMappingDB == null) {
+                        controllerMappingDB = loadControllerMappingDatabase();
                     }
-                    if(newMappingsJson.has(guid)) {
-                        var obj = newMappingsJson.getJSONObject(guid);
-                        conMap = createControllerMappingFromJson(obj);
-                        if(System.getProperty("os.name").contains("Windows")) {
-                            convertAxisInstanceToIdx(conMap, con);
+                    for(int dbRecordIndex = 0; dbRecordIndex < controllerMappingDB.length; dbRecordIndex++){
+                        if(controllerMappingDB[dbRecordIndex].getPlatform().equals(getPlatformString()) && controllerMappingDB[dbRecordIndex].getGUID().equals(guid)){
+                            conMap = createControllerMappingFromDB(controllerMappingDB[dbRecordIndex]);
+                            if(System.getProperty("os.name").contains("Windows")) {
+                                convertAxisInstanceToIdx(conMap, con);
+                            }
+                            Global.getLogger(SSMSControllerModPluginEx.class).log(Level.INFO, "Successfully matched controller GUID in database [" + guid + "]");
+                            break;
                         }
-                        Global.getLogger(SSMSControllerModPluginEx.class).log(Level.INFO, "Successfully matched controller GUID in config [" + guid + "]");
                     }
                 }
                 if(conMap == null) {
@@ -531,5 +521,18 @@ public final class SSMSControllerModPluginEx extends BaseModPlugin {
             Global.getLogger(SSMSControllerModPluginEx.class).log(Level.FATAL, "Failed to reflect controller GUID! ", ex);
         }
         return null;
+    }
+
+    static String getPlatformString() throws Exception {
+        String platform = System.getProperty("os.name");
+        if(platform.contains("Windows")) {
+            return "Windows";
+        } else if(platform.contains("Mac OS X")) {
+            return "Mac OS X";
+        } else if(platform.contains("Linux")) {
+            return "Linux";
+        }
+        Global.getLogger(SSMSControllerModPluginEx.class).error("Unknown platform \"" + platform + "\"");
+        throw new Exception("Unknown platform \"" + platform + "\"");
     }
 }

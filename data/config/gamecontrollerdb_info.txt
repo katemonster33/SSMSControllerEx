@@ -1,0 +1,2 @@
+You may find a newer version of the database at https://github.com/mdqinc/SDL_GameControllerDB
+You may also find there links to tools to create new mappings, and use them to contribute your controller to the database.
